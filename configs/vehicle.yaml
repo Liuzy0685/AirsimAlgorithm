@@ -1,0 +1,27 @@
+# UAV AirSim Avoidance — Vehicle Configuration
+# =============================================
+# This file is read by adapters/airsim_client.py and sensors/* at runtime.
+# Edit values to match your AirSim settings.json and environment.
+
+airsim:
+  ip: "127.0.0.1"
+  port: 41451
+  vehicle_name: "Drone1"
+  lidar_name: "LidarSensor1"
+
+lidar:
+  data_frame: "SensorLocalFrame"
+  # Maximum age of a LiDAR frame before it is considered stale (seconds).
+  # Measured against received_monotonic_seconds, NOT raw_timestamp_ns.
+  frame_timeout_seconds: 0.5
+  # If this many consecutive frames are invalid the caller should escalate
+  # (e.g. hover, alert, or emergency land).
+  max_consecutive_invalid: 10
+
+control:
+  # Safety limits — enforced by velocity_controller.py.
+  # These are NOT flight envelope limits; they are sanity bounds.
+  max_horizontal_speed_mps: 2.0
+  max_vertical_speed_mps: 0.5
+  max_yaw_rate_radps: 0.5
+  command_duration_seconds: 0.2

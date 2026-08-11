@@ -1,0 +1,17 @@
+# UAV AirSim Avoidance — Python Dependencies
+# ===========================================
+# Round 2 dependencies only.  No DL/CV/RL packages.
+
+# Numerical computing — LiDAR point-cloud handling.
+numpy>=1.21,<2
+
+# YAML config parsing (configs/vehicle.yaml).
+PyYAML>=6.0
+
+# msgpack-rpc is required by the AirSim PythonClient (airsim package).
+# Install it separately; the airsim package itself is loaded via PYTHONPATH,
+# NOT via pip.
+msgpack-rpc-python>=0.4
+
+# Testing (not required at runtime, but used by tests/).
+pytest>=7.0

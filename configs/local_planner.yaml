@@ -1,0 +1,122 @@
+# Local Planner Configuration — ROUND 4
+# Migrated from ImprovedPotentialField.js defaults + AvoidanceSupervisor.js defaults
+
+navigation:
+  apf:
+    enabled: true
+    priority: 100
+    validity_ms: 120
+    max_speed_mps: 6.0
+    max_acceleration_mps2: 8.0
+    hover_deadband_mps: 0.35
+    safe_distance_m: 14.0
+    emergency_distance_m: 8.0
+    repulsive_gain: 18.0
+    attractive_gain: 1.8
+    path_attraction_gain: 2.1
+    damping_gain: 1.2
+    tangential_gain: 4.6
+    relative_velocity_gain: 2.5
+    vertical_bias_gain: 0.8
+    forward_block_gain: 6.0
+    dominant_obstacle_boost: 1.8
+    path_corridor_width_m: 5.0
+    point_cloud_point_radius_m: 0.35
+    yaw_rate_gain: 1.4
+    max_yaw_rate_radps: 1.2
+    local_goal_lookahead: 4
+    bypass_memory_seconds: 0.8
+    bypass_lock_seconds: 2.0
+    bypass_lock_release_distance_m: 11.0
+    wall_follow_distance_m: 10.0
+    wall_follow_gain: 2.4
+    up_axis_sign: -1
+    local_obstacle_max_span_m: 45.0
+    local_obstacle_max_height_m: 24.0
+
+  supervisor:
+    hysteresis_enter_seconds: 0.5
+    hysteresis_exit_seconds: 0.75
+    dynamic_threat_score_threshold: 0.6
+    dynamic_ttc_threshold_s: 5.0
+    emergency_ttc_threshold_s: 1.5
+    emergency_distance_threshold_m: 8.0
+    static_warning_distance_m: 5.0
+    static_emergency_distance_m: 3.0
+    static_blocked_ahead_distance_m: 8.0
+    static_blocked_ahead_cone_dot: 0.45
+    static_apf_only_distance_m: 1.6
+    static_hard_emergency_distance_m: 0.7
+    recovery_clear_seconds: 0.5
+    recovery_path_deviation_threshold_m: 3.0
+    rl_result_ttl_ms: 150
+    hover_validity_ms: 120
+    recovery_speed_mps: 4.0
+    cruise_priority: 20
+    recovery_priority: 40
+    detour_lateral_gain: 2.2
+    detour_forward_gain: 3.4
+    detour_obstacle_influence_distance_m: 7.0
+    detour_lateral_clearance_m: 3.5
+    detour_forward_clearance_m: 4.5
+    detour_extra_clearance_m: 2.5
+    detour_waypoint_reach_distance_m: 2.8
+    detour_lock_seconds: 1.4
+    recovery_lookahead_distance_m: 8.0
+    recovery_min_forward_speed_mps: 1.8
+    recovery_vertical_gain: 0.45
+    recovery_vertical_deadband: 0.25
+    recovery_vertical_limit_mps: 0.45
+    local_detour_max_obstacle_span_m: 45.0
+    local_detour_max_obstacle_height_m: 24.0
+    proactive_front_distance_m: 9.0
+    proactive_front_hard_distance_m: 4.8
+    proactive_side_preference_gain: 2.6
+    proactive_forward_suppression: 0.85
+    proactive_climb_distance_m: 4.0
+    proactive_climb_speed_mps: 0.42
+    proactive_climb_side_threshold_m: 2.0
+
+goal:
+  mode: "body_relative_at_start"
+  forward_m: 5.0
+  right_m: 0.0
+  down_m: 0.0
+
+safety:
+  max_horizontal_speed_mps: 4.0
+  max_vertical_speed_mps: 1.0
+  max_yaw_rate_radps: 1.2
+  lidar_timeout_seconds: 0.5
+  max_consecutive_invalid: 10
+
+warmup:
+  frames: 5
+  collision_clear_frames: 5
+
+airborne_fixture:
+  target_z_range_m: [-3.0, -0.5]
+  max_vertical_speed_mps: 0.5
+  default_hover_duration_s: 30
+  takeoff_timeout_s: 20.0
+  preflight_lidar_frames: 3
+  altitude_tolerance_m: 0.2
+  hover_stabilization_frames: 3
+  landing_confirmation_frames: 3
+  minimum_preflight_filtered_points: 10
+  takeoff_delta_z_m: -2.0
+  vehicle_type: "SimpleFlight"
+  vertical_clearance:
+    safety_radius_m: 1.5
+    vertical_margin_m: 0.3
+  upward_sensor:
+    enabled: false
+    provider: "none"
+    _note: "With +-30deg LiDAR, the vertical corridor directly above the drone is NOT observable. Set enabled=true and provider to a valid upward sensor to enable takeoff."
+  hover_safety:
+    max_altitude_error_m: 0.3
+    max_horizontal_drift_m: 0.5
+    max_horizontal_speed_mps: 0.5
+    max_vertical_speed_mps: 0.3
+    max_tilt_rad: 0.35
+    stationary_speed_threshold_mps: 0.2

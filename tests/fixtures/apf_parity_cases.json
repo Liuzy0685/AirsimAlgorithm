@@ -1,0 +1,229 @@
+{
+  "_description": "APF parity test cases — ROUND 4. Inputs and expected outputs from old JS ImprovedPotentialField.",
+  "_status": "Old JS not executable in this environment — parity NOT confirmed by direct execution.",
+  "_method": "Inputs and expected behaviors documented from JS source code analysis. Python outputs must match these expectations within tolerance.",
+  "cases": [
+    {
+      "name": "no_obstacles",
+      "description": "Clear path: APF should produce forward velocity toward goal",
+      "ego_position": [0, 0, 0],
+      "ego_velocity": [0, 0, 0],
+      "ego_yaw": 0.0,
+      "goal_ned": [10, 0, 0],
+      "global_path": [[0, 0, 0], [10, 0, 0]],
+      "obstacles": [],
+      "dt": 0.01,
+      "expected": {
+        "vx_positive": true,
+        "vy_near_zero": true,
+        "vz_near_zero": true,
+        "source": "apf"
+      }
+    },
+    {
+      "name": "front_obstacle_near",
+      "description": "Obstacle directly ahead at 5m: APF should reduce forward speed or deflect",
+      "ego_position": [0, 0, 0],
+      "ego_velocity": [0, 0, 0],
+      "ego_yaw": 0.0,
+      "goal_ned": [10, 0, 0],
+      "global_path": [[0, 0, 0], [10, 0, 0]],
+      "obstacles": [
+        {"id": "obs1", "type": "building", "position": [5, 0, 0], "velocity": [0, 0, 0], "size": 1.0, "dynamic": false, "confidence": 1.0}
+      ],
+      "dt": 0.01,
+      "expected": {
+        "vx_reduced": true,
+        "repulsive_nonzero": true,
+        "source": "apf"
+      }
+    },
+    {
+      "name": "left_obstacle",
+      "description": "Obstacle to the left: APF should bias right",
+      "ego_position": [0, 0, 0],
+      "ego_velocity": [0, 0, 0],
+      "ego_yaw": 0.0,
+      "goal_ned": [10, 0, 0],
+      "global_path": [[0, 0, 0], [10, 0, 0]],
+      "obstacles": [
+        {"id": "obs1", "type": "building", "position": [3, -3, 0], "velocity": [0, 0, 0], "size": 0.5, "dynamic": false, "confidence": 1.0}
+      ],
+      "dt": 0.2,
+      "expected": {
+        "repulsive_nonzero": true,
+        "tangential_nonzero": true,
+        "source": "apf"
+      }
+    },
+    {
+      "name": "right_obstacle",
+      "description": "Obstacle to the right: repulsive + tangential forces active",
+      "ego_position": [0, 0, 0],
+      "ego_velocity": [0, 0, 0],
+      "ego_yaw": 0.0,
+      "goal_ned": [10, 0, 0],
+      "global_path": [[0, 0, 0], [10, 0, 0]],
+      "obstacles": [
+        {"id": "obs1", "type": "building", "position": [3, 3, 0], "velocity": [0, 0, 0], "size": 0.5, "dynamic": false, "confidence": 1.0}
+      ],
+      "dt": 0.2,
+      "expected": {
+        "repulsive_nonzero": true,
+        "tangential_nonzero": true,
+        "source": "apf"
+      }
+    },
+    {
+      "name": "above_obstacle_emergency",
+      "description": "Obstacle above within emergency distance: vertical bias upward",
+      "ego_position": [0, 0, 0],
+      "ego_velocity": [0, 0, 0],
+      "ego_yaw": 0.0,
+      "goal_ned": [10, 0, 0],
+      "global_path": [[0, 0, 0], [10, 0, 0]],
+      "obstacles": [
+        {"id": "obs1", "type": "building", "position": [1, 0, -5], "velocity": [0, 0, 0], "size": 0.5, "dynamic": false, "confidence": 1.0}
+      ],
+      "dt": 0.2,
+      "expected": {
+        "tangential_nonzero": true,
+        "source": "apf"
+      }
+    },
+    {
+      "name": "below_obstacle_emergency",
+      "description": "Obstacle below within emergency distance: vertical bias active",
+      "ego_position": [0, 0, 0],
+      "ego_velocity": [0, 0, 0],
+      "ego_yaw": 0.0,
+      "goal_ned": [10, 0, 0],
+      "global_path": [[0, 0, 0], [10, 0, 0]],
+      "obstacles": [
+        {"id": "obs1", "type": "building", "position": [1, 0, 5], "velocity": [0, 0, 0], "size": 0.5, "dynamic": false, "confidence": 1.0}
+      ],
+      "dt": 0.2,
+      "expected": {
+        "tangential_nonzero": true,
+        "source": "apf"
+      }
+    },
+    {
+      "name": "multi_obstacle_u_shape",
+      "description": "U-shaped obstacle arrangement: should trigger bypass direction memory",
+      "ego_position": [0, 0, 0],
+      "ego_velocity": [0, 0, 0],
+      "ego_yaw": 0.0,
+      "goal_ned": [5, 0, 0],
+      "global_path": [[0, 0, 0], [5, 0, 0]],
+      "obstacles": [
+        {"id": "left_wall", "type": "building", "position": [2.5, -2, 0], "velocity": [0, 0, 0], "size": 1.5, "dynamic": false, "confidence": 1.0},
+        {"id": "right_wall", "type": "building", "position": [2.5, 2, 0], "velocity": [0, 0, 0], "size": 1.5, "dynamic": false, "confidence": 1.0},
+        {"id": "front_wall", "type": "building", "position": [3, 0, 0], "velocity": [0, 0, 0], "size": 0.5, "dynamic": false, "confidence": 1.0}
+      ],
+      "dt": 0.01,
+      "expected": {
+        "bypass_sign_consistent": true,
+        "repulsive_nonzero": true,
+        "tangential_nonzero": true,
+        "source": "apf"
+      }
+    },
+    {
+      "name": "near_safe_distance",
+      "description": "Obstacle near safe distance boundary: repulsive force should be small",
+      "ego_position": [0, 0, 0],
+      "ego_velocity": [0, 0, 0],
+      "ego_yaw": 0.0,
+      "goal_ned": [20, 0, 0],
+      "global_path": [[0, 0, 0], [20, 0, 0]],
+      "obstacles": [
+        {"id": "obs1", "type": "building", "position": [13.5, 0, 0], "velocity": [0, 0, 0], "size": 0.5, "dynamic": false, "confidence": 1.0}
+      ],
+      "dt": 0.01,
+      "expected": {
+        "vx_positive": true,
+        "source": "apf"
+      }
+    },
+    {
+      "name": "bypass_memory_persistence",
+      "description": "Same dominant obstacle across two frames: bypass sign should persist",
+      "ego_position": [0, 0, 0],
+      "ego_velocity": [0, 0, 0],
+      "ego_yaw": 0.0,
+      "goal_ned": [10, 0, 0],
+      "global_path": [[0, 0, 0], [10, 0, 0]],
+      "obstacles": [
+        {"id": "dom", "type": "building", "position": [5, 0.5, 0], "velocity": [0, 0, 0], "size": 1.0, "dynamic": false, "confidence": 1.0}
+      ],
+      "dt": 0.01,
+      "expected": {
+        "bypass_sign_consistent": true,
+        "source": "apf"
+      }
+    },
+    {
+      "name": "recovery_enter_triggers",
+      "description": "Front blocked: supervisor should enter RECOVERY mode",
+      "ego_position": [0, 0, 0],
+      "ego_velocity": [0, 0, 0],
+      "ego_yaw": 0.0,
+      "goal_ned": [10, 0, 0],
+      "global_path": [[0, 0, 0], [10, 0, 0]],
+      "ray_distances": {
+        "front": 2.0, "frontLeft": 3.0, "frontRight": 3.0,
+        "left": 10.0, "right": 10.0, "up": 10.0, "down": 10.0,
+        "back": 10.0, "frontUp": 10.0, "frontDown": 10.0,
+        "backLeft": 10.0, "backRight": 10.0,
+        "leftUp": 10.0, "rightUp": 10.0,
+        "leftDown": 10.0, "rightDown": 10.0
+      },
+      "obstacles": [],
+      "dt": 0.01,
+      "expected": {
+        "mode_not_cruise": true,
+        "source": "apf"
+      }
+    },
+    {
+      "name": "recovery_exit_when_clear",
+      "description": "Clear path after recovery: should return to CRUISE",
+      "ego_position": [0, 0, 0],
+      "ego_velocity": [0, 0, 0],
+      "ego_yaw": 0.0,
+      "goal_ned": [10, 0, 0],
+      "global_path": [[0, 0, 0], [10, 0, 0]],
+      "ray_distances": {
+        "front": 20.0, "frontLeft": 20.0, "frontRight": 20.0,
+        "left": 20.0, "right": 20.0, "up": 20.0, "down": 20.0,
+        "back": 20.0, "frontUp": 20.0, "frontDown": 20.0,
+        "backLeft": 20.0, "backRight": 20.0,
+        "leftUp": 20.0, "rightUp": 20.0,
+        "leftDown": 20.0, "rightDown": 20.0
+      },
+      "obstacles": [],
+      "dt": 0.01,
+      "expected": {
+        "mode_cruise": true
+      }
+    },
+    {
+      "name": "hover_deadband_triggers",
+      "description": "Velocity below deadband and safe: should output zero velocity",
+      "ego_position": [0, 0, 0],
+      "ego_velocity": [0.01, 0, 0],
+      "ego_yaw": 0.0,
+      "goal_ned": [0.1, 0, 0],
+      "global_path": [[0, 0, 0], [0.1, 0, 0]],
+      "obstacles": [],
+      "dt": 0.01,
+      "expected": {
+        "vx_near_zero": true,
+        "vy_near_zero": true,
+        "vz_near_zero": true,
+        "source": "apf"
+      }
+    }
+  ]
+}
