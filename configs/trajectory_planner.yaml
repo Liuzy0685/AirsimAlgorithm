@@ -1,0 +1,190 @@
+# Trajectory-Centric Local Planner Configuration — Phase B.
+#
+# This is the deterministic (non-learned) baseline for the receding-horizon
+# trajectory layer.  The learned Diffusion generator is a future backend —
+# do NOT add it here yet.
+#
+# Enable with:  --local-navigation-mode trajectory
+# (the existing Guided APF + Bypass path stays available via
+#  --local-navigation-mode guided_apf for A/B comparison).
+
+trajectory_planner:
+  enabled: true
+  num_candidates: 9            # 7 forward + 2 reverse (REJOIN variants added on demand)
+  horizon_m: 4.0
+  sample_spacing_m: 0.25
+  planning_hz: 8.0             # local replan rate (tracking runs faster)
+  max_compute_ms: 20.0
+
+  hard_clearance_m: 1.5
+  preferred_clearance_m: 2.0
+
+  enable_distance_field_refinement: false
+  refinement_gain: 0.2
+
+  forward_speed_mps: 0.15
+  lateral_speed_mps: 0.20
+  command_lookahead_m: 1.0
+  tracker_lookahead_m: 1.0
+
+  alignment_scale_m: 3.0       # exp decay scale for whole-path alignment
+  consistency_scale_m: 0.5     # exp decay scale for geometric consistency
+  side_consistency_bonus: 0.3  # soft bias toward the previous lateral side
+
+  # REJOIN gating: only generate rejoin variants when laterally displaced.
+  rejoin:
+    trigger_lateral_error_m: 0.75
+    completion_lateral_error_m: 0.30
+    # Dynamic rejoin bonus (sec 6): reward alignment, but only offer a rejoin
+    # when the front is clear this far (never steer into an obstacle face).
+    alignment_bonus_weight: 1.0
+    clear_front_required_m: 3.0
+
+  # Family-switch hysteresis (sec 4): a soft gate, never a hard side lock.
+  family_switch:
+    min_score_improvement: 0.15
+    min_hold_time_s: 0.5
+  # Direct LEFT↔RIGHT switch penalty (sec 5).
+  direct_opposite_switch_penalty: 1.0
+
+  # Adaptive horizon (sec 8): shorten look-ahead near obstacles; hard
+  # clearance is unchanged.
+  adaptive_horizon:
+    enabled: true
+    min_horizon_m: 2.0
+    mid_horizon_m: 3.0
+    max_horizon_m: 4.0
+    near_threshold_m: 3.0
+    mid_threshold_m: 4.0
+
+  # APF safety-filter limits (APF may slow + nudge, never steer).
+  apf_safety:
+    max_lateral_correction_mps: 0.25
+    max_speed_reduction_ratio: 0.8
+
+  # No-feasible → fast Recovery (do not wait for the stuck detector).
+  no_feasible:
+    recovery_trigger_count: 3
+    recovery_trigger_duration_s: 0.5
+
+  # Never silently fall back to the old Guided APF / reactive path while in
+  # trajectory mode (sec 26).  trajectory_no_feasible holds in place and
+  # escalates to Recovery instead.
+  allow_guided_apf_fallback: false
+
+  weights:
+    goal_progress: 2.0
+    global_path_alignment: 3.0
+    clearance: 3.0
+    smoothness: 1.0
+    trajectory_consistency: 1.5
+    curvature_penalty: 0.5
+    reverse_penalty: 2.0
+    unknown_penalty: 0.5
+
+trajectory_memory:
+  enabled: true
+  history_length: 10
+
+goal_termination:
+  enabled: true
+  distance_tolerance_m: 1.0
+  altitude_tolerance_m: 0.4
+  max_speed_mps: 0.25
+  dwell_time_s: 1.0
+
+# Local distance-field window (not the whole historical map).
+distance_field:
+  radius_m: 10.0               # local obstacle window around the UAV
+  lidar_downsample_resolution_m: 0.25
+
+occupancy_grid:
+  resolution_m: 0.5
+  map_radius_m: 40.0
+  max_range_m: 15.0
+  min_range_m: 1.0
+  occupied_log_odds: 0.85
+  free_log_odds: -0.4
+  occupied_threshold: 0.0
+  # Phase C1-R: 0 = no map-layer dilation.  CBMBA applies its own
+  # inflation_radius (1.5 m) to the global path, and the local planner applies
+  # hard_clearance_m (1.0 m) to the raw points — inflation must be single-source,
+  # otherwise the same obstacle is inflated twice (grid 0.5 m + CBMBA 1.5 m).
+  inflation_cells: 0
+  horizontal_band_half_height_m: 1.0
+  ray_sample_spacing_m: 0.25
+  self_filter_radius_m: 1.5
+
+# Global planner cadence + path hysteresis (avoid tugging the local planner).
+cbmba:
+  global_replan_hz: 1.5
+  max_compute_ms: 150.0
+  path_switch_min_improvement_ratio: 0.10
+
+# Trajectory tracking error → force replan when too large.
+trajectory_tracking:
+  replan_error_threshold_m: 0.5
+  # Cached-trajectory staleness (sec 9): if no fresh plan arrives, warn at
+  # stale_warn_s and stop (hover) at stale_stop_s.
+  stale_warn_s: 0.5
+  stale_stop_s: 1.5
+
+# Control-loop timing / watchdog (sec 10/11).  The loop runs at a fixed
+# target rate driven by a deadline scheduler — NOT by the AirSim command
+# duration.  command_duration_s (minimal_flight) is the length of each
+# velocity command; target_hz is the control loop rate.  These are unrelated.
+control_loop:
+  target_hz: 20.0            # control-loop rate (period = 1/target_hz = 50 ms)
+  overrun_warn_ms: 80.0
+  overrun_stop_ms: 500.0
+
+# Background LiDAR / perception worker (sec 10-14): the LiDAR RPC
+# (getLidarData) is slow (~100-200 ms) and must NOT block the control loop.
+# The worker polls LiDAR at poll_hz and publishes an immutable snapshot the
+# control loop reads without blocking.  Only if the snapshot is older than
+# stale_stop_s does the loop hover.
+perception_runtime:
+  poll_hz: 10.0              # LiDAR read + filter + sectorize rate
+  stale_warn_s: 0.5
+  stale_stop_s: 1.5
+
+# LiDAR empty-frame health (Round 9).  A FRESH timestamp with an empty point
+# cloud is a transient dropout → safety hold, NOT an immediate mission abort and
+# NOT "free space".  Only a persistent run of empty frames beyond these limits
+# terminates the mission (as lidar_invalid:persistent_empty).
+lidar_health:
+  empty_grace_s: 1.0              # max wall-clock duration of a continuous empty burst
+  max_consecutive_empty_frames: 5 # max consecutive empty frames before persistent fail-safe
+
+# In-simulator debug drawing + HUD (sec 19/20).
+trajectory_debug:
+  enabled: false                 # set true to draw into the Unreal viewport
+  line_thickness: 5.0
+  point_size: 10.0
+  duration_s: 0.3
+  draw_global_path: true
+  draw_selected_trajectory: true
+  draw_obstacles: true
+  draw_mission_goal: true
+  hud_status: true
+  # CSV trace (sec 21) — one row per control frame.  Output dir relative to
+  # the project root; files are named trace_<timestamp>.csv.
+  trace_csv: true
+  trace_output_dir: "runs"
+
+# Mission progress monitor (sec 23/24): stuck vs mission-stalled.
+mission_progress:
+  window_s: 10.0
+  min_progress_m: 1.0
+  check_interval_s: 2.0
+  stuck_epsilon_m: 0.2
+
+# Avoidance-episode detection (sec 2).
+obstacle_episode:
+  start_distance_m: 3.0
+  end_distance_m: 3.5
+  hold_frames: 5
+
+# Single-obstacle persistence check (sec 25).
+single_obstacle_monitor:
+  min_samples: 8

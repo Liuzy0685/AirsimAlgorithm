@@ -1,0 +1,16 @@
+# Minimal Flight Configuration — simulation baseline only
+# NOT for real UAV use.
+
+minimal_flight:
+  target_z_ned: -1.0
+  max_vertical_speed_mps: 0.5
+  takeoff_timeout_s: 20.0
+  max_flight_duration_s: 10.0
+  command_duration_s: 0.2
+  forward_speed_mps: 0.2
+  side_speed_mps: 0.15
+  front_threshold_m: 2.5
+  emergency_distance_m: 0.8
+  geofence_radius_m: 5.0
+  preflight_lidar_frames: 3
+  landing_confirmation_frames: 3

@@ -1,0 +1,63 @@
+# Gamepad manual flight configuration.
+#
+# All fields map 1:1 to ManualGamepadConfig.  Unknown keys are REJECTED at
+# load time.  Speed units are m/s; yaw rates are degrees/s.
+#
+# Run with:
+#   py scripts/flight_mode.py --mode manual --manual-input gamepad \
+#       --manual-gamepad-config configs/manual_gamepad.yaml
+
+backend: pygame
+controller_index: 0
+
+# Timing: 50 Hz gamepad polling, 20 Hz AirSim commands, 3 Hz HUD.
+poll_hz: 50.0
+command_hz: 20.0
+hud_hz: 3.0
+
+# Axis shaping.
+deadzone: 0.10
+expo: 0.30
+yaw_expo: 0.25
+trigger_deadzone: 0.05
+
+# Speed profiles (m/s and deg/s).
+normal_horizontal_speed_mps: 1.0
+normal_vertical_speed_mps: 0.5
+normal_yaw_rate_dps: 45.0
+slow_horizontal_speed_mps: 0.4
+slow_vertical_speed_mps: 0.25
+slow_yaw_rate_dps: 20.0
+fast_horizontal_speed_mps: 2.0
+fast_vertical_speed_mps: 1.0
+fast_yaw_rate_dps: 90.0
+trigger_yaw_rate_dps: 35.0
+
+# Axis inversion (Xbox physical convention: stick up reports -1).
+invert_left_x: false
+invert_left_y: true    # LS up = climb
+invert_right_x: false
+invert_right_y: true   # RS up = forward
+
+# Safety.
+collision_guard: false    # 临时关闭测试是否碰撞防护误触发
+emergency_distance_m: 0.8
+input_timeout_s: 0.30
+require_deadman_button: false
+deadman_button: LB
+
+# Button mapping.
+slow_button: LB
+fast_button: RB
+land_button: Y
+
+# D-pad trim.
+trim_vertical_speed_mps: 0.25
+trim_yaw_rate_dps: 20.0
+
+# Long-press durations.
+arm_hold_s: 1.5
+disarm_hold_s: 1.5
+
+# AirSim command duration.
+command_duration_s: 0.2

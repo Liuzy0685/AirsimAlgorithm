@@ -1,0 +1,150 @@
+# Perception Configuration — LiDAR filtering and sectorization.
+# All angle fields use degrees (suffix _deg); loaded code converts to radians.
+# SensorLocalFrame: +X=front, +Y=right, +Z=down.
+# azimuth = atan2(y, x): 0°=front, +90°=right, -90°=left, ±180°=back.
+#
+# ROUND 3.3: Vertical diagonal sectors updated to [18°, 30°] / [-30°, -18°]
+# to match the old project's ~±24° rays and be fully covered by a ±30° LiDAR.
+
+pointcloud:
+  min_range_m: 0.2
+  max_range_m: 40.0
+
+  self_exclusion:
+    enabled: true
+    x_min_m: -0.8
+    x_max_m: 0.8
+    y_min_m: -0.8
+    y_max_m: 0.8
+    z_min_m: -0.5
+    z_max_m: 0.5
+
+  voxel_downsample:
+    enabled: true
+    voxel_size_m: 0.1
+
+sectorization:
+  default_max_range_m: 40.0
+  default_min_points: 3
+  default_distance_strategy: "nearest_k_median"
+  nearest_k: 3
+  percentile: 10.0
+
+  sectors:
+    # === Primary cardinal directions (6) — unchanged ===
+
+    - name: "front"
+      legacy_name: "front"
+      azimuth_min_deg: -22.5
+      azimuth_max_deg: 22.5
+      elevation_min_deg: -22.5
+      elevation_max_deg: 22.5
+
+    - name: "back"
+      legacy_name: "back"
+      azimuth_min_deg: 157.5
+      azimuth_max_deg: -157.5
+      elevation_min_deg: -22.5
+      elevation_max_deg: 22.5
+
+    - name: "left"
+      legacy_name: "left"
+      azimuth_min_deg: -112.5
+      azimuth_max_deg: -67.5
+      elevation_min_deg: -22.5
+      elevation_max_deg: 22.5
+
+    - name: "right"
+      legacy_name: "right"
+      azimuth_min_deg: 67.5
+      azimuth_max_deg: 112.5
+      elevation_min_deg: -22.5
+      elevation_max_deg: 22.5
+
+    - name: "up"
+      legacy_name: "up"
+      azimuth_min_deg: -180.0
+      azimuth_max_deg: 180.0
+      elevation_min_deg: 18.0
+      elevation_max_deg: 30.0
+
+    - name: "down"
+      legacy_name: "down"
+      azimuth_min_deg: -180.0
+      azimuth_max_deg: 180.0
+      elevation_min_deg: -30.0
+      elevation_max_deg: -18.0
+
+    # === Horizontal diagonal (4) — unchanged azimuth ===
+
+    - name: "frontLeft"
+      legacy_name: "frontLeft"
+      azimuth_min_deg: -67.5
+      azimuth_max_deg: -22.5
+      elevation_min_deg: -22.5
+      elevation_max_deg: 22.5
+
+    - name: "frontRight"
+      legacy_name: "frontRight"
+      azimuth_min_deg: 22.5
+      azimuth_max_deg: 67.5
+      elevation_min_deg: -22.5
+      elevation_max_deg: 22.5
+
+    - name: "backLeft"
+      legacy_name: "backLeft"
+      azimuth_min_deg: -157.5
+      azimuth_max_deg: -112.5
+      elevation_min_deg: -22.5
+      elevation_max_deg: 22.5
+
+    - name: "backRight"
+      legacy_name: "backRight"
+      azimuth_min_deg: 112.5
+      azimuth_max_deg: 157.5
+      elevation_min_deg: -22.5
+      elevation_max_deg: 22.5
+
+    # === Vertical diagonal (6) — ROUND 3.3: [18°, 30°] / [-30°, -18°] ===
+
+    - name: "frontUp"
+      legacy_name: "frontUp"
+      azimuth_min_deg: -45.0
+      azimuth_max_deg: 45.0
+      elevation_min_deg: 18.0
+      elevation_max_deg: 30.0
+
+    - name: "frontDown"
+      legacy_name: "frontDown"
+      azimuth_min_deg: -45.0
+      azimuth_max_deg: 45.0
+      elevation_min_deg: -30.0
+      elevation_max_deg: -18.0
+
+    - name: "leftUp"
+      legacy_name: "leftUp"
+      azimuth_min_deg: -135.0
+      azimuth_max_deg: -45.0
+      elevation_min_deg: 18.0
+      elevation_max_deg: 30.0
+
+    - name: "rightUp"
+      legacy_name: "rightUp"
+      azimuth_min_deg: 45.0
+      azimuth_max_deg: 135.0
+      elevation_min_deg: 18.0
+      elevation_max_deg: 30.0
+
+    - name: "leftDown"
+      legacy_name: "leftDown"
+      azimuth_min_deg: -135.0
+      azimuth_max_deg: -45.0
+      elevation_min_deg: -30.0
+      elevation_max_deg: -18.0
+
+    - name: "rightDown"
+      legacy_name: "rightDown"
+      azimuth_min_deg: 45.0
+      azimuth_max_deg: 135.0
+      elevation_min_deg: -30.0
+      elevation_max_deg: -18.0
