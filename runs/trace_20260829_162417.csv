@@ -1,0 +1,4 @@
+frame,time_s,x,y,z,yaw,vx,vy,vz,cmd_vx,cmd_vy,cmd_vz,command_source,family,min_distance_m,goal_progress_m,lateral_deviation_m
+1,82016.062,0.0,0.0,-1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,trajectory_no_feasible,STRAIGHT,5.0,0.0,0.0
+2,82016.125,0.0,0.0,-1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,trajectory_no_feasible,STRAIGHT,5.0,0.0,0.0
+3,82016.171,0.0,0.0,-1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,trajectory_no_feasible,STRAIGHT,5.0,0.0,0.0

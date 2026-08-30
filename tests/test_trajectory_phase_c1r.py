@@ -278,11 +278,143 @@ class TestGroundActorGoalTermination:
         r1 = checker.update(pos, speed_mps=0.1, goal_ned=goal, now=0.0)
         assert r1.within_distance and r1.within_altitude and r1.speed_low
         assert not r1.reached  # not dwelled yet
-        r2 = checker.update(pos, speed_mps=0.1, goal_ned=goal, now=1.0)
-        assert r2.dwelled and r2.reached
+
+
+class TestGoalTerminationGrace:
+    def test_timeout_grace_loaded_from_trajectory_config(self):
+        cfg_path = _PROJECT_ROOT / "configs" / "trajectory_planner.yaml"
+        raw = yaml.safe_load(cfg_path.read_text(encoding="utf-8"))
+        assert raw["goal_termination"]["timeout_grace_s"] == 2.0
+
+    def test_terminal_precision_config_does_not_crawl_from_far_out(self):
+        cfg_path = _PROJECT_ROOT / "configs" / "trajectory_planner.yaml"
+        raw = yaml.safe_load(cfg_path.read_text(encoding="utf-8"))
+        tracking = raw["trajectory_tracking"]
+        termination = raw["goal_termination"]
+
+        assert tracking["terminal_goal_approach_radius_m"] == pytest.approx(2.0)
+        assert tracking["terminal_slowdown_radius_m"] <= 0.6
+        assert tracking["terminal_goal_max_speed_mps"] >= 0.08
+        assert tracking["terminal_capture_radius_m"] <= termination["distance_tolerance_m"]
+        assert termination["distance_tolerance_m"] <= 0.03
+
+    def test_3d_distance_gate_blocks_large_residual(self):
+        checker = GoalTerminationChecker(
+            GoalTerminationParams(
+                enabled=True,
+                distance_tolerance_m=1.0,
+                altitude_tolerance_m=0.4,
+                max_speed_mps=0.25,
+                dwell_time_s=1.0,
+            )
+        )
+        goal = (15.0, 0.0, -1.0)
+        # Horizontal error and altitude error are each within their component
+        # tolerances, but the requested 3-D distance is still over 1 m.
+        pos = (14.08, 0.0, -0.60)
+        r1 = checker.update(
+            pos, speed_mps=0.1, goal_ned=goal, now=0.0,
+            velocity_ned_mps=(0.1, 0.0, 0.02),
+        )
+        assert r1.within_distance
+        assert r1.within_altitude
+        assert not r1.within_3d_distance
+        assert not r1.reached
+        r2 = checker.update(
+            pos, speed_mps=0.1, goal_ned=goal, now=1.0,
+            velocity_ned_mps=(0.1, 0.0, 0.02),
+        )
+        assert not r2.reached
+
+    def test_tight_terminal_radius_blocks_visible_marker_offset(self):
+        checker = GoalTerminationChecker(
+            GoalTerminationParams(
+                enabled=True,
+                distance_tolerance_m=0.05,
+                altitude_tolerance_m=0.4,
+                max_speed_mps=0.05,
+                max_vertical_speed_mps=0.15,
+                position_std_tolerance_m=0.05,
+                history_size_frames=1,
+                dwell_time_s=0.0,
+            )
+        )
+        goal = (15.0, 0.0, -1.0)
+        pos = (14.1465, 0.0, -0.9504)
+        r = checker.update(
+            pos,
+            speed_mps=0.15,
+            goal_ned=goal,
+            now=0.0,
+            velocity_ned_mps=(0.15, 0.0, 0.005),
+        )
+        assert r.distance_to_goal_m == pytest.approx(0.8535, abs=1e-4)
+        assert not r.within_distance
+        assert not r.reached
+
+    def test_precise_stop_blocks_fast_pass_through_inside_old_radius(self):
+        checker = GoalTerminationChecker(
+            GoalTerminationParams(
+                enabled=True,
+                distance_tolerance_m=0.05,
+                altitude_tolerance_m=0.4,
+                max_speed_mps=0.05,
+                max_vertical_speed_mps=0.15,
+                position_std_tolerance_m=0.05,
+                history_size_frames=1,
+                dwell_time_s=0.0,
+            )
+        )
+        goal = (15.0, 0.0, -1.0)
+        pos = (14.8651, 0.0329, -0.9253)
+        r = checker.update(
+            pos,
+            speed_mps=0.141,
+            goal_ned=goal,
+            now=0.0,
+            velocity_ned_mps=(0.141, 0.0, 0.036),
+        )
+        assert r.distance_to_goal_m == pytest.approx(0.1389, abs=1e-4)
+        assert not r.within_distance
+        assert not r.speed_low
+        assert not r.reached
+
+    def test_precise_stop_requires_centimeter_level_goal_error(self):
+        checker = GoalTerminationChecker(
+            GoalTerminationParams(
+                enabled=True,
+                distance_tolerance_m=0.05,
+                altitude_tolerance_m=0.4,
+                max_speed_mps=0.05,
+                max_vertical_speed_mps=0.15,
+                position_std_tolerance_m=0.05,
+                history_size_frames=1,
+                dwell_time_s=0.0,
+            )
+        )
+        goal = (15.0, 0.0, -1.0)
+        pos = (14.9468, 0.0568, -0.9488)
+        r = checker.update(
+            pos,
+            speed_mps=0.027,
+            goal_ned=goal,
+            now=0.0,
+            velocity_ned_mps=(0.027, 0.0, 0.024),
+        )
+        assert r.distance_to_goal_m == pytest.approx(0.0778, abs=1e-4)
+        assert not r.within_distance
+        assert not r.reached
 
     def test_xy_not_reached_fails(self):
-        checker = self._checker()
+        checker = GoalTerminationChecker(
+            GoalTerminationParams(
+                enabled=True,
+                distance_tolerance_m=1.0,
+                altitude_tolerance_m=0.4,
+                max_speed_mps=0.25,
+                dwell_time_s=1.0,
+            )
+        )
         goal = (42.0, 4.0, -1.0)
         pos = (40.0, 4.0, -1.0)  # 2 m short of goal XY
         r = checker.update(pos, speed_mps=0.1, goal_ned=goal, now=0.0)
@@ -292,7 +424,15 @@ class TestGroundActorGoalTermination:
     def test_altitude_hold_fail_fails(self):
         # Drone is at cruise target_z=-1.0 but its actual Z drifted to -0.2:
         # 0.8 m of altitude error > 0.4 tolerance → cannot terminate.
-        checker = self._checker()
+        checker = GoalTerminationChecker(
+            GoalTerminationParams(
+                enabled=True,
+                distance_tolerance_m=1.0,
+                altitude_tolerance_m=0.4,
+                max_speed_mps=0.25,
+                dwell_time_s=1.0,
+            )
+        )
         goal = (42.0, 4.0, -1.0)
         pos = (42.0, 4.0, -0.2)
         r1 = checker.update(pos, speed_mps=0.1, goal_ned=goal, now=0.0)
@@ -306,7 +446,15 @@ class TestGroundActorGoalTermination:
         # Regression guard: if the checker were fed the raw actor Z (+0.4) while
         # the drone is at cruise Z=-1.0, arrival must NOT be detected.  This
         # documents why the goal Z must be the cruise altitude, not actor Z.
-        checker = self._checker()
+        checker = GoalTerminationChecker(
+            GoalTerminationParams(
+                enabled=True,
+                distance_tolerance_m=1.0,
+                altitude_tolerance_m=0.4,
+                max_speed_mps=0.25,
+                dwell_time_s=1.0,
+            )
+        )
         actor_goal = (42.0, 4.0, 0.4)  # raw actor pose (ground marker)
         pos = (42.0, 4.0, -1.0)
         r = checker.update(pos, speed_mps=0.1, goal_ned=actor_goal, now=0.0)

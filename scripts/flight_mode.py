@@ -97,6 +97,11 @@ def _parse_args() -> argparse.Namespace:
                    help="Override CBMBA planner resolution (default: 0.75). "
                         "Must be > 0 and finite. "
                         "Example: --cbmba-resolution 1.5")
+    p.add_argument("--reset-vehicle-on-start", action="store_true",
+                   default=False,
+                   help="Reset the AirSim vehicle to its configured spawn pose "
+                        "after connecting and before takeoff. Useful when UE "
+                        "stays open between repeated auto runs.")
     return p.parse_args()
 
 
@@ -213,6 +218,22 @@ def _run_auto(args: argparse.Namespace) -> int:
     lock_fh = _acquire_lock_or_die("auto")
     logger.info("Starting auto mode (LiDAR avoidance).")
 
+    flight_config = args.flight_config
+    default_flight_config = str(_PROJECT_ROOT / "configs" / "minimal_flight.yaml")
+    flight_config_name = Path(flight_config).name.lower() if flight_config else ""
+    if (
+        args.local_navigation_mode == "trajectory"
+        and (
+            args.flight_config == default_flight_config
+            or flight_config_name == "minimal_flight.yaml"
+        )
+    ):
+        flight_config = str(_PROJECT_ROOT / "configs" / "trajectory_flight.yaml")
+        logger.info(
+            "trajectory_mode_default_flight_config  path=%s",
+            flight_config,
+        )
+
     # Build CLI overrides (only non-None values win over YAML)
     cli_overrides = {}
     if args.target_z is not None:
@@ -247,7 +268,16 @@ def _run_auto(args: argparse.Namespace) -> int:
 
     # Load from YAML first, then merge CLI (planner_mode is not a YAML key)
     params = AutomaticModeParams.from_yaml(
-        args.flight_config, cli_overrides if cli_overrides else None
+        flight_config, cli_overrides if cli_overrides else None
+    )
+    logger.info(
+        "auto_flight_params  config=%s  target_z=%.2f  max_duration=%.1f  "
+        "geofence=%.1f  command_duration=%.2f",
+        flight_config,
+        params.target_z_ned,
+        params.max_flight_duration_s,
+        params.geofence_radius_m,
+        params.command_duration_s,
     )
 
     session = SharedFlightSession(
@@ -260,11 +290,13 @@ def _run_auto(args: argparse.Namespace) -> int:
 
     try:
         session.initialize()
+        if args.reset_vehicle_on_start:
+            session.reset_vehicle()
 
         auto = AutomaticMode(
             session,
             perception_config_path=args.perception_config,
-            flight_config_path=args.flight_config,
+            flight_config_path=flight_config,
             params=params,
             cli_overrides=cli_overrides if cli_overrides else None,
         )

@@ -1,8 +1,8 @@
-# UAV AirSim Avoidance — Python Dependencies
+# UAV AirSim Avoidance - Python Dependencies
 # ===========================================
 # Round 2 dependencies only.  No DL/CV/RL packages.
 
-# Numerical computing — LiDAR point-cloud handling.
+# Numerical computing - LiDAR point-cloud handling.
 numpy>=1.21,<2
 
 # YAML config parsing (configs/vehicle.yaml).
@@ -13,7 +13,7 @@ PyYAML>=6.0
 # NOT via pip.
 msgpack-rpc-python>=0.4
 
-# Gamepad manual flight (optional — pygame/SDL joystick backend).
+# Gamepad manual flight (optional - pygame/SDL joystick backend).
 # The gamepad reader degrades gracefully to "disconnected" if pygame is absent.
 pygame>=2.1
 

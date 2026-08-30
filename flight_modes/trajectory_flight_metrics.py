@@ -556,13 +556,13 @@ class FlightTraceWriter:
     """Appends one CSV row per control frame (buffered).
 
     Columns (fixed order): frame, time_s, x, y, z, yaw, vx, vy, vz,
-    cmd_vx, cmd_vy, command_source, family, min_distance, goal_progress_m,
-    lateral_deviation_m.
+    cmd_vx, cmd_vy, cmd_vz, command_source, family, min_distance,
+    goal_progress_m, lateral_deviation_m.
     """
 
     _COLUMNS = [
         "frame", "time_s", "x", "y", "z", "yaw",
-        "vx", "vy", "vz", "cmd_vx", "cmd_vy",
+        "vx", "vy", "vz", "cmd_vx", "cmd_vy", "cmd_vz",
         "command_source", "family", "min_distance_m",
         "goal_progress_m", "lateral_deviation_m",
     ]

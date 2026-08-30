@@ -1,0 +1,1 @@
+frame,time_s,x,y,z,yaw,vx,vy,vz,cmd_vx,cmd_vy,cmd_vz,command_source,family,min_distance_m,goal_progress_m,lateral_deviation_m

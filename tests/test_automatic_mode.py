@@ -46,8 +46,8 @@ def _make_mock_session():
     s.land_and_disarm.return_value = True
     return s
 
-def _lf(ok=True):
-    lf = MagicMock(); lf.frame_valid = ok; lf.invalid_reason = None if ok else "x"
+def _lf(ok=True, reason="x"):
+    lf = MagicMock(); lf.frame_valid = ok; lf.invalid_reason = None if ok else reason
     lf.point_cloud_sensor = MagicMock(); return lf
 
 def _st(z=-1.0):
@@ -110,8 +110,31 @@ class TestAutomaticMode:
             _cfg_mocks(mocks)
             auto = AutomaticMode(session, params=AutomaticModeParams(max_flight_duration_s=0.05))
             with patch.object(session, "takeoff_and_climb") as mock_tc:
-                auto._running = False; auto.run()
-                mock_tc.assert_called_once()
+                auto._running = False
+                auto.run()
+            mock_tc.assert_called_once()
+
+    def test_discover_mission_goal_prefers_configured_exact_name(self):
+        session = _make_mock_session()
+        stack, mocks = _setup_patches()
+        with stack:
+            _cfg_mocks(mocks)
+            auto = AutomaticMode(session, params=AutomaticModeParams(max_flight_duration_s=0.05))
+            client = session.adapter.get_raw_client.return_value
+            client.simListSceneObjects.return_value = ["MissionEnd_2", "MissionEnd", "Other"]
+
+            def _pose(name):
+                pose = MagicMock()
+                pose.position.x_val = 15.0 if name == "MissionEnd" else 99.0
+                pose.position.y_val = 0.0 if name == "MissionEnd" else 99.0
+                pose.position.z_val = 0.0 if name == "MissionEnd" else 99.0
+                return pose
+
+            client.simGetObjectPose.side_effect = _pose
+            goal = auto._discover_mission_goal_actor("MissionEnd")
+            assert goal is not None
+            assert goal[1] == "MissionEnd"
+            assert goal[0] == (15.0, 0.0, 0.0)
 
     def test_time_limit(self):
         session = _make_mock_session()
@@ -137,6 +160,45 @@ class TestAutomaticMode:
             with patch.object(session, "takeoff_and_climb"):
                 r = auto.run()
             assert "lidar_invalid" in (r.termination_reason or "")
+
+    def test_preflight_empty_then_valid_allows_takeoff(self):
+        session = _make_mock_session()
+        stack, mocks = _setup_patches()
+        with stack:
+            lr, sr, cr, lpc, flt, dd, lfov, vfov, vc = mocks
+            _cfg_mocks(mocks)
+            lr.return_value.read.side_effect = [_lf(False, "empty"), _lf(), _lf(), _lf()]
+            auto = AutomaticMode(
+                session,
+                params=AutomaticModeParams(
+                    max_flight_duration_s=0.05,
+                    command_duration_s=0.05,
+                ),
+            )
+            with patch.object(session, "takeoff_and_climb") as mock_tc:
+                auto._running = False
+                r = auto.run()
+                mock_tc.assert_called_once()
+            assert r.startup_floor_contact_baseline is False
+            assert not (r.termination_reason or "").startswith("preflight_lidar_")
+
+    def test_preflight_persistent_empty_terminates(self):
+        session = _make_mock_session()
+        stack, mocks = _setup_patches()
+        with stack:
+            lr, sr, cr, lpc, flt, dd, lfov, vfov, vc = mocks
+            _cfg_mocks(mocks)
+            lr.return_value.read.side_effect = [_lf(False, "empty")] * 10
+            auto = AutomaticMode(
+                session,
+                params=AutomaticModeParams(
+                    max_flight_duration_s=0.05,
+                    command_duration_s=0.05,
+                ),
+            )
+            r = auto.run()
+            assert r.termination_reason == "preflight_lidar_empty:persistent_empty"
+            assert not r.api_control_acquired
 
     def test_collision_terminates(self):
         session = _make_mock_session()
@@ -171,7 +233,7 @@ class TestCollisionWarmup:
                 auto._running = False; r = auto.run()
                 mock_tc.assert_called_once()
 
-    def test_persistent_floor_rejects(self):
+    def test_persistent_floor_is_accepted_as_startup_baseline(self):
         session = _make_mock_session()
         stack, mocks = _setup_patches()
         with stack:
@@ -181,9 +243,10 @@ class TestCollisionWarmup:
                 ok=False, object_name="Floor", raw_timestamp=0, is_new_event=False)
             lr.return_value.read.return_value = _lf()
             auto = AutomaticMode(session, params=AutomaticModeParams(max_flight_duration_s=1.0))
-            r = auto.run()
-            assert "warmup_floor_persists" in (r.termination_reason or "")
-            assert not r.api_control_acquired
+            with patch.object(session, "takeoff_and_climb") as mock_tc:
+                auto._running = False; r = auto.run()
+                mock_tc.assert_called_once()
+            assert r.startup_floor_contact_baseline is True
 
     def test_wall_rejects(self):
         session = _make_mock_session()
@@ -235,6 +298,45 @@ class TestCollisionWarmup:
             assert r.startup_floor_contact_baseline is True
             assert "warmup_non_ground" not in (r.termination_reason or "")
 
+    def test_ground_mesh_object_accepted_as_floor(self):
+        """UE template ground meshes such as Ground_6 are startup floor contact."""
+        session = _make_mock_session()
+        stack, mocks = _setup_patches()
+        with stack:
+            lr, sr, cr, lpc, flt, dd, lfov, vfov, vc = mocks
+            _cfg_mocks(mocks)
+            cr.return_value.read.side_effect = [
+                _col(ok=False, object_name="Ground_6", raw_timestamp=1786026074827645952, is_new_event=True),
+            ] + [_col()] * 30
+            lr.return_value.read.side_effect = [_lf()] * 30
+            auto = AutomaticMode(session, params=AutomaticModeParams(max_flight_duration_s=0.05))
+            with patch.object(session, "takeoff_and_climb") as mock_tc:
+                auto._running = False; r = auto.run()
+                mock_tc.assert_called_once()
+            assert r.startup_floor_contact_baseline is True
+
+    def test_repeated_ground_collision_events_still_allow_takeoff(self):
+        """Repeated Ground_* collision events should not block preflight."""
+        session = _make_mock_session()
+        stack, mocks = _setup_patches()
+        with stack:
+            lr, sr, cr, lpc, flt, dd, lfov, vfov, vc = mocks
+            _cfg_mocks(mocks)
+            cr.return_value.read.side_effect = [
+                _col(ok=False, object_name="Ground_5", raw_timestamp=1787997325169931776, is_new_event=True),
+                _col(ok=False, object_name="Ground_5", raw_timestamp=1787997325433937408, is_new_event=True),
+                _col(ok=False, object_name="Ground_5", raw_timestamp=1787997325694942976, is_new_event=True),
+                _col(ok=False, object_name="Ground_5", raw_timestamp=1787997325979949056, is_new_event=True),
+            ] + [_col()] * 20
+            lr.return_value.read.return_value = _lf()
+            auto = AutomaticMode(session, params=AutomaticModeParams(max_flight_duration_s=1.0))
+            with patch.object(session, "takeoff_and_climb") as mock_tc:
+                auto._running = False
+                r = auto.run()
+                mock_tc.assert_called_once()
+            assert r.startup_floor_contact_baseline is True
+            assert "warmup_non_ground" not in (r.termination_reason or "")
+
     def test_empty_string_ground_object_accepted_as_floor(self):
         """Empty ground object name → accepted as startup floor."""
         session = _make_mock_session()
@@ -270,8 +372,8 @@ class TestCollisionWarmup:
             assert "warmup_non_ground" in (r.termination_reason or "")
             assert not r.api_control_acquired
 
-    def test_first_floor_then_second_floor_new_ts_rejects(self):
-        """First Floor accepted, second Floor with different ts → reject."""
+    def test_first_floor_then_second_floor_new_ts_allows(self):
+        """First Floor accepted, repeated Floor events still allow takeoff."""
         session = _make_mock_session()
         stack, mocks = _setup_patches()
         with stack:
@@ -283,9 +385,11 @@ class TestCollisionWarmup:
             ] + [_col()] * 30
             lr.return_value.read.return_value = _lf()
             auto = AutomaticMode(session, params=AutomaticModeParams(max_flight_duration_s=1.0))
-            r = auto.run()
-            assert "warmup_new_collision_event" in (r.termination_reason or "")
-            assert not r.api_control_acquired
+            with patch.object(session, "takeoff_and_climb") as mock_tc:
+                auto._running = False
+                r = auto.run()
+                mock_tc.assert_called_once()
+            assert r.startup_floor_contact_baseline is True
 
     def test_first_floor_then_wall_rejects(self):
         """First Floor accepted, then Wall → reject."""
@@ -467,10 +571,14 @@ class TestCommandDispatch:
                 r = auto.run()
             assert r.termination_reason == "time_limit"
             # Verify the correct method was used
-            vc.return_value.send_velocity_body_frd.assert_called_once()
+            vc.return_value.send_velocity_body_frd.assert_called()
             # Check keyword arguments include vehicle_name
             kwargs = vc.return_value.send_velocity_body_frd.call_args.kwargs
             assert kwargs.get("vehicle_name") == session.vehicle_name
+            init_kwargs = vc.call_args.kwargs
+            assert init_kwargs["max_vertical_speed_mps"] == pytest.approx(
+                auto._params.max_vertical_speed_mps
+            )
 
 
 class TestCbmbaShadowLogging:
@@ -627,3 +735,30 @@ class TestCbmbaPathDiagnostics:
                 for pt in path
             )
         assert max_dev == 0.0
+
+
+class TestTerminalCaptureRecoverySuppression:
+    def test_trajectory_mode_near_goal_does_not_get_overridden(self):
+        session = _make_mock_session()
+        stack, mocks = _setup_patches()
+        with stack:
+            lr, sr, cr, lpc, flt, dd, lfov, vfov, vc = mocks
+            _cfg_mocks(mocks)
+            lr.return_value.read.side_effect = [_lf()] * 30
+            sr.return_value.read.side_effect = [_st()] * 120
+            cr.return_value.read.side_effect = [_col()] * 30
+            dd.return_value.minimum_distance_m = 5.0
+
+            auto = AutomaticMode(
+                session,
+                params=AutomaticModeParams(max_flight_duration_s=0.2),
+                cli_overrides={"planner_mode": "apf"},
+            )
+            auto._local_navigation_mode = "trajectory"
+            auto._recovery_suppress_radius_m = 4.0
+            auto._mission_goal = (3.0, 0.0, -1.0)
+
+            with patch.object(session, "takeoff_and_climb"):
+                r = auto.run()
+
+            assert r.termination_reason == "time_limit"

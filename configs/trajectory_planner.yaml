@@ -26,6 +26,7 @@ trajectory_planner:
   lateral_speed_mps: 0.20
   command_lookahead_m: 1.0
   tracker_lookahead_m: 1.0
+  trajectory_window_steps: 12
 
   alignment_scale_m: 3.0       # exp decay scale for whole-path alignment
   consistency_scale_m: 0.5     # exp decay scale for geometric consistency
@@ -86,12 +87,24 @@ trajectory_memory:
   enabled: true
   history_length: 10
 
+mission_goal:
+  # UE Play reloads the saved map and can move MissionEnd back to its editor
+  # default.  Pin the runtime marker before goal discovery so each test run
+  # uses the same AirSim NED target and the visible green marker follows it.
+  set_actor_pose_on_start: false
+  actor_name: MissionEnd
+  position_ned_m: [15.0, 0.0, 0.0]
+
 goal_termination:
   enabled: true
-  distance_tolerance_m: 1.0
+  distance_tolerance_m: 0.03
   altitude_tolerance_m: 0.4
-  max_speed_mps: 0.25
-  dwell_time_s: 1.0
+  max_speed_mps: 0.03
+  max_vertical_speed_mps: 0.05
+  position_std_tolerance_m: 0.03
+  history_size_frames: 10
+  dwell_time_s: 1.2
+  timeout_grace_s: 2.0
 
 # Local distance-field window (not the whole historical map).
 distance_field:
@@ -124,10 +137,38 @@ cbmba:
 # Trajectory tracking error → force replan when too large.
 trajectory_tracking:
   replan_error_threshold_m: 0.5
+  feedforward_gain: 1.0
+  lateral_position_kp: 0.10
+  vertical_position_kp: 0.05
+  velocity_kd: 0.08
+  terminal_goal_approach_radius_m: 2.0
+  terminal_slowdown_radius_m: 0.6
+  recovery_suppress_radius_m: 4.0
+  # Direct position capture inside the terminal radius.  This closes the
+  # residual endpoint error left by tracking a fixed lookahead sample.
+  terminal_goal_kp: 1.00
+  terminal_goal_max_speed_mps: 0.08
+  terminal_braking_accel_mps2: 0.08
+  terminal_capture_radius_m: 0.01
   # Cached-trajectory staleness (sec 9): if no fresh plan arrives, warn at
   # stale_warn_s and stop (hover) at stale_stop_s.
   stale_warn_s: 0.5
   stale_stop_s: 1.5
+
+altitude_control:
+  terminal_threshold_m: 0.6
+  deadband_m: 0.002
+  kp: 0.8
+  kd: 0.15
+  terminal_min_speed_mps: 0.005
+
+trajectory_3d_safety:
+  enabled: true
+  safety_margin_m: 1.2
+  horizon_steps: 8
+  max_obstacle_points: 800
+  max_horizontal_correction_mps: 0.12
+  max_vertical_correction_mps: 0.12
 
 # Control-loop timing / watchdog (sec 10/11).  The loop runs at a fixed
 # target rate driven by a deadline scheduler — NOT by the AirSim command
@@ -136,7 +177,7 @@ trajectory_tracking:
 control_loop:
   target_hz: 20.0            # control-loop rate (period = 1/target_hz = 50 ms)
   overrun_warn_ms: 80.0
-  overrun_stop_ms: 500.0
+  overrun_stop_ms: 1000.0
 
 # Background LiDAR / perception worker (sec 10-14): the LiDAR RPC
 # (getLidarData) is slow (~100-200 ms) and must NOT block the control loop.
@@ -158,13 +199,13 @@ lidar_health:
 
 # In-simulator debug drawing + HUD (sec 19/20).
 trajectory_debug:
-  enabled: false                 # set true to draw into the Unreal viewport
+  enabled: true                  # draw the script's live MissionEnd target in UE
   line_thickness: 5.0
-  point_size: 10.0
-  duration_s: 0.3
-  draw_global_path: true
-  draw_selected_trajectory: true
-  draw_obstacles: true
+  point_size: 25.0
+  duration_s: 1.0
+  draw_global_path: false
+  draw_selected_trajectory: false
+  draw_obstacles: false
   draw_mission_goal: true
   hud_status: true
   # CSV trace (sec 21) — one row per control frame.  Output dir relative to

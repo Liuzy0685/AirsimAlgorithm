@@ -54,6 +54,17 @@ class TestCLIArgs:
         if args.max_duration is not None: overrides["max_flight_duration_s"] = float(args.max_duration)
         assert overrides == {}
 
+    def test_reset_vehicle_on_start_flag(self):
+        from scripts.flight_mode import _parse_args
+        with patch("sys.argv", [
+            "flight_mode.py", "--mode", "auto",
+            "--settings-json", "f.json",
+            "--confirm-simulation-clearance",
+            "--reset-vehicle-on-start",
+        ]):
+            args = _parse_args()
+            assert args.reset_vehicle_on_start is True
+
 
 class TestSingleInstanceCLI:
     def test_acquire_lock_success(self):
@@ -113,6 +124,108 @@ class TestAutoModeDispatch:
             args.settings_json = None
             result = _run_auto(args)
             assert result == 2  # settings not provided
+
+    def test_auto_reset_vehicle_on_start_before_run(self):
+        from scripts.flight_mode import _run_auto
+
+        with patch("scripts.flight_mode._acquire_lock_or_die") as mock_lock, \
+             patch("flight_modes.shared_flight_session.SharedFlightSession") as mock_session_cls, \
+             patch("flight_modes.automatic_mode.AutomaticMode") as mock_auto_cls:
+            mock_lock.return_value = MagicMock()
+            mock_session = mock_session_cls.return_value
+            mock_result = MagicMock()
+            mock_result.success = True
+            mock_auto_cls.return_value.run.return_value = mock_result
+
+            args = MagicMock()
+            args.confirm_simulation_clearance = True
+            args.settings_json = "f.json"
+            args.target_z = None
+            args.max_duration = None
+            args.flight_config = str(_PROJECT_ROOT / "configs" / "minimal_flight.yaml")
+            args.perception_config = str(_PROJECT_ROOT / "configs" / "perception.yaml")
+            args.planner_mode = "reactive"
+            args.guided_apf_control = False
+            args.local_navigation_mode = "trajectory"
+            args.recovery_test_trigger = None
+            args.trajectory_config = None
+            args.cbmba_resolution = None
+            args.reset_vehicle_on_start = True
+
+            result = _run_auto(args)
+
+            assert result == 0
+            mock_session.initialize.assert_called_once()
+            mock_session.reset_vehicle.assert_called_once()
+            mock_auto_cls.return_value.run.assert_called_once()
+
+    def test_trajectory_mode_uses_trajectory_flight_config_by_default(self):
+        from scripts.flight_mode import _run_auto
+
+        with patch("scripts.flight_mode._acquire_lock_or_die") as mock_lock, \
+             patch("flight_modes.shared_flight_session.SharedFlightSession") as mock_session_cls, \
+             patch("flight_modes.automatic_mode.AutomaticMode") as mock_auto_cls:
+            mock_lock.return_value = MagicMock()
+            mock_session = mock_session_cls.return_value
+            mock_result = MagicMock()
+            mock_result.success = True
+            mock_auto_cls.return_value.run.return_value = mock_result
+
+            args = MagicMock()
+            args.confirm_simulation_clearance = True
+            args.settings_json = "f.json"
+            args.target_z = None
+            args.max_duration = None
+            args.flight_config = str(_PROJECT_ROOT / "configs" / "minimal_flight.yaml")
+            args.perception_config = str(_PROJECT_ROOT / "configs" / "perception.yaml")
+            args.planner_mode = "reactive"
+            args.guided_apf_control = False
+            args.local_navigation_mode = "trajectory"
+            args.recovery_test_trigger = None
+            args.trajectory_config = None
+            args.cbmba_resolution = None
+            args.reset_vehicle_on_start = False
+
+            result = _run_auto(args)
+
+            assert result == 0
+            expected = str(_PROJECT_ROOT / "configs" / "trajectory_flight.yaml")
+            assert mock_auto_cls.call_args.kwargs["flight_config_path"] == expected
+            assert mock_auto_cls.call_args.kwargs["params"].max_flight_duration_s == 600.0
+            assert mock_session_cls.call_args.kwargs["target_z_ned"] == -1.0
+
+    def test_trajectory_mode_converts_relative_minimal_config_to_trajectory_config(self):
+        from scripts.flight_mode import _run_auto
+
+        with patch("scripts.flight_mode._acquire_lock_or_die") as mock_lock, \
+             patch("flight_modes.shared_flight_session.SharedFlightSession") as mock_session_cls, \
+             patch("flight_modes.automatic_mode.AutomaticMode") as mock_auto_cls:
+            mock_lock.return_value = MagicMock()
+            mock_session = mock_session_cls.return_value
+            mock_result = MagicMock()
+            mock_result.success = True
+            mock_auto_cls.return_value.run.return_value = mock_result
+
+            args = MagicMock()
+            args.confirm_simulation_clearance = True
+            args.settings_json = "f.json"
+            args.target_z = None
+            args.max_duration = None
+            args.flight_config = "configs/minimal_flight.yaml"
+            args.perception_config = str(_PROJECT_ROOT / "configs" / "perception.yaml")
+            args.planner_mode = "reactive"
+            args.guided_apf_control = False
+            args.local_navigation_mode = "trajectory"
+            args.recovery_test_trigger = None
+            args.trajectory_config = None
+            args.cbmba_resolution = None
+            args.reset_vehicle_on_start = False
+
+            result = _run_auto(args)
+
+            assert result == 0
+            expected = str(_PROJECT_ROOT / "configs" / "trajectory_flight.yaml")
+            assert mock_auto_cls.call_args.kwargs["flight_config_path"] == expected
 
 
 class TestFlightConfigLoading:

@@ -300,11 +300,12 @@ class TestHoverCounterSemantics:
         a = self._auto()
         a._record_dispatch_source("trajectory")
         a._record_dispatch_source("trajectory")
+        a._record_dispatch_source("trajectory_no_feasible_nudge")
         a._record_dispatch_source("control_loop_hover")
         a._record_dispatch_source("trajectory_stale")
         a._record_dispatch_source("trajectory_no_feasible")
         a._record_dispatch_source("recovery")
-        assert a._trajectory_dispatch_count == 2
+        assert a._trajectory_dispatch_count == 3
         assert a._hover_due_control_overrun == 1
         assert a._hover_due_trajectory_stale == 1
         assert a._hover_due_no_feasible == 1

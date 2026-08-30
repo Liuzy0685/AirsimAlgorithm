@@ -7,8 +7,9 @@
 #   * geofence_radius_m is a hard safety bound: 42.6 m goal + column-avoidance
 #     lateral offset must stay inside it.  50 m is the current validation cap.
 #   * max_flight_duration_s is a FINITE mission timeout for ALL goal sources
-#     (actor and config_fixed).  300 s ≈ 170 s straight-line at 0.25 m/s plus
-#     avoidance margin.  mission_complete → success; time_limit → failure.
+#     (actor and config_fixed).  600 s gives room for slow, cautious terminal
+#     approach plus avoidance margin.  mission_complete → success;
+#     time_limit → failure.
 #
 # Use with:
 #   python scripts/flight_mode.py --local-navigation-mode trajectory \
@@ -19,7 +20,7 @@ minimal_flight:
   target_z_ned: -1.0
   max_vertical_speed_mps: 0.5
   takeoff_timeout_s: 20.0
-  max_flight_duration_s: 300.0     # finite timeout for ALL missions (incl. actor)
+  max_flight_duration_s: 600.0     # finite timeout for ALL missions (incl. actor)
   command_duration_s: 0.2
   forward_speed_mps: 0.15          # 降速给避障更多反应时间
   side_speed_mps: 0.20

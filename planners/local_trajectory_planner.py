@@ -69,6 +69,7 @@ REVERSE_RIGHT = "REVERSE_RIGHT"
 REJOIN = "REJOIN"
 REJOIN_SOFT = "REJOIN_SOFT"
 REJOIN_MEDIUM = "REJOIN_MEDIUM"
+GOAL_DIRECT = "GOAL_DIRECT"
 
 # Forward families: (family, curvature 1/m).  curvature > 0 → right, < 0 → left.
 _FORWARD_FAMILIES: Tuple[Tuple[str, float], ...] = (
@@ -105,6 +106,7 @@ _FAMILY_SIDE: Dict[str, int] = {
     SOFT_RIGHT: +1, RIGHT: +1, HARD_RIGHT: +1,
     REVERSE_LEFT: -1, REVERSE_RIGHT: +1,
     REJOIN: 0, REJOIN_SOFT: 0, REJOIN_MEDIUM: 0,
+    GOAL_DIRECT: 0,
 }
 
 
@@ -189,6 +191,7 @@ class TrajectoryPlannerParams:
 
     # Tracker (high-rate pure-pursuit) lookahead.
     tracker_lookahead_m: float = 1.0
+    trajectory_window_steps: int = 12
 
     weights: Dict[str, float] = field(default_factory=lambda: {
         "goal_progress": 2.0,
@@ -235,6 +238,8 @@ class TrajectoryCandidate:
     # body-frame command direction of the first segment
     command_vx_body: float = 0.0
     command_vy_body: float = 0.0
+    points_ned: List[Tuple[float, float, float]] = field(default_factory=list)
+    feedforward_body: List[Tuple[float, float, float]] = field(default_factory=list)
 
 
 # ── memory ──
@@ -351,6 +356,17 @@ class DeterministicTrajectoryGenerator(TrajectoryGeneratorBackend):
             body_pts = _arc_points(curv, horizon_m, params.sample_spacing_m)
             out.append((family, _body_to_world(body_pts, px, py, yaw_rad), curv, False))
 
+        goal_xy = ctx.get("goal_xy")
+        if goal_xy is not None:
+            goal_pts = _goal_direct_points(
+                (px, py),
+                (float(goal_xy[0]), float(goal_xy[1])),
+                horizon_m,
+                params.sample_spacing_m,
+            )
+            if len(goal_pts) >= 2:
+                out.append((GOAL_DIRECT, goal_pts, 0.0, False))
+
         return out
 
 
@@ -390,6 +406,7 @@ class LocalTrajectoryPlanner:
         unknown_query: Optional[Callable[[float, float], bool]] = None,
         global_path_version: int = 0,
         side_hint: int = 0,
+        goal_z_ned: Optional[float] = None,
     ) -> TrajectoryPlanResult:
         """Plan one receding-horizon step.
 
@@ -423,6 +440,7 @@ class LocalTrajectoryPlanner:
             "drone_position_ned": drone_position_ned,
             "yaw_rad": yaw_rad,
             "goal_xy": goal_xy,
+            "goal_z_ned": goal_z_ned,
             "global_path": global_path or [],
             "horizon_m": horizon_m,
             "front_clear_m": front_clear_m,
@@ -443,7 +461,7 @@ class LocalTrajectoryPlanner:
             cand = self.evaluate_candidate(
                 family, points, curv, is_reverse,
                 drone_position_ned, yaw_rad, goal_unit, path_xy, distance_field,
-                unknown_query, prev_points, side_hint,
+                unknown_query, prev_points, side_hint, goal_z_ned,
             )
             candidates.append(cand)
 
@@ -528,6 +546,7 @@ class LocalTrajectoryPlanner:
         unknown_query: Optional[Callable[[float, float], bool]] = None,
         previous_points: Optional[List[Tuple[float, float]]] = None,
         side_hint: int = 0,
+        goal_z_ned: Optional[float] = None,
     ) -> TrajectoryCandidate:
         """Score one candidate.  Returns a ``TrajectoryCandidate`` (possibly invalid)."""
         p = self.params
@@ -603,7 +622,20 @@ class LocalTrajectoryPlanner:
 
         # ── command direction (body frame, first segment) ──
         cand.command_vx_body, cand.command_vy_body = self._command_direction(
-            points, curvature, is_reverse, drone_position_ned, yaw_rad,
+            points, curvature, is_reverse, drone_position_ned, yaw_rad, family,
+        )
+        cand.points_ned = _build_3d_window(
+            points,
+            drone_position_ned[2],
+            drone_position_ned[2] if goal_z_ned is None else goal_z_ned,
+            p.trajectory_window_steps,
+        )
+        cand.feedforward_body = _build_feedforward_body(
+            cand.points_ned,
+            yaw_rad,
+            max(0.05, p.sample_spacing_m / max(0.05, p.forward_speed_mps)),
+            p.forward_speed_mps,
+            p.lateral_speed_mps,
         )
         return cand
 
@@ -658,12 +690,23 @@ class LocalTrajectoryPlanner:
         is_reverse: bool,
         drone_position_ned: Tuple[float, float, float],
         yaw_rad: float,
+        family: str = "",
     ) -> Tuple[float, float]:
         """Body-frame unit direction of the first segment (vx, vy).
 
         Uses the canonical ``planner_to_body_frame`` conversion so the sign
         contract (LEFT → negative body Y) is enforced in one place.
         """
+        if family == GOAL_DIRECT and len(points) >= 2:
+            dx = points[1][0] - drone_position_ned[0]
+            dy = points[1][1] - drone_position_ned[1]
+            cos_y = math.cos(yaw_rad)
+            sin_y = math.sin(yaw_rad)
+            vx = dx * cos_y + dy * sin_y
+            vy = -dx * sin_y + dy * cos_y
+            mag = math.hypot(vx, vy)
+            if mag > 1e-9:
+                return (vx / mag, vy / mag)
         return planner_to_body_frame(curvature * self.params.command_lookahead_m, is_reverse)
 
     def _command_from_candidate(self, cand: TrajectoryCandidate) -> Tuple[float, float]:
@@ -777,6 +820,29 @@ def _arc_points(curvature: float, horizon_m: float, spacing_m: float) -> List[Tu
         points.append((x, y))
         s += spacing_m
     return points
+
+
+def _goal_direct_points(
+    start_xy: Tuple[float, float],
+    goal_xy: Tuple[float, float],
+    horizon_m: float,
+    spacing_m: float,
+) -> List[Tuple[float, float]]:
+    """Short straight trajectory window from the current position to the goal."""
+    dx = goal_xy[0] - start_xy[0]
+    dy = goal_xy[1] - start_xy[1]
+    dist = math.hypot(dx, dy)
+    if dist < 1e-9:
+        return [start_xy]
+    travel = min(dist, max(0.05, horizon_m))
+    step = max(0.05, spacing_m)
+    n = max(1, int(math.ceil(travel / step)))
+    ux = dx / dist
+    uy = dy / dist
+    return [
+        (start_xy[0] + ux * travel * i / n, start_xy[1] + uy * travel * i / n)
+        for i in range(n + 1)
+    ]
 
 
 def _body_to_world(
@@ -918,3 +984,49 @@ def _unit_xy(v: Tuple[float, float]) -> Tuple[float, float]:
 
 def _clamp01(v: float) -> float:
     return max(0.0, min(1.0, v))
+
+
+def _build_3d_window(
+    points_xy: List[Tuple[float, float]],
+    current_z: float,
+    target_z: float,
+    max_steps: int,
+) -> List[Tuple[float, float, float]]:
+    """Attach a smooth Z profile to the first N XY trajectory samples."""
+    if not points_xy:
+        return []
+    n = min(len(points_xy), max(1, int(max_steps)))
+    out: List[Tuple[float, float, float]] = []
+    denom = max(1, n - 1)
+    for i, (x, y) in enumerate(points_xy[:n]):
+        u = i / denom
+        s = u * u * (3.0 - 2.0 * u)
+        z = current_z + (target_z - current_z) * s
+        out.append((x, y, z))
+    return out
+
+
+def _build_feedforward_body(
+    points_ned: List[Tuple[float, float, float]],
+    yaw_rad: float,
+    dt_s: float,
+    max_forward_mps: float,
+    max_lateral_mps: float,
+) -> List[Tuple[float, float, float]]:
+    """Finite-difference velocity feed-forward for the 3D trajectory window."""
+    if not points_ned:
+        return []
+    cos_y = math.cos(yaw_rad)
+    sin_y = math.sin(yaw_rad)
+    out: List[Tuple[float, float, float]] = []
+    for i, pt in enumerate(points_ned):
+        nxt = points_ned[min(i + 1, len(points_ned) - 1)]
+        vx_w = (nxt[0] - pt[0]) / dt_s
+        vy_w = (nxt[1] - pt[1]) / dt_s
+        vz = (nxt[2] - pt[2]) / dt_s
+        vx_b = vx_w * cos_y + vy_w * sin_y
+        vy_b = -vx_w * sin_y + vy_w * cos_y
+        vx_b = max(-max_forward_mps, min(max_forward_mps, vx_b))
+        vy_b = max(-max_lateral_mps, min(max_lateral_mps, vy_b))
+        out.append((vx_b, vy_b, vz))
+    return out

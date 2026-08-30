@@ -310,10 +310,11 @@ class TestFlightMetricsAndTrace:
         csv_path = tmp_path / "trace.csv"
         w = FlightTraceWriter(str(csv_path), flush_interval=1)
         w.write_row([1, 0.1, 0.0, 0.0, -3.0, 0.0, 0.25, 0.0, 0.0,
-                     0.25, 0.0, "trajectory", "STRAIGHT", 5.0, 0.0, 0.0])
+                     0.25, 0.0, -0.1, "trajectory", "STRAIGHT", 5.0, 0.0, 0.0])
         w.close()
 
         lines = csv_path.read_text(encoding="utf-8").strip().splitlines()
         assert len(lines) == 2                      # header + one row
         assert lines[0].startswith("frame")
+        assert "cmd_vz" in lines[0]
         assert "STRAIGHT" in lines[1]

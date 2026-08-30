@@ -412,6 +412,7 @@ def _local_worker_main(
                float(req["drone_position_ned"][2]))
         yaw = float(req["yaw_rad"])
         goal_xy = (float(req["goal_xy"][0]), float(req["goal_xy"][1]))
+        goal_z = float(req.get("goal_z_ned", pos[2]))
         global_path = req["global_path"] or []
         gv = int(req["global_path_version"])
         lidar = req["lidar_points"]
@@ -455,6 +456,7 @@ def _local_worker_main(
                 distance_field=dfield,
                 unknown_query=_is_unknown,
                 global_path_version=gv,
+                goal_z_ned=goal_z,
             )
             compute_ms = (time.perf_counter() - _plan_t0) * 1000.0
             wlog.info(

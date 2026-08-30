@@ -199,6 +199,22 @@ class SharedFlightSession:
         except Exception as e:
             self._handle_post_arm_failure(vn, "hoverAsync", e)
 
+    def reset_vehicle(self) -> None:
+        """Reset the vehicle to AirSim's configured spawn state.
+
+        Useful when the UE scene is left running and a fresh run should start
+        from the map's original vehicle pose instead of the previous landing
+        location.
+        """
+        if self._client is None:
+            raise SessionError("Cannot reset vehicle before initialize().")
+        vn = self._adapter.vehicle_name
+        try:
+            self._client.reset()
+            logger.info("vehicle_reset  completed=true  vehicle=%s", vn)
+        except Exception as exc:
+            raise SessionError(f"vehicle reset failed: {exc}") from exc
+
     # ── LANDING — single entry point, idempotent ──
 
     def land_and_disarm(self, landing_timeout_s: float = 30.0,

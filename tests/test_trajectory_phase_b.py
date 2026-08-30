@@ -216,3 +216,100 @@ class TestTrajectoryTracker:
         pts[4] = (1.0, 20.0)
         r = self._tracker().compute_command(pts, (0.0, 0.0, 0.0), 0.0)
         assert abs(r.vy) <= 0.20 + 1e-9
+
+    def test_3d_feedforward_and_vertical_error_enter_command(self):
+        tracker = TrajectoryTracker(
+            lookahead_m=0.25,
+            sample_spacing_m=0.25,
+            forward_speed_mps=0.25,
+            lateral_speed_mps=0.20,
+            command_lookahead_m=1.0,
+            feedforward_gain=1.0,
+            lateral_position_kp=0.10,
+            vertical_position_kp=0.20,
+            velocity_kd=0.0,
+        )
+        pts = [(0.0, 0.0, -0.5), (0.25, 0.10, -0.8), (0.50, 0.10, -1.0)]
+        ff = [(0.25, 0.0, -0.10), (0.25, 0.0, -0.10), (0.0, 0.0, 0.0)]
+        r = tracker.compute_command(
+            pts,
+            (0.0, 0.0, -0.5),
+            0.0,
+            trajectory_feedforward_body=ff,
+            current_velocity_ned=(0.0, 0.0, 0.0),
+        )
+        assert r.vx == pytest.approx(0.25)
+        assert r.vy > 0.0
+        assert r.vz < 0.0
+
+    def test_terminal_capture_uses_actual_goal_position(self):
+        tracker = TrajectoryTracker(
+            lookahead_m=1.0,
+            sample_spacing_m=0.25,
+            forward_speed_mps=0.25,
+            lateral_speed_mps=0.20,
+            terminal_slowdown_radius_m=2.0,
+            terminal_goal_kp=0.5,
+            terminal_goal_max_speed_mps=0.15,
+            terminal_capture_radius_m=0.02,
+        )
+        # The cached trajectory points ahead, but the actual goal is behind
+        # the lookahead point.  Terminal capture must command toward the goal.
+        r = tracker.compute_command(
+            [(0.0, 0.0), (1.0, 0.0), (2.0, 0.0)],
+            (1.0, 0.0, 0.0),
+            0.0,
+            goal_ned=(1.8, 0.5, 0.0),
+        )
+        assert r.vx > 0.0
+        assert r.vy > 0.0
+        assert r.vx > 0.10
+        assert math.hypot(r.vx, r.vy) <= 0.15 + 1e-9
+
+    def test_terminal_capture_holds_only_inside_tight_radius(self):
+        tracker = TrajectoryTracker(
+            lookahead_m=1.0,
+            sample_spacing_m=0.25,
+            forward_speed_mps=0.25,
+            lateral_speed_mps=0.20,
+            terminal_slowdown_radius_m=2.0,
+            terminal_goal_kp=1.0,
+            terminal_goal_max_speed_mps=0.05,
+            terminal_capture_radius_m=0.02,
+        )
+        far = tracker.compute_command(
+            [(0.0, 0.0), (1.0, 0.0), (2.0, 0.0)],
+            (0.030, 0.0, 0.0),
+            0.0,
+            goal_ned=(0.0, 0.0, 0.0),
+        )
+        near = tracker.compute_command(
+            [(0.0, 0.0), (1.0, 0.0), (2.0, 0.0)],
+            (0.010, 0.0, 0.0),
+            0.0,
+            goal_ned=(0.0, 0.0, 0.0),
+        )
+        assert abs(far.vx) > 0.0
+        assert near.vx == pytest.approx(0.0)
+        assert near.vy == pytest.approx(0.0)
+
+    def test_terminal_approach_radius_starts_goal_directed_control(self):
+        tracker = TrajectoryTracker(
+            lookahead_m=1.0,
+            sample_spacing_m=0.25,
+            forward_speed_mps=0.25,
+            lateral_speed_mps=0.20,
+            terminal_goal_approach_radius_m=2.0,
+            terminal_slowdown_radius_m=0.5,
+            terminal_goal_kp=0.5,
+            terminal_goal_max_speed_mps=0.05,
+            terminal_capture_radius_m=0.01,
+        )
+        r = tracker.compute_command(
+            [(0.0, 0.0), (1.0, 0.0), (2.0, 0.0)],
+            (1.5, 0.2, 0.0),
+            0.0,
+            goal_ned=(0.0, 0.0, 0.0),
+        )
+        assert r.vx < 0.0
+        assert r.vy < 0.0

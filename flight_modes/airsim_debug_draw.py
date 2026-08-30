@@ -102,7 +102,33 @@ class AirSimDebugDrawer:
         self._points(pts, [1.0, 0.0, 0.0, 1.0], persistent=False)
 
     def draw_mission_goal(self, goal_xy: Tuple[float, float], z: float) -> None:
-        self._points([(goal_xy[0], goal_xy[1], z)], [1.0, 1.0, 0.0, 1.0], persistent=False)
+        gx = float(goal_xy[0])
+        gy = float(goal_xy[1])
+        gz = float(z)
+        size = 1.0
+        self._points([(gx, gy, gz)], [1.0, 1.0, 0.0, 1.0], persistent=False)
+        self._line([
+            (gx - size, gy, gz), (gx + size, gy, gz),
+            (gx, gy - size, gz), (gx, gy + size, gz),
+            (gx, gy, gz - size), (gx, gy, gz + size),
+        ], [1.0, 1.0, 0.0, 1.0], persistent=False)
+
+    def draw_goal_alignment(
+        self,
+        drone_xyz: Tuple[float, float, float],
+        goal_xy: Tuple[float, float],
+        goal_z: float,
+    ) -> None:
+        """Draw the current drone-to-goal alignment plus a vertical height cue."""
+        dx = float(drone_xyz[0])
+        dy = float(drone_xyz[1])
+        dz = float(drone_xyz[2])
+        gx = float(goal_xy[0])
+        gy = float(goal_xy[1])
+        gz = float(goal_z)
+        self._line([(dx, dy, dz), (gx, gy, dz)], [0.0, 1.0, 1.0, 1.0], persistent=False)  # cyan
+        self._line([(gx, gy, dz), (gx, gy, gz)], [0.0, 1.0, 1.0, 1.0], persistent=False)  # cyan
+        self._points([(dx, dy, dz)], [0.0, 1.0, 1.0, 1.0], persistent=False)
 
     def draw_drone_path(self, history: List[Tuple[float, float, float]]) -> None:
         """Leave a persistent trace of the drone path."""

@@ -41,6 +41,7 @@ from planners.local_trajectory_planner import (
     REJOIN,
     REJOIN_SOFT,
     REJOIN_MEDIUM,
+    GOAL_DIRECT,
 )
 from planners.goal_termination import GoalTerminationChecker, GoalTerminationParams
 from flight_modes.automatic_mode import _sensor_points_to_world_xy
@@ -190,6 +191,32 @@ class TestTrajectoryPlanner:
         assert r.valid_count >= 1
         assert r.selected is not None and r.selected.valid
 
+    def test_goal_direct_handles_side_and_rear_goal(self):
+        # Regression for MissionEnd tests restarted from a leftover position:
+        # the goal can be mostly lateral or behind the drone, not only ahead.
+        r = _plan(
+            drone=(16.7597, -10.2425, -1.0),
+            yaw=0.0,
+            goal=(15.0, 0.0),
+            obstacles=[],
+        )
+        assert r.selected is not None
+        assert r.selected.family == GOAL_DIRECT
+        assert r.command_vx < 0.0
+        assert r.command_vy > 0.0
+
+    def test_goal_direct_still_uses_whole_trajectory_clearance(self):
+        r = _plan(
+            drone=(16.7597, -10.2425, -1.0),
+            yaw=0.0,
+            goal=(15.0, 0.0),
+            obstacles=[(16.33, -7.78)],
+        )
+        direct = _candidate(r, GOAL_DIRECT)
+        assert direct is not None
+        assert not direct.valid
+        assert direct.invalid_reason == "clearance"
+
     def test_rejoin_generated_when_laterally_displaced(self):
         # Drone at (0,0) facing North, path offset 2 m to the East (right).
         # Lateral error 2 m > 0.75 m trigger → smooth rejoin variants appear.
@@ -267,6 +294,21 @@ class TestTrajectoryPlanner:
         reverse_families = {"REVERSE_LEFT", "REVERSE_RIGHT"}
         assert any(c.family in reverse_families and c.valid for c in r.candidates)
 
+    def test_selected_candidate_has_3d_window_and_feedforward(self):
+        r = LocalTrajectoryPlanner().plan(
+            drone_position_ned=(0.0, 0.0, -0.5),
+            yaw_rad=0.0,
+            goal_xy=(10.0, 0.0),
+            global_path=None,
+            distance_field=_df([]),
+            goal_z_ned=-1.0,
+        )
+        assert r.selected is not None
+        assert r.selected.points_ned
+        assert r.selected.feedforward_body
+        assert r.selected.points_ned[0][2] == pytest.approx(-0.5)
+        assert r.selected.points_ned[-1][2] == pytest.approx(-1.0)
+
 
 # ── memory ──
 
@@ -321,6 +363,30 @@ class TestGoalTermination:
         r = gt.update((10.0, 0.0, -1.0), 1.0, (10.0, 0.0, -1.0), 0.0)
         assert not r.speed_low
         assert not r.reached
+
+    def test_requires_recent_speed_mean_and_position_stability(self):
+        gt = GoalTerminationChecker(GoalTerminationParams(
+            max_speed_mps=0.25,
+            max_vertical_speed_mps=0.15,
+            position_std_tolerance_m=0.10,
+            history_size_frames=3,
+            dwell_time_s=0.0,
+        ))
+        goal = (10.0, 0.0, -1.0)
+        gt.update((10.0, 0.0, -1.0), 0.0, goal, 0.0, velocity_ned_mps=(0.5, 0.0, 0.0))
+        gt.update((10.0, 0.0, -1.0), 0.0, goal, 0.1, velocity_ned_mps=(0.5, 0.0, 0.0))
+        r_fast = gt.update((10.0, 0.0, -1.0), 0.0, goal, 0.2, velocity_ned_mps=(0.0, 0.0, 0.0))
+        assert r_fast.window_ready
+        assert not r_fast.speed_low
+        assert not r_fast.reached
+
+        gt.reset(goal)
+        gt.update((9.80, 0.0, -1.0), 0.0, goal, 1.0, velocity_ned_mps=(0.0, 0.0, 0.0))
+        gt.update((10.20, 0.0, -1.0), 0.0, goal, 1.1, velocity_ned_mps=(0.0, 0.0, 0.0))
+        r_unstable = gt.update((10.0, 0.0, -1.0), 0.0, goal, 1.2, velocity_ned_mps=(0.0, 0.0, 0.0))
+        assert r_unstable.speed_low
+        assert not r_unstable.position_stable
+        assert not r_unstable.reached
 
 
 # ── sensor → world helper ──

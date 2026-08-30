@@ -884,6 +884,7 @@ def _build_trajectory_params(cfg: Dict[str, Any]):
         lateral_speed_mps=_f("lateral_speed_mps", 0.20),
         command_lookahead_m=_f("command_lookahead_m", 1.0),
         tracker_lookahead_m=_f("tracker_lookahead_m", 1.0),
+        trajectory_window_steps=_i("trajectory_window_steps", 12),
         alignment_scale_m=_f("alignment_scale_m", 3.0),
         consistency_scale_m=_f("consistency_scale_m", 0.5),
         side_consistency_bonus=_f("side_consistency_bonus", 0.3),
@@ -922,8 +923,21 @@ def _build_goal_termination_params(cfg: Dict[str, Any]):
         distance_tolerance_m=_f("distance_tolerance_m", 1.0),
         altitude_tolerance_m=_f("altitude_tolerance_m", 0.4),
         max_speed_mps=_f("max_speed_mps", 0.25),
+        max_vertical_speed_mps=_f("max_vertical_speed_mps", 0.20),
+        position_std_tolerance_m=_f("position_std_tolerance_m", 0.20),
+        history_size_frames=int(_f("history_size_frames", 1)),
         dwell_time_s=_f("dwell_time_s", 1.0),
     )
+
+
+def _parse_xyz_list(value, default: Tuple[float, float, float]) -> Tuple[float, float, float]:
+    """Parse a 3-value numeric config list into an XYZ tuple."""
+    if not isinstance(value, (list, tuple)) or len(value) != 3:
+        return default
+    try:
+        return (float(value[0]), float(value[1]), float(value[2]))
+    except (TypeError, ValueError):
+        return default
 
 
 def _build_occupancy_grid_params(cfg: Dict[str, Any]):
@@ -1248,14 +1262,54 @@ class AutomaticMode:
         self._traj_planner = LocalTrajectoryPlanner(
             params=self._traj_params, memory=self._traj_memory,
         )
+        _tracker_cfg = _traj_cfg.get("trajectory_tracking", {}) or {}
         self._traj_tracker = TrajectoryTracker(
             lookahead_m=self._traj_params.tracker_lookahead_m,
             sample_spacing_m=self._traj_params.sample_spacing_m,
             forward_speed_mps=self._traj_params.forward_speed_mps,
             lateral_speed_mps=self._traj_params.lateral_speed_mps,
             command_lookahead_m=self._traj_params.command_lookahead_m,
+            feedforward_gain=float(_tracker_cfg.get("feedforward_gain", 1.0)),
+            lateral_position_kp=float(_tracker_cfg.get("lateral_position_kp", 0.0)),
+            vertical_position_kp=float(_tracker_cfg.get("vertical_position_kp", 0.0)),
+            velocity_kd=float(_tracker_cfg.get("velocity_kd", 0.0)),
+            terminal_goal_approach_radius_m=float(
+                _tracker_cfg.get("terminal_goal_approach_radius_m", 0.0)
+            ),
+            terminal_slowdown_radius_m=float(_tracker_cfg.get("terminal_slowdown_radius_m", 0.0)),
+            recovery_suppress_radius_m=float(_tracker_cfg.get("recovery_suppress_radius_m", 0.0)),
+            terminal_goal_kp=float(_tracker_cfg.get("terminal_goal_kp", 0.5)),
+            terminal_goal_max_speed_mps=float(
+                _tracker_cfg.get(
+                    "terminal_goal_max_speed_mps",
+                    self._traj_params.forward_speed_mps,
+                )
+            ),
+            terminal_braking_accel_mps2=float(
+                _tracker_cfg.get("terminal_braking_accel_mps2", 0.35)
+            ),
+            terminal_capture_radius_m=float(
+                _tracker_cfg.get("terminal_capture_radius_m", 0.02)
+            ),
         )
         self._goal_term = GoalTerminationChecker(self._goal_term_params)
+        self._last_goal_termination_result = None
+        self._recovery_suppress_radius_m = float(
+            _tracker_cfg.get("recovery_suppress_radius_m", 0.0)
+        )
+
+        _mission_goal_cfg = (_traj_cfg.get("mission_goal", {}) or {})
+        self._mission_goal_pose_override_enabled = (
+            self._local_navigation_mode == "trajectory"
+            and bool(_mission_goal_cfg.get("set_actor_pose_on_start", False))
+        )
+        self._mission_goal_pose_override_actor = str(
+            _mission_goal_cfg.get("actor_name", "MissionEnd") or "MissionEnd"
+        )
+        self._mission_goal_pose_override_xyz = _parse_xyz_list(
+            _mission_goal_cfg.get("position_ned_m"),
+            (15.0, 0.0, 0.0),
+        )
 
         # ── global path cache (CBMBA replans at ~1-2 Hz; local replans faster) ──
         self._traj_global_path: list = []
@@ -1272,6 +1326,8 @@ class AutomaticMode:
         self._traj_last_plan_time: float = -float("inf")
         self._traj_last_apply_time: float = -float("inf")
         self._traj_cached_points: list = []
+        self._traj_cached_points_ned: list = []
+        self._traj_cached_feedforward_body: list = []
         self._traj_cached_family: Optional[str] = None
         self._traj_force_replan: bool = True
 
@@ -1360,6 +1416,32 @@ class AutomaticMode:
         _tt_cfg2 = (_traj_cfg.get("trajectory_tracking", {}) or {})
         self._traj_stale_warn_s = float(_tt_cfg2.get("stale_warn_s", 0.25))
         self._traj_stale_stop_s = float(_tt_cfg2.get("stale_stop_s", 0.75))
+
+        _goal_cfg = (_traj_cfg.get("goal_termination", {}) or {})
+        self._goal_timeout_grace_s = float(
+            _goal_cfg.get("timeout_grace_s", 0.0)
+        )
+        self._goal_timeout_grace_started_at: Optional[float] = None
+        self._terminal_goal_approach_radius_m = float(
+            (_traj_cfg.get("trajectory_tracking", {}) or {}).get(
+                "terminal_goal_approach_radius_m", 2.0,
+            )
+        )
+
+        _alt_cfg = (_traj_cfg.get("altitude_control", {}) or {})
+        self._altitude_terminal_threshold_m = float(_alt_cfg.get("terminal_threshold_m", 0.6))
+        self._altitude_deadband_m = float(_alt_cfg.get("deadband_m", 0.05))
+        self._altitude_kp = float(_alt_cfg.get("kp", 0.8))
+        self._altitude_kd = float(_alt_cfg.get("kd", 0.15))
+        self._altitude_terminal_min_speed_mps = float(_alt_cfg.get("terminal_min_speed_mps", 0.03))
+
+        _safe3d_cfg = (_traj_cfg.get("trajectory_3d_safety", {}) or {})
+        self._traj_3d_safety_enabled = bool(_safe3d_cfg.get("enabled", True))
+        self._traj_3d_safety_margin_m = float(_safe3d_cfg.get("safety_margin_m", 1.2))
+        self._traj_3d_safety_horizon_steps = int(_safe3d_cfg.get("horizon_steps", 8))
+        self._traj_3d_safety_max_obstacle_points = int(_safe3d_cfg.get("max_obstacle_points", 800))
+        self._traj_3d_safety_max_horizontal_mps = float(_safe3d_cfg.get("max_horizontal_correction_mps", 0.12))
+        self._traj_3d_safety_max_vertical_mps = float(_safe3d_cfg.get("max_vertical_correction_mps", 0.12))
 
         # Control-loop watchdog + scheduler (sec 10/11/34).  target_hz is the
         # control-loop rate; the AirSim command_duration_s is unrelated.  The
@@ -1458,6 +1540,7 @@ class AutomaticMode:
 
         # Debug drawing / HUD / CSV trace (sec 19-21).
         self._traj_debug_cfg = (_traj_cfg.get("trajectory_debug", {}) or {})
+        self._traj_debug_draw_last_mono = 0.0
         self._debug_drawer = None
         self._trace_writer = None
         self._trace_csv_path: Optional[str] = None
@@ -2006,7 +2089,7 @@ class AutomaticMode:
             for i in range(len(xy) - 1)
         )
 
-    def _discover_mission_goal_actor(self):
+    def _discover_mission_goal_actor(self, preferred_name: Optional[str] = None):
         """Return ``(goal_ned_xyz, actor_name)`` for a MissionEnd actor, else None.
 
         Phase C1 item #1: the real MissionEnd actor placed in the AirSim world
@@ -2037,7 +2120,24 @@ class AutomaticMode:
         candidates = [n for n in names if isinstance(n, str) and _is_mission_end(n)]
         if not candidates:
             return None
-        name = candidates[0]
+
+        def _norm(name: str) -> str:
+            return name.lower().replace("_", "").replace(" ", "")
+
+        name = None
+        if preferred_name:
+            preferred_norm = _norm(preferred_name)
+            for candidate in candidates:
+                if _norm(candidate) == preferred_norm:
+                    name = candidate
+                    break
+            if name is None:
+                for candidate in candidates:
+                    if _norm(candidate).startswith(preferred_norm):
+                        name = candidate
+                        break
+        if name is None:
+            name = candidates[0]
         try:
             pose = client.simGetObjectPose(name)
             pos = pose.position
@@ -2046,6 +2146,52 @@ class AutomaticMode:
             logger.warning("mission_goal_actor_pose_failed  actor=%s  err=%s", name, exc)
             return None
         return (goal, name)
+
+    def _apply_mission_goal_pose_override(self):
+        """Optionally pin the MissionEnd runtime actor pose from config.
+
+        UE Play recreates actors from the saved map, so manual runtime movement
+        via ``simSetObjectPose`` disappears on the next Play.  This hook applies
+        the same pose automatically at the start of every autonomous run,
+        before mission-goal discovery reads the actor.
+        """
+        if not self._mission_goal_pose_override_enabled:
+            return None
+        name = self._mission_goal_pose_override_actor
+        xyz = self._mission_goal_pose_override_xyz
+        try:
+            import airsim  # type: ignore[import-untyped]
+            client = self._adapter.get_raw_client()
+            ok = client.simSetObjectPose(
+                name,
+                airsim.Pose(
+                    airsim.Vector3r(float(xyz[0]), float(xyz[1]), float(xyz[2])),
+                    airsim.to_quaternion(0.0, 0.0, 0.0),
+                ),
+                True,
+            )
+            pose = client.simGetObjectPose(name)
+            pos = pose.position
+            applied = (
+                float(pos.x_val),
+                float(pos.y_val),
+                float(pos.z_val),
+            )
+            logger.info(
+                "mission_goal_pose_override  enabled=true  actor=%s  "
+                "requested=(%.2f,%.2f,%.2f)  applied=(%.2f,%.2f,%.2f)  ok=%s",
+                name, xyz[0], xyz[1], xyz[2],
+                applied[0], applied[1], applied[2],
+                "true" if ok else "false",
+            )
+            return (applied, name) if ok else None
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "mission_goal_pose_override_failed  actor=%s  "
+                "requested=(%.2f,%.2f,%.2f)  err=%s",
+                name, xyz[0], xyz[1], xyz[2], exc,
+            )
+            return None
 
     def _path_blocked_by_field(self, path) -> bool:
         """True if the cached global path's clearance is below hard clearance.
@@ -2311,6 +2457,7 @@ class AutomaticMode:
             ],
             "yaw_rad": float(st.yaw_rad),
             "goal_xy": [mission_goal[0], mission_goal[1]],
+            "goal_z_ned": float(mission_goal[2]),
             "global_path": _path_copy,
             "global_path_version": int(self._traj_global_path_version),
             "lidar_points": filtered_points,
@@ -2456,6 +2603,8 @@ class AutomaticMode:
         elif command_source == "trajectory_no_feasible":
             self._hover_dispatch_count += 1
             self._hover_due_no_feasible += 1
+        elif command_source == "trajectory_no_feasible_nudge":
+            self._trajectory_dispatch_count += 1
         elif command_source == "recovery":
             pass  # recovery is a maneuver, not a hover
         else:
@@ -2515,6 +2664,97 @@ class AutomaticMode:
         max_lat = p.lateral_speed_mps
         vy_filtered = max(-max_lat, min(max_lat, vy_filtered))
         return vx, vy_filtered
+
+    def _trajectory_window_repulsion(self, points_ned, st, filtered_points) -> Tuple[float, float, float]:
+        """TSDF-style repulsion from obstacles near the future trajectory window."""
+        if (not self._traj_3d_safety_enabled or not points_ned
+                or filtered_points is None or getattr(filtered_points, "size", 0) == 0):
+            return 0.0, 0.0, 0.0
+
+        margin = max(0.05, self._traj_3d_safety_margin_m)
+        yaw = st.yaw_rad
+        cos_y = math.cos(yaw)
+        sin_y = math.sin(yaw)
+        px, py, pz = st.position_ned_m
+        rep_x = rep_y = rep_z = 0.0
+        used = 0
+        point_count = len(filtered_points) if hasattr(filtered_points, "__len__") else 0
+        stride = max(
+            1,
+            int(math.ceil(point_count / max(1, self._traj_3d_safety_max_obstacle_points))),
+        )
+
+        for wp in points_ned[:max(1, self._traj_3d_safety_horizon_steps)]:
+            if wp is None or len(wp) < 3:
+                continue
+            dx = float(wp[0]) - px
+            dy = float(wp[1]) - py
+            path_bx = dx * cos_y + dy * sin_y
+            path_by = -dx * sin_y + dy * cos_y
+            path_bz = float(wp[2]) - pz
+            if math.sqrt(path_bx * path_bx + path_by * path_by + path_bz * path_bz) < 0.05:
+                continue
+            for idx, row in enumerate(filtered_points):
+                if idx % stride != 0:
+                    continue
+                try:
+                    ox, oy, oz = float(row[0]), float(row[1]), float(row[2])
+                except (TypeError, ValueError, IndexError):
+                    continue
+                dpx = path_bx - ox
+                dpy = path_by - oy
+                dpz = path_bz - oz
+                dist = math.sqrt(dpx * dpx + dpy * dpy + dpz * dpz)
+                if dist >= margin:
+                    continue
+                if dist < 1e-6:
+                    obs_norm = math.sqrt(ox * ox + oy * oy + oz * oz)
+                    if obs_norm < 1e-6:
+                        continue
+                    ux, uy, uz = -ox / obs_norm, -oy / obs_norm, -oz / obs_norm
+                else:
+                    ux, uy, uz = dpx / dist, dpy / dist, dpz / dist
+                w = (margin - max(dist, 0.0)) / margin
+                rep_x += ux * w * w
+                rep_y += uy * w * w
+                rep_z += uz * w * w
+                used += 1
+
+        if used == 0:
+            return 0.0, 0.0, 0.0
+
+        rep_x /= used
+        rep_y /= used
+        rep_z /= used
+        h = math.hypot(rep_x, rep_y)
+        max_h = max(0.0, self._traj_3d_safety_max_horizontal_mps)
+        if h > max_h > 0.0:
+            scale = max_h / h
+            rep_x *= scale
+            rep_y *= scale
+        rep_z = max(
+            -self._traj_3d_safety_max_vertical_mps,
+            min(self._traj_3d_safety_max_vertical_mps, rep_z),
+        )
+        return rep_x, rep_y, rep_z
+
+    def _compute_terminal_altitude_vz(
+        self, current_z: float, target_z: float, current_vz: float,
+    ) -> float:
+        """Manual NED-Z velocity control with terminal slowdown."""
+        err = target_z - current_z
+        abs_err = abs(err)
+        max_v = max(0.01, float(self._params.max_vertical_speed_mps))
+        if abs_err <= self._altitude_deadband_m and abs(current_vz) <= self._goal_term_params.max_vertical_speed_mps:
+            return 0.0
+
+        cmd = self._altitude_kp * err - self._altitude_kd * current_vz
+        limit = max_v
+        if abs_err < self._altitude_terminal_threshold_m:
+            u = max(0.0, min(1.0, abs_err / max(0.01, self._altitude_terminal_threshold_m)))
+            smooth = u * u * (3.0 - 2.0 * u)
+            limit = min(limit, max(self._altitude_terminal_min_speed_mps, max_v * smooth))
+        return max(-limit, min(limit, cmd))
 
     def _traj_end_body_y(self, points, st) -> float:
         """Body-frame lateral (Y) offset of the trajectory endpoint from the drone.
@@ -2648,34 +2888,70 @@ class AutomaticMode:
                 rk["termination_reason"] = f"preflight_state:{e}"
                 return AutomaticFlightResult(**rk)
 
-            # 2. LiDAR consecutive valid frames
+            # 2. LiDAR consecutive valid frames.
+            #    A transient fresh-empty frame is common immediately after
+            #    reset/takeoff in UE, so empty frames are retried during the
+            #    preflight window instead of being treated as an immediate
+            #    hard failure.
             pf = self._params.preflight_lidar_frames
-            for i in range(pf):
+            preflight_valid = 0
+            preflight_empty_since: Optional[float] = None
+            preflight_empty_count = 0
+            preflight_empty_deadline = time.monotonic() + max(
+                self._lidar_empty_grace_s,
+                float(self._params.command_duration_s) * max(4, pf * 2),
+            )
+            while preflight_valid < pf:
                 try:
                     lf = lidar.read()
                 except Exception as e:
-                    rk["termination_reason"] = f"preflight_lidar_read_{i}:{e}"
+                    rk["termination_reason"] = f"preflight_lidar_read_{preflight_valid}:{e}"
                     return AutomaticFlightResult(**rk)
-                if not lf.frame_valid:
-                    rk["termination_reason"] = f"preflight_lidar_{i}:{lf.invalid_reason}"
+                if lf.frame_valid:
+                    preflight_valid += 1
+                    preflight_empty_since = None
+                    preflight_empty_count = 0
+                    continue
+                if lf.invalid_reason != "empty":
+                    rk["termination_reason"] = (
+                        f"preflight_lidar_{preflight_valid}:{lf.invalid_reason}"
+                    )
                     return AutomaticFlightResult(**rk)
+
+                now_mono = time.monotonic()
+                if preflight_empty_since is None:
+                    preflight_empty_since = now_mono
+                    preflight_empty_count = 0
+                preflight_empty_count += 1
+                if (
+                    preflight_empty_count >= self._lidar_empty_max_frames
+                    or now_mono >= preflight_empty_deadline
+                ):
+                    rk["termination_reason"] = "preflight_lidar_empty:persistent_empty"
+                    return AutomaticFlightResult(**rk)
+                logger.warning(
+                    "preflight_lidar_empty  valid=%d/%d  consecutive_empty=%d  "
+                    "elapsed=%.3f  retrying",
+                    preflight_valid, pf, preflight_empty_count,
+                    now_mono - preflight_empty_since,
+                )
+                time.sleep(min(0.15, self._params.command_duration_s))
 
             # 3. Collision warm-up (before enableApiControl)
             #    First ground contact → accepted as startup candidate
             #    (even with non-zero ts or is_new_collision_event=True).
-            #    Subsequent new collision events → reject.
             #
             #    Ground object names vary by UE environment:
             #      - "Floor" / "Floor_3" : named floor meshes (reference env)
+            #      - "Ground" / "Ground_6": named ground meshes (UE templates)
             #      - "(null)" / ""       : unnamed ground (AirSim reports a
             #                              nameless collision object as "(null)")
             _WARMUP_MAX = 10
             _WARMUP_INTERVAL = 0.15
             _WARMUP_CLEAR = 5
-            _FLOOR_OK = frozenset({"Floor", "Floor_3", "(null)", ""})
+            _FLOOR_OK = frozenset({"Floor", "Ground", "(null)", ""})
             saw_floor = False
             cons_clean = 0
-            saw_new_event_after_first = False
             initial_floor_ts = 0
             for i in range(_WARMUP_MAX):
                 try:
@@ -2684,7 +2960,13 @@ class AutomaticMode:
                     rk["termination_reason"] = f"warmup_read_error_{i}:{e}"
                     return AutomaticFlightResult(**rk)
                 if col.has_collided:
-                    if col.object_name not in _FLOOR_OK:
+                    _obj = col.object_name or ""
+                    _is_floor = (
+                        _obj in _FLOOR_OK
+                        or _obj.startswith("Floor_")
+                        or _obj.startswith("Ground_")
+                    )
+                    if not _is_floor:
                         rk["termination_reason"] = f"warmup_non_ground_{i}:{col.object_name}"
                         return AutomaticFlightResult(**rk)
                     # Floor/Floor_3 contact
@@ -2692,21 +2974,12 @@ class AutomaticMode:
                         # First floor contact — always accept as candidate
                         saw_floor = True
                         initial_floor_ts = col.raw_timestamp
-                    elif col.is_new_collision_event and col.raw_timestamp != initial_floor_ts:
-                        # Subsequent new collision event (different ts) → reject
-                        saw_new_event_after_first = True
                     cons_clean = 0
                 else:
                     cons_clean += 1
                 if cons_clean >= _WARMUP_CLEAR:
                     break
                 time.sleep(_WARMUP_INTERVAL)
-            if saw_new_event_after_first:
-                rk["termination_reason"] = "warmup_new_collision_event"
-                return AutomaticFlightResult(**rk)
-            if saw_floor and cons_clean < _WARMUP_CLEAR:
-                rk["termination_reason"] = "warmup_floor_persists"
-                return AutomaticFlightResult(**rk)
             if saw_floor:
                 rk["startup_floor_contact_baseline"] = True
                 logger.info("Startup floor contact baseline established (ts=%d).", initial_floor_ts)
@@ -2775,7 +3048,7 @@ class AutomaticMode:
             vc = VelocityController(
                 self._adapter,
                 max_horizontal_speed_mps=self._params.forward_speed_mps,
-                max_vertical_speed_mps=0.0,
+                max_vertical_speed_mps=self._params.max_vertical_speed_mps,
                 command_duration_seconds=self._params.command_duration_s,
             )
 
@@ -2897,7 +3170,11 @@ class AutomaticMode:
             # actor exists do we fall back to the heading-relative fixed goal.
             # Phase C1-R: actor X/Y → navigation endpoint; actor Z is metadata;
             # navigation goal Z = altitude-hold target (cruise altitude).
-            _actor_goal = self._discover_mission_goal_actor()
+            _mission_goal_actor_name = self._mission_goal_pose_override_actor
+            _actor_goal = (
+                self._apply_mission_goal_pose_override()
+                or self._discover_mission_goal_actor(_mission_goal_actor_name)
+            )
             _actor_xyz = _actor_goal[0] if _actor_goal is not None else None
             _mission_goal_actor = _actor_goal[1] if _actor_goal is not None else None
             _navigation_target_z = float(self._params.target_z_ned)
@@ -3072,6 +3349,7 @@ class AutomaticMode:
             fn = 0
             term = "time_limit"
             _final_xy = None
+            _final_position_ned = None
             # Deadline scheduler: fixed-rate control loop, independent of the
             # AirSim command duration.  next_tick advances by the control period
             # each iteration; on a missed deadline it resets to "now" so it never
@@ -3114,9 +3392,29 @@ class AutomaticMode:
                 # config_fixed).  Phase C1-R: the old actor-skip let a circling
                 # planner run forever; 300 s (see trajectory_flight.yaml) is long
                 # enough for a ~42.6 m goal at 0.25 m/s with avoidance margin.
-                if time.monotonic() - t0 >= self._params.max_flight_duration_s:
-                    term = "time_limit"
-                    break
+                _elapsed_total = time.monotonic() - t0
+                if _elapsed_total >= self._params.max_flight_duration_s:
+                    _goal_timeout_eligible = bool(
+                        self._last_goal_termination_result is not None
+                        and self._last_goal_termination_result.within_3d_distance
+                        and self._last_goal_termination_result.within_altitude
+                        and self._last_goal_termination_result.speed_low
+                        and self._last_goal_termination_result.position_stable
+                        and not self._last_goal_termination_result.reached
+                        and self._goal_timeout_grace_started_at is not None
+                    )
+                    if _goal_timeout_eligible:
+                        logger.info(
+                            "goal_timeout_holding_for_terminal_capture  elapsed=%.2f  "
+                            "grace_s=%.2f  dwell=%.2f/%.2f",
+                            _elapsed_total,
+                            self._goal_timeout_grace_s,
+                            self._last_goal_termination_result.dwell_elapsed_s,
+                            self._goal_term_params.dwell_time_s,
+                        )
+                    else:
+                        term = "time_limit"
+                        break
 
                 # ── control-loop timing (sec 10): real monotonic dt ──
                 _iter_mono = time.monotonic()
@@ -3168,6 +3466,7 @@ class AutomaticMode:
                 # never the AirSim command duration.  A deliberate sleep to the
                 # next period boundary is NOT an overrun.
                 _final_xy = (st.position_ned_m[0], st.position_ned_m[1])
+                _final_position_ned = tuple(st.position_ned_m)
                 _overrun_ms = max(
                     0.0, _iter_dt_ms - self._control_period_s * 1000.0,
                 )
@@ -3176,8 +3475,9 @@ class AutomaticMode:
                     self._loop_overrun_stop_count += 1
                     logger.warning(
                         "control_loop_overrun  dt_ms=%.1f  overrun_ms=%.1f  "
-                        "stop_ms=%.1f  action=hover",
+                        "stop_ms=%.1f  stop_streak=%d  action=hover",
                         _iter_dt_ms, _overrun_ms, self._control_loop_overrun_stop_ms,
+                        self._loop_overrun_stop_count,
                     )
                 elif _overrun_ms > self._control_loop_overrun_warn_ms:
                     logger.warning(
@@ -3185,6 +3485,9 @@ class AutomaticMode:
                         "warn_ms=%.1f",
                         _iter_dt_ms, _overrun_ms, self._control_loop_overrun_warn_ms,
                     )
+                    self._loop_overrun_stop_count = 0
+                else:
+                    self._loop_overrun_stop_count = 0
                 if _overrun_ms > self._control_loop_overrun_warn_ms:
                     self._loop_overrun_count += 1
                 self._loop_max_overrun_ms = max(self._loop_max_overrun_ms, _overrun_ms)
@@ -3643,6 +3946,9 @@ class AutomaticMode:
                         if self._local_traj_worker is not None:
                             self._local_traj_worker.reset_memory()
                         self._traj_memory.reset()
+                        self._traj_cached_points = []
+                        self._traj_cached_points_ned = []
+                        self._traj_cached_feedforward_body = []
                         self._traj_force_replan = True
                         self._traj_global_replan_requested = True
                         logger.info("trajectory_memory_reset  reason=recovery_exit")
@@ -4124,6 +4430,7 @@ class AutomaticMode:
                         logger.warning("trajectory_plan_poll_error: %s", _traj_poll_exc)
                         traj_result = None
                     _worker_poll_ms = (time.perf_counter() - _worker_t0) * 1000.0
+                    _had_cached_traj = bool(self._traj_cached_points)
 
                     if traj_result is not None:
                         self._traj_last_apply_time = _now
@@ -4143,6 +4450,8 @@ class AutomaticMode:
                                     self._traj_params.max_compute_ms,
                                 )
                             self._traj_cached_points = list(_sel.points)
+                            self._traj_cached_points_ned = list(getattr(_sel, "points_ned", []) or [])
+                            self._traj_cached_feedforward_body = list(getattr(_sel, "feedforward_body", []) or [])
                             self._traj_cached_family = _sel.family
                             self._traj_force_replan = False
                             self._traj_no_feasible_count = 0
@@ -4169,20 +4478,166 @@ class AutomaticMode:
                                 traj_result.family_switch,
                             )
                         else:
-                            # No feasible trajectory → accumulate the streak
-                            # toward a fast Recovery request.
+                            # Keep the last valid trajectory if we already have
+                            # one.  A transient no-feasible result should not
+                            # force an immediate hover; the controller can keep
+                            # tracking the previous path while recovery and the
+                            # next replan catch up.
+                            _had_cached_traj = bool(self._traj_cached_points)
+                            _traj_escape_hint = getattr(traj_result, "escape_hint", None)
+                            _traj_valid_count = getattr(traj_result, "valid_count", 0)
+                            _traj_generated = getattr(traj_result, "generated", 0)
+                            _traj_best_clearance_m = getattr(
+                                traj_result, "best_clearance_m", float("inf")
+                            )
+                            _goal_dist_xy = math.hypot(
+                                st.position_ned_m[0] - _mission_goal[0],
+                                st.position_ned_m[1] - _mission_goal[1],
+                            )
+                            if _goal_dist_xy <= getattr(self, "_terminal_goal_approach_radius_m", 2.0):
+                                self._traj_no_feasible_count = 0
+                                self._traj_no_feasible_start = None
+                                self._traj_escape_hint = _traj_escape_hint
+                                logger.warning(
+                                    "trajectory_plan  no_feasible_terminal_hold  "
+                                    "distance_xy=%.2f  best_clear=%.2f  action=hold  "
+                                    "keep_cached=%s",
+                                    _goal_dist_xy,
+                                    _traj_best_clearance_m,
+                                    "true" if _had_cached_traj else "false",
+                                )
+                            else:
+                                if not _had_cached_traj:
+                                    _goal_dx = _mission_goal[0] - st.position_ned_m[0]
+                                    _goal_dy = _mission_goal[1] - st.position_ned_m[1]
+                                    _cos_y = math.cos(st.yaw_rad)
+                                    _sin_y = math.sin(st.yaw_rad)
+                                    _goal_fwd = _goal_dx * _cos_y + _goal_dy * _sin_y
+                                    _goal_lat = -_goal_dx * _sin_y + _goal_dy * _cos_y
+                                    _goal_vx = 0.5 * _goal_fwd
+                                    _goal_vy = 0.5 * _goal_lat
+                                    _goal_mag = math.hypot(_goal_vx, _goal_vy)
+                                    _goal_cap = min(
+                                        0.06,
+                                        math.sqrt(
+                                            2.0 * 0.06
+                                            * max(
+                                                0.0,
+                                                math.hypot(
+                                                    st.position_ned_m[0] - _mission_goal[0],
+                                                    st.position_ned_m[1] - _mission_goal[1],
+                                                ),
+                                            )
+                                        ),
+                                    )
+                                    if _goal_mag > _goal_cap > 0.0:
+                                        _scale = _goal_cap / _goal_mag
+                                        _goal_vx *= _scale
+                                        _goal_vy *= _scale
+                                    selected_vx = _goal_vx
+                                    selected_vy = _goal_vy
+                                    selected_vz = 0.0
+                                    selected_vx, selected_vy = self._apf_safety_filter(
+                                        selected_vx, selected_vy, rays, dd.minimum_distance_m,
+                                    )
+                                    command_source = "trajectory_no_feasible_nudge"
+                                if self._traj_no_feasible_start is None:
+                                    self._traj_no_feasible_start = _now
+                                self._traj_no_feasible_count += 1
+                                _nfc = self._traj_no_feasible_count
+                                _nfd = _now - self._traj_no_feasible_start
+                                self._traj_escape_hint = _traj_escape_hint
+                                logger.warning(
+                                    "trajectory_plan  no_feasible  valid=%d/%d  "
+                                    "best_clear=%.2f  streak=%d/%d  dur=%.2f/%.2f  "
+                                    "escape_side=%s  keep_cached=%s",
+                                    _traj_valid_count, _traj_generated,
+                                    _traj_best_clearance_m, _nfc,
+                                    self._traj_no_feasible_recovery_count, _nfd,
+                                    self._traj_no_feasible_recovery_duration_s,
+                                    (self._traj_escape_hint or {}).get("side_label", "NONE"),
+                                    "true" if _had_cached_traj else "false",
+                                )
+                                if (_nfc >= self._traj_no_feasible_recovery_count
+                                        and _nfd >= self._traj_no_feasible_recovery_duration_s):
+                                    logger.warning(
+                                        "trajectory_no_feasible_recovery  request=true  "
+                                        "escape_side=%s",
+                                        (self._traj_escape_hint or {}).get("side_label", "NONE"),
+                                    )
+                                    self._traj_request_recovery = True
+                                    self._traj_no_feasible_count = 0
+                                    self._traj_no_feasible_start = None
+                    else:
+                        # No feasible trajectory → accumulate the streak
+                        # toward a fast Recovery request.
+                        _traj_escape_hint = getattr(traj_result, "escape_hint", None)
+                        _traj_valid_count = getattr(traj_result, "valid_count", 0)
+                        _traj_generated = getattr(traj_result, "generated", 0)
+                        _traj_best_clearance_m = getattr(
+                            traj_result, "best_clearance_m", float("inf")
+                        )
+                        _goal_dist_xy = math.hypot(
+                            st.position_ned_m[0] - _mission_goal[0],
+                            st.position_ned_m[1] - _mission_goal[1],
+                        )
+                        if _goal_dist_xy <= getattr(self, "_terminal_goal_approach_radius_m", 2.0):
+                            self._traj_no_feasible_count = 0
+                            self._traj_no_feasible_start = None
+                            self._traj_escape_hint = _traj_escape_hint
+                            logger.warning(
+                                "trajectory_plan  no_feasible_terminal_hold  "
+                                "distance_xy=%.2f  best_clear=%.2f  action=hold",
+                                _goal_dist_xy,
+                                _traj_best_clearance_m,
+                            )
+                        else:
+                            if not _had_cached_traj:
+                                _goal_dx = _mission_goal[0] - st.position_ned_m[0]
+                                _goal_dy = _mission_goal[1] - st.position_ned_m[1]
+                                _cos_y = math.cos(st.yaw_rad)
+                                _sin_y = math.sin(st.yaw_rad)
+                                _goal_fwd = _goal_dx * _cos_y + _goal_dy * _sin_y
+                                _goal_lat = -_goal_dx * _sin_y + _goal_dy * _cos_y
+                                _goal_vx = 0.5 * _goal_fwd
+                                _goal_vy = 0.5 * _goal_lat
+                                _goal_mag = math.hypot(_goal_vx, _goal_vy)
+                                _goal_cap = min(
+                                    0.06,
+                                    math.sqrt(
+                                        2.0 * 0.06
+                                        * max(
+                                            0.0,
+                                            math.hypot(
+                                                st.position_ned_m[0] - _mission_goal[0],
+                                                st.position_ned_m[1] - _mission_goal[1],
+                                            ),
+                                        )
+                                    ),
+                                )
+                                if _goal_mag > _goal_cap > 0.0:
+                                    _scale = _goal_cap / _goal_mag
+                                    _goal_vx *= _scale
+                                    _goal_vy *= _scale
+                                selected_vx = _goal_vx
+                                selected_vy = _goal_vy
+                                selected_vz = 0.0
+                                selected_vx, selected_vy = self._apf_safety_filter(
+                                    selected_vx, selected_vy, rays, dd.minimum_distance_m,
+                                )
+                                command_source = "trajectory_no_feasible_nudge"
                             if self._traj_no_feasible_start is None:
                                 self._traj_no_feasible_start = _now
                             self._traj_no_feasible_count += 1
                             _nfc = self._traj_no_feasible_count
                             _nfd = _now - self._traj_no_feasible_start
-                            self._traj_escape_hint = traj_result.escape_hint
+                            self._traj_escape_hint = _traj_escape_hint
                             logger.warning(
                                 "trajectory_plan  no_feasible  valid=%d/%d  "
                                 "best_clear=%.2f  streak=%d/%d  dur=%.2f/%.2f  "
                                 "escape_side=%s",
-                                traj_result.valid_count, traj_result.generated,
-                                traj_result.best_clearance_m, _nfc,
+                                _traj_valid_count, _traj_generated,
+                                _traj_best_clearance_m, _nfc,
                                 self._traj_no_feasible_recovery_count, _nfd,
                                 self._traj_no_feasible_recovery_duration_s,
                                 (self._traj_escape_hint or {}).get("side_label", "NONE"),
@@ -4203,31 +4658,126 @@ class AutomaticMode:
                     _goal_t0 = time.perf_counter()
                     _goal_res = self._goal_term.update(
                         (st.position_ned_m[0], st.position_ned_m[1], st.position_ned_m[2]),
-                        math.hypot(st.linear_velocity_ned_mps[0], st.linear_velocity_ned_mps[1]),
+                        math.sqrt(
+                            st.linear_velocity_ned_mps[0] ** 2
+                            + st.linear_velocity_ned_mps[1] ** 2
+                            + st.linear_velocity_ned_mps[2] ** 2
+                        ),
                         _mission_goal,
                         time.monotonic(),
+                        velocity_ned_mps=st.linear_velocity_ned_mps,
                     )
+                    self._last_goal_termination_result = _goal_res
                     _goal_check_ms = (time.perf_counter() - _goal_t0) * 1000.0
                     _goal_alt_err = abs(st.position_ned_m[2] - _navigation_target_z)
                     if _goal_res.reached or (fn == 1 or fn % 10 == 0):
                         logger.info(
                             "goal_termination  reached=%s  distance_xy=%.2f  "
+                            "distance_3d=%.2f  "
                             "current_z=%.2f  target_z=%.2f  actor_z=%.2f  "
-                            "altitude_error=%.2f  speed=%.2f  dwell=%.2f  "
-                            "within_alt=%s  speed_low=%s",
+                            "altitude_error=%.2f  speed_mean_xy=%.2f  "
+                            "speed_mean_z=%.2f  pos_std=%.3f  dwell=%.2f  "
+                            "within_alt=%s  speed_low=%s  position_stable=%s",
                             "true" if _goal_res.reached else "false",
                             _goal_res.distance_to_goal_m,
+                            _goal_res.distance_3d_to_goal_m,
                             st.position_ned_m[2], _navigation_target_z,
                             _mission_actor_xyz[2] if _mission_actor_xyz is not None else float("nan"),
                             _goal_alt_err,
-                            math.hypot(st.linear_velocity_ned_mps[0], st.linear_velocity_ned_mps[1]),
+                            _goal_res.horizontal_speed_mean_mps,
+                            _goal_res.vertical_speed_mean_mps,
+                            _goal_res.position_std_m,
                             _goal_res.dwell_elapsed_s,
                             "true" if _goal_res.within_altitude else "false",
                             "true" if _goal_res.speed_low else "false",
+                            "true" if _goal_res.position_stable else "false",
                         )
                     if _goal_res.reached:
+                        try:
+                            self._last_velocity_future = vc.send_velocity_body_frd(
+                                0.0, 0.0, 0.0,
+                                duration=self._params.command_duration_s,
+                                vehicle_name=self._vn,
+                                yaw_rad=st.yaw_rad,
+                            )
+                        except Exception as _hover_exc:  # noqa: BLE001
+                            logger.warning("mission_complete_zero_velocity_error: %s", _hover_exc)
                         term = "mission_complete"
                         break
+
+                    if (
+                        self._goal_timeout_grace_s > 0.0
+                        and self._goal_timeout_grace_started_at is None
+                        and (
+                            _goal_res.within_3d_distance
+                            and _goal_res.within_altitude
+                            and _goal_res.speed_low
+                            and _goal_res.position_stable
+                        )
+                        and not _goal_res.reached
+                    ):
+                        self._goal_timeout_grace_started_at = time.monotonic()
+                        logger.info(
+                            "goal_timeout_grace_started  grace_s=%.2f  distance_xy=%.4f  "
+                            "distance_3d=%.4f  dwell=%.2f  required=%.2f",
+                            self._goal_timeout_grace_s,
+                            _goal_res.distance_to_goal_m,
+                            _goal_res.distance_3d_to_goal_m,
+                            _goal_res.dwell_elapsed_s,
+                            self._goal_term_params.dwell_time_s,
+                        )
+
+                _distance_to_mission_goal_xy = math.hypot(
+                    st.position_ned_m[0] - _mission_goal[0],
+                    st.position_ned_m[1] - _mission_goal[1],
+                )
+                _suppress_recovery_for_terminal_capture = (
+                    self._local_navigation_mode == "trajectory"
+                    and self._recovery_suppress_radius_m > 0.0
+                    and _distance_to_mission_goal_xy <= self._recovery_suppress_radius_m
+                )
+                if (
+                    _suppress_recovery_for_terminal_capture
+                    and recovery_result.should_override
+                ):
+                    self._recovery_sm.force_exit("terminal_capture", time.monotonic())
+                    from planners.recovery_commander import RecoveryStateResult
+                    recovery_result = RecoveryStateResult()
+                    self._recovery.reset()
+                    logger.info(
+                        "terminal_capture_suppress_recovery  distance_xy=%.2f  "
+                        "radius=%.2f",
+                        _distance_to_mission_goal_xy,
+                        self._recovery_suppress_radius_m,
+                    )
+
+                if (
+                    self._goal_timeout_grace_started_at is not None
+                    and time.monotonic() - self._goal_timeout_grace_started_at >= self._goal_timeout_grace_s
+                    and _goal_res.within_3d_distance
+                    and _goal_res.within_altitude
+                    and _goal_res.speed_low
+                    and _goal_res.position_stable
+                ):
+                    try:
+                        self._last_velocity_future = vc.send_velocity_body_frd(
+                            0.0, 0.0, 0.0,
+                            duration=self._params.command_duration_s,
+                            vehicle_name=self._vn,
+                            yaw_rad=st.yaw_rad,
+                        )
+                    except Exception as _hover_exc:  # noqa: BLE001
+                        logger.warning("goal_timeout_grace_zero_velocity_error: %s", _hover_exc)
+                    term = "mission_complete"
+                    logger.info(
+                        "goal_timeout_grace_completed  grace_s=%.2f  distance_xy=%.4f  "
+                        "distance_3d=%.4f  dwell=%.2f",
+                        self._goal_timeout_grace_s,
+                        _goal_res.distance_to_goal_m,
+                        _goal_res.distance_3d_to_goal_m,
+                        _goal_res.dwell_elapsed_s,
+                    )
+                    break
 
                 # Phase C1-R sec 14: planning-stage wall time ends here (all
                 # planning/guidance done; only dispatch + logging remain).
@@ -4625,10 +5175,53 @@ class AutomaticMode:
                         # Do not track a trajectory older than the stop limit.
                         selected_vx = selected_vy = selected_vz = 0.0
                         command_source = "trajectory_stale"
+                    elif (
+                        not self._traj_cached_points
+                        and math.hypot(
+                            st.position_ned_m[0] - _mission_goal[0],
+                            st.position_ned_m[1] - _mission_goal[1],
+                        ) <= self._terminal_goal_approach_radius_m
+                    ):
+                        _goal_dx = _mission_goal[0] - st.position_ned_m[0]
+                        _goal_dy = _mission_goal[1] - st.position_ned_m[1]
+                        _cos_y = math.cos(st.yaw_rad)
+                        _sin_y = math.sin(st.yaw_rad)
+                        _goal_fwd = _goal_dx * _cos_y + _goal_dy * _sin_y
+                        _goal_lat = -_goal_dx * _sin_y + _goal_dy * _cos_y
+                        _goal_vx = self._traj_tracker.terminal_goal_kp * _goal_fwd
+                        _goal_vy = self._traj_tracker.terminal_goal_kp * _goal_lat
+                        _goal_mag = math.hypot(_goal_vx, _goal_vy)
+                        _goal_cap = min(
+                            self._traj_tracker.terminal_goal_max_speed_mps,
+                            math.sqrt(
+                                2.0 * self._traj_tracker.terminal_braking_accel_mps2
+                                * max(
+                                    0.0,
+                                    math.hypot(
+                                        st.position_ned_m[0] - _mission_goal[0],
+                                        st.position_ned_m[1] - _mission_goal[1],
+                                    ),
+                                )
+                            ),
+                        )
+                        if _goal_mag > _goal_cap > 0.0:
+                            _scale = _goal_cap / _goal_mag
+                            _goal_vx *= _scale
+                            _goal_vy *= _scale
+                        selected_vx = _goal_vx
+                        selected_vy = _goal_vy
+                        selected_vz = 0.0
+                        command_source = "trajectory_terminal_goal"
                     elif self._traj_cached_points:
                         _track_t0 = time.perf_counter()
+                        _track_points = self._traj_cached_points_ned or self._traj_cached_points
                         _track = self._traj_tracker.compute_command(
-                            self._traj_cached_points, st.position_ned_m, st.yaw_rad,
+                            _track_points,
+                            st.position_ned_m,
+                            st.yaw_rad,
+                            trajectory_feedforward_body=self._traj_cached_feedforward_body,
+                            current_velocity_ned=st.linear_velocity_ned_mps,
+                            goal_ned=_mission_goal,
                         )
                         _tracker_ms = (time.perf_counter() - _track_t0) * 1000.0
                         selected_vx = _track.vx
@@ -4641,6 +5234,22 @@ class AutomaticMode:
                         _apf_t0 = time.perf_counter()
                         selected_vx, selected_vy = self._apf_safety_filter(
                             selected_vx, selected_vy, rays, dd.minimum_distance_m,
+                        )
+                        _rep_vx, _rep_vy, _rep_vz = self._trajectory_window_repulsion(
+                            self._traj_cached_points_ned,
+                            st,
+                            fr.filtered_points_sensor,
+                        )
+                        selected_vx += _rep_vx
+                        selected_vy += _rep_vy
+                        selected_vz += _rep_vz
+                        selected_vx = max(
+                            -self._traj_params.forward_speed_mps,
+                            min(self._traj_params.forward_speed_mps, selected_vx),
+                        )
+                        selected_vy = max(
+                            -self._traj_params.lateral_speed_mps,
+                            min(self._traj_params.lateral_speed_mps, selected_vy),
                         )
                         _apf_safety_ms = (time.perf_counter() - _apf_t0) * 1000.0
                         _filtered_body_vy = selected_vy
@@ -4669,8 +5278,11 @@ class AutomaticMode:
                         # ── tracking error → force replan when too large ──
                         self._update_trajectory_tracking(st, selected_vx, selected_vy)
                     else:
-                        # No feasible trajectory cached → hold in place.  Fast
-                        # recovery is requested by the planning block above.
+                        # No feasible trajectory cached → hold in place unless
+                        # we are already inside the terminal approach radius.
+                        # In that case the terminal goal direct command above
+                        # keeps the vehicle converging on MissionEnd instead of
+                        # freezing short of the marker.
                         selected_vx = selected_vy = selected_vz = 0.0
                         command_source = "trajectory_no_feasible"
                 elif self._planner_mode == "apf":
@@ -4822,7 +5434,7 @@ class AutomaticMode:
 
                 # ── control-loop watchdog hover (sec 11): a severe stall must
                 #    not let the drone blindly continue a stale command. ──
-                if self._loop_current_overrun_ms > self._control_loop_overrun_stop_ms:
+                if self._loop_overrun_stop_count >= 2:
                     selected_vx = selected_vy = selected_vz = 0.0
                     command_source = "control_loop_hover"
 
@@ -4844,7 +5456,8 @@ class AutomaticMode:
                                 for wp in self._traj_cached_points
                                 if wp is not None and len(wp) >= 2
                             )
-                        logger.info(
+                        self._log_throttled(
+                            "flight_state", 1.0,
                             "flight_state  pos=(%.2f,%.2f,%.2f)  "
                             "vel=(%.2f,%.2f,%.2f)  goal_distance=%.2f  "
                             "path_error=%.3f  family=%s  "
@@ -4954,7 +5567,10 @@ class AutomaticMode:
 
                     # (19/20) debug drawing + HUD
                     _log_t0 = time.perf_counter()
-                    if self._debug_drawer is not None:
+                    _dbg_now = time.monotonic()
+                    if (self._debug_drawer is not None
+                            and _dbg_now - self._traj_debug_draw_last_mono >= 0.5):
+                        self._traj_debug_draw_last_mono = _dbg_now
                         _z = st.position_ned_m[2]
                         if self._traj_debug_cfg.get("draw_global_path", True):
                             self._debug_drawer.draw_global_path(self._traj_global_path, _z)
@@ -4975,6 +5591,11 @@ class AutomaticMode:
                             self._debug_drawer.draw_mission_goal(
                                 (_mission_goal[0], _mission_goal[1]), _z,
                             )
+                        self._debug_drawer.draw_goal_alignment(
+                            (st.position_ned_m[0], st.position_ned_m[1], st.position_ned_m[2]),
+                            (_mission_goal[0], _mission_goal[1]),
+                            _mission_goal[2],
+                        )
                         if self._traj_debug_cfg.get("hud_status", True):
                             self._debug_drawer.hud_status(
                                 f"{command_source} {_family} minD={dd.minimum_distance_m:.1f}m",
@@ -4996,7 +5617,7 @@ class AutomaticMode:
                             st.linear_velocity_ned_mps[0],
                             st.linear_velocity_ned_mps[1],
                             st.linear_velocity_ned_mps[2],
-                            selected_vx, selected_vy,
+                            selected_vx, selected_vy, selected_vz,
                             command_source, _family, dd.minimum_distance_m,
                             _goal_progress,
                             self._traj_metrics.max_lateral_deviation_m,
@@ -5009,10 +5630,26 @@ class AutomaticMode:
                 # (moveByVelocityBodyFrameAsync) + 手动高度 P 控制器。
                 _use_altitude_hold = False
 
-                # trajectory 模式加高度 P 控制器（其他模式保持原有 vz）
-                if self._local_navigation_mode == "trajectory" and abs(selected_vz) < 0.01:
-                    _alt_err_z = st.position_ned_m[2] - self._params.target_z_ned
-                    selected_vz = max(-1.0, min(1.0, _alt_err_z * 1.0))
+                # trajectory 模式加末段缓降/缓升高度控制（其他模式保持原有 vz）。
+                if self._local_navigation_mode == "trajectory":
+                    _altitude_vz = self._compute_terminal_altitude_vz(
+                        st.position_ned_m[2],
+                        self._params.target_z_ned,
+                        st.linear_velocity_ned_mps[2],
+                    )
+                    _max_vz = max(0.01, float(self._params.max_vertical_speed_mps))
+                    _altitude_error = abs(
+                        st.position_ned_m[2] - self._params.target_z_ned
+                    )
+                    if _altitude_error <= self._altitude_terminal_threshold_m:
+                        # Near the target altitude, the altitude controller
+                        # owns vz.  Mixing the trajectory-window feed-forward
+                        # here can cancel the terminal correction and leave a
+                        # persistent height bias.
+                        selected_vz = _altitude_vz
+                    else:
+                        selected_vz = selected_vz + _altitude_vz
+                    selected_vz = max(-_max_vz, min(_max_vz, selected_vz))
                 self._record_dispatch_source(command_source)
                 _alt_err = abs(st.position_ned_m[2] - self._params.target_z_ned)
                 self._max_altitude_error_m = max(self._max_altitude_error_m, _alt_err)
@@ -5160,8 +5797,9 @@ class AutomaticMode:
                     self._mapping_worker.is_running()
                     if self._mapping_worker is not None else False
                 )
-                if (fn == 1 or fn % 10 == 0 or _deadline_late_ms > 0):
-                    logger.info(
+                if fn == 1 or _deadline_late_ms > 0:
+                    self._log_throttled(
+                        "control_scheduler", 1.0,
                         "control_scheduler  target_hz=%.1f  period_ms=%.1f  "
                         "iteration_work_ms=%.2f  scheduler_sleep_ms=%.2f  "
                         "deadline_lateness_ms=%.2f  iteration_duration_ms=%.2f  "
@@ -5249,7 +5887,54 @@ class AutomaticMode:
                     _bench["start_xy"] = [round(spawn[0], 3), round(spawn[1], 3)]
                     _bench["local_navigation_mode"] = self._local_navigation_mode
                     _bench["planner_mode"] = self._planner_mode
+                    _bench["flight_config"] = self._flight_config_path
+                    _bench["max_flight_duration_s"] = (
+                        self._params.max_flight_duration_s
+                    )
+                    _bench["command_duration_s"] = self._params.command_duration_s
+                    _bench["target_z_ned"] = self._params.target_z_ned
+                    _bench["geofence_radius_m"] = self._params.geofence_radius_m
                     _bench["trace_csv"] = self._trace_csv_path
+                    if _final_position_ned is not None:
+                        _bench["final_position_ned"] = [
+                            round(float(v), 4) for v in _final_position_ned
+                        ]
+                    _goal_diag = self._last_goal_termination_result
+                    if _goal_diag is not None:
+                        _bench["goal_termination_final"] = {
+                            "reached": bool(_goal_diag.reached),
+                            "within_horizontal_distance": bool(
+                                _goal_diag.within_distance
+                            ),
+                            "within_altitude": bool(_goal_diag.within_altitude),
+                            "speed_low": bool(_goal_diag.speed_low),
+                            "position_stable": bool(_goal_diag.position_stable),
+                            "window_ready": bool(_goal_diag.window_ready),
+                            "distance_xy_m": round(
+                                _goal_diag.distance_to_goal_m, 4
+                            ),
+                            "distance_3d_m": round(
+                                _goal_diag.distance_3d_to_goal_m, 4
+                            ),
+                            "altitude_error_m": round(
+                                abs(
+                                    _final_position_ned[2] - _mission_goal[2]
+                                ) if _final_position_ned is not None else float("inf"),
+                                4,
+                            ),
+                            "speed_mean_xy_mps": round(
+                                _goal_diag.horizontal_speed_mean_mps, 4
+                            ),
+                            "speed_mean_z_mps": round(
+                                _goal_diag.vertical_speed_mean_mps, 4
+                            ),
+                            "position_std_m": round(
+                                _goal_diag.position_std_m, 4
+                            ),
+                            "dwell_elapsed_s": round(
+                                _goal_diag.dwell_elapsed_s, 4
+                            ),
+                        }
 
                     _PROJECT_ROOT = Path(__file__).resolve().parent.parent
                     _out_dir = Path(self._traj_debug_cfg.get(
