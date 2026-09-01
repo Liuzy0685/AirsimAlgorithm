@@ -120,9 +120,27 @@ class SharedFlightSession:
         self._adapter.connect()
         self._client = self._adapter.get_raw_client()
         vn = self._adapter.vehicle_name
-        vehicles = [str(v) for v in self._adapter.list_vehicles()]
-        if vn not in vehicles:
-            raise SessionError(f"Vehicle '{vn}' not found. Available: {vehicles}")
+        try:
+            vehicles = [str(v) for v in self._adapter.list_vehicles()]
+            if vn not in vehicles:
+                raise SessionError(f"Vehicle '{vn}' not found. Available: {vehicles}")
+        except ConnectionError as exc:
+            # Older packaged AirSim environments expose the normal vehicle
+            # RPCs but do not implement listVehicles(). Probe the configured
+            # vehicle directly so those environments remain usable.
+            if "listVehicles" not in str(exc):
+                raise
+            try:
+                self._client.getMultirotorState(vehicle_name=vn)
+            except Exception as state_exc:
+                raise SessionError(
+                    f"Vehicle '{vn}' could not be probed after listVehicles "
+                    f"was unavailable: {state_exc}"
+                ) from state_exc
+            logger.warning(
+                "listVehicles() unavailable; validated vehicle %r by state probe.",
+                vn,
+            )
         self._state.vehicle_validated = True
         self._state.lidar_validated = True
         self._state.phase = SessionPhase.INITIALIZED

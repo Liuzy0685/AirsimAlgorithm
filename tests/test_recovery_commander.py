@@ -70,6 +70,15 @@ def _rays(**overrides):
     return defaults
 
 
+def _dead_end_rays(**overrides):
+    defaults = {
+        "front": 1.0, "left": 1.0, "right": 1.0,
+        "up": 10.0, "frontUp": 10.0, "leftUp": 10.0, "rightUp": 10.0,
+    }
+    defaults.update(overrides)
+    return defaults
+
+
 # ── compute_recovery_command ──
 
 
@@ -88,6 +97,21 @@ class TestComputeRecoveryCommand:
         assert cmd[0] < 0  # backward
         assert cmd[1] > 0  # right
         assert cmd[3] == 1
+
+    def test_no_feasible_advances_when_front_is_open(self):
+        """Trajectory local minima should sidestep forward, not always reverse."""
+        decision = RecoveryDecision(
+            is_stuck=True,
+            needs_recovery=True,
+            reason="trajectory_no_feasible",
+        )
+        cmd = compute_recovery_command(
+            decision,
+            _rays(front=3.2, left=1.8, right=4.0),
+            forced_mode="trajectory_no_feasible",
+        )
+        assert cmd[0] > 0
+        assert cmd[1] > 0
 
     def test_oscillation_left_more_open(self):
         """Left clearance > right → go left (vy = -0.35)."""
@@ -162,6 +186,50 @@ class TestComputeRecoveryCommand:
         assert cmd[1] < 0  # should go left despite right being less open
         assert cmd[3] == -1
 
+    def test_dead_end_climbs_when_all_upward_sectors_are_clear(self):
+        p = RecoveryCommanderParams(vertical_clearance_m=2.0)
+        cmd = compute_recovery_command(
+            _none_decision(), _dead_end_rays(), params=p,
+        )
+        assert cmd[0] == 0.0
+        assert cmd[1] == 0.0  # climb first; no diagonal escape command
+        assert cmd[2] < 0.0  # NED: negative vz is upward
+
+    def test_dead_end_uses_wall_follow_when_upward_is_blocked(self):
+        p = RecoveryCommanderParams(vertical_clearance_m=2.0)
+        cmd = compute_recovery_command(
+            _none_decision(), _dead_end_rays(up=1.0), params=p,
+        )
+        assert cmd[2] == 0.0
+        assert cmd[0] < 0.0
+        assert cmd[1] != 0.0
+
+    def test_wall_follow_keeps_committed_side_when_wall_is_close(self):
+        # The selected wall can be close by design. Do not switch to the other
+        # wall just because its instantaneous ray is shorter than 1.5 m.
+        p = RecoveryCommanderParams(wall_follow_side_lock_enabled=True)
+        cmd = compute_recovery_command(
+            _none_decision(),
+            _dead_end_rays(front=1.0, left=0.8, right=1.8, up=1.0),
+            committed_side=-1,
+            params=p,
+            forced_mode="wall",
+        )
+        assert cmd[3] == -1
+        assert cmd[1] < 0.0
+
+    def test_trajectory_no_feasible_keeps_committed_side(self):
+        p = RecoveryCommanderParams(wall_follow_side_lock_enabled=True)
+        decision = RecoveryDecision(
+            is_stuck=True, needs_recovery=True, reason="trajectory_no_feasible",
+        )
+        cmd = compute_recovery_command(
+            decision, _rays(front=3.2, left=0.8, right=4.0),
+            committed_side=-1, params=p, forced_mode="trajectory_no_feasible",
+        )
+        assert cmd[3] == -1
+        assert cmd[1] < 0.0
+
 
 # ── RecoveryStateMachine ──
 
@@ -188,6 +256,46 @@ class TestStateMachineEntry:
         assert result.vx_body == 0.0
         assert result.vy_body < 0  # left side more open
 
+    def test_dead_end_locks_climb_mode_then_hands_back(self):
+        p = RecoveryCommanderParams(
+            max_duration_s=5.0,
+            vertical_clearance_m=2.0,
+            vertical_climb_duration_s=1.0,
+            vertical_climb_delta_m=0.4,
+        )
+        sm = RecoveryStateMachine(p)
+        r1 = sm.tick(1000.0, _none_decision(), _dead_end_rays(),
+                     current_position=(0.0, 0.0, -1.0))
+        assert r1.event == "enter"
+        assert sm.mode == "climb"
+        assert r1.vz_body < 0.0
+
+        r2 = sm.tick(1000.5, _none_decision(), _dead_end_rays(),
+                     current_position=(0.0, 0.0, -1.1))
+        assert r2.should_override
+        assert r2.vz_body < 0.0
+
+        r3 = sm.tick(1001.1, _none_decision(), _dead_end_rays(),
+                     current_position=(0.0, 0.0, -1.2))
+        assert r3.event == "exit_climb"
+        assert not r3.should_override
+
+    def test_dead_end_switches_from_climb_to_fixed_side_wall(self):
+        p = RecoveryCommanderParams(
+            max_duration_s=5.0, vertical_clearance_m=2.0,
+            vertical_climb_duration_s=2.0,
+        )
+        sm = RecoveryStateMachine(p)
+        sm.tick(1000.0, _none_decision(), _dead_end_rays(),
+                current_position=(0.0, 0.0, -1.0))
+        blocked_up = _dead_end_rays(up=1.0)
+        r = sm.tick(1000.2, _none_decision(), blocked_up,
+                    current_position=(0.0, 0.0, -1.0))
+        assert sm.mode == "wall"
+        assert r.should_override
+        assert r.vz_body == 0.0
+        assert r.vy_body != 0.0
+
     def test_no_recovery_no_transition(self):
         sm = RecoveryStateMachine()
         result = sm.tick(1000.0, _none_decision(), _rays())
@@ -211,6 +319,28 @@ class TestStateMachineEntry:
         r2 = sm.tick(1000.3, _stuck_decision(), _rays(left=10.0, right=2.0))
         assert r2.should_override
         assert r2.vx_body < 0  # stuck command (backward) persisted
+
+    def test_trajectory_no_feasible_exits_when_front_opens_in_narrow_gap(self):
+        # Side pillars may remain within the clearance threshold while the
+        # forward opening is already safe. Do not wait for the full timeout.
+        p = RecoveryCommanderParams(
+            max_duration_s=5.0, required_progress_m=0.5, clear_distance_m=2.0,
+        )
+        decision = RecoveryDecision(
+            is_stuck=True, needs_recovery=True, reason="trajectory_no_feasible",
+        )
+        sm = RecoveryStateMachine(p)
+        r1 = sm.tick(
+            1000.0, decision, _rays(front=1.0, left=3.0, right=3.0),
+            current_position=(0.0, 0.0, -1.0),
+        )
+        assert r1.should_override
+        r2 = sm.tick(
+            1001.0, decision, _rays(front=3.0, left=1.5, right=1.5),
+            current_position=(0.6, 0.0, -1.0),
+        )
+        assert r2.event == "exit_progress"
+        assert not r2.should_override
 
 
 class TestStateMachineTimeout:

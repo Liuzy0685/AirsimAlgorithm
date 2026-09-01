@@ -1059,6 +1059,59 @@ class TestRound7StateSemantics:
         auto._bypass.max_path_error_m = 5.0
         assert auto._bypass_release_destination("both_sides_clear") == "normal"
 
+    def test_dead_end_bypass_does_not_release_on_front_clear_alone(self):
+        """A large U opening must not hand control back while its wall remains close."""
+        from flight_modes.automatic_mode import BypassEpisode
+
+        auto = _make_minimal_auto()
+        auto._bypass = BypassEpisode(
+            active=True, side=1, start_time=100.0,
+            trajectory_dead_end=True,
+            reference_frozen_position_xy=(0.0, 0.0),
+        )
+
+        should_release, reason = auto._should_release_bypass(
+            {"front": 8.0, "left": 8.0, "right": 1.5}, 102.0,
+        )
+        assert not should_release
+        assert reason == "hold_dead_end_wall"
+
+        # The selected wall and front are both clear, but the clear reading
+        # must persist before the goal-directed trajectory is allowed back in.
+        auto._track_bypass_excursion((2.0, 0.0))
+        should_release, reason = auto._should_release_bypass(
+            {"front": 8.0, "left": 8.0, "right": 4.0}, 102.5,
+        )
+        assert not should_release
+        should_release, reason = auto._should_release_bypass(
+            {"front": 8.0, "left": 8.0, "right": 4.0}, 103.4,
+        )
+        assert should_release
+        assert reason == "dead_end_wall_end"
+
+    def test_dead_end_bypass_rejects_goal_pullback(self):
+        """Trajectory output cannot reverse the committed wall side."""
+        from flight_modes.automatic_mode import BypassEpisode
+
+        auto = _make_minimal_auto()
+        auto._bypass = BypassEpisode(
+            active=True, side=-1, start_time=100.0,
+            trajectory_dead_end=True,
+        )
+
+        vx, vy = auto._enforce_trajectory_dead_end_bypass(
+            0.8, 0.25, {"front": 8.0, "left": 2.0, "right": 8.0},
+        )
+        assert vx == pytest.approx(0.8)
+        assert vy < 0.0
+        assert abs(vy) >= auto._dead_end_bypass_min_lateral_mps
+
+        vx, vy = auto._enforce_trajectory_dead_end_bypass(
+            0.8, 0.0, {"front": 0.7, "left": 2.0, "right": 8.0},
+        )
+        assert vx == 0.0
+        assert vy < 0.0
+
     def test_recovery_inherit_gated_by_formal_entry(self):
         """P1-B: recovery→bypass side inheritance is blocked when there is no
         real corridor constraint (both sides open) or no guidance."""

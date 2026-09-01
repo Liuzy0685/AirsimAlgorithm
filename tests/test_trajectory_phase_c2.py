@@ -234,6 +234,24 @@ class TestAltitudeHoldDispatch:
 
 
 class TestNoAltitudeSignError:
+    def test_altitude_velocity_points_toward_target_in_ned(self):
+        # NED Z is positive down: from +1.1 m back to -1.0 m requires an
+        # upward (negative) velocity, never the old positive descent command.
+        auto = AutomaticMode.__new__(AutomaticMode)
+        assert auto._altitude_hold_velocity(1.1, -1.0, 0.5) == pytest.approx(-0.5)
+        assert auto._altitude_hold_velocity(-0.5, -1.0, 0.5) == pytest.approx(-0.5)
+        assert auto._altitude_hold_velocity(-1.2, -1.0, 0.5) == pytest.approx(0.2)
+
+    def test_altitude_hold_velocity_is_bounded(self):
+        auto = AutomaticMode.__new__(AutomaticMode)
+        assert auto._altitude_hold_velocity(10.0, -1.0, 0.5) == pytest.approx(-0.5)
+
+    def test_vertical_controller_limit_must_not_be_zero(self):
+        # A zero controller limit would discard every corrective vz command
+        # before it reaches AirSim and let the aircraft drift in Z.
+        params = automatic_mode.AutomaticModeParams(max_vertical_speed_mps=0.5)
+        assert params.max_vertical_speed_mps > 0.0
+
     def test_target_z_passed_verbatim(self):
         vc, client = _make_controller()
         # NED: -1.0 = 1 m above the origin.  A sign flip would command +1.0

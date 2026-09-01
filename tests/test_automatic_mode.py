@@ -1,9 +1,10 @@
 """Tests for automatic flight mode — review fixes (collision warm-up)."""
 
-import sys, contextlib
+import sys, contextlib, math, types
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 import pytest
+import numpy as np
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(_PROJECT_ROOT) not in sys.path: sys.path.insert(0, str(_PROJECT_ROOT))
@@ -32,6 +33,105 @@ class TestReactiveDecision:
     def test_emergency_stops(self):
         d = choose_reactive_command(1, 10, 10, 0.5, _CFG)
         assert d.should_terminate
+
+
+class TestCommandCorridorSafety:
+    def test_side_pillar_does_not_trigger_global_emergency_stop(self):
+        # The nearest return is close, but it is beside the forward command
+        # corridor. A centerline gap must remain traversable.
+        points = np.array([[0.45, 0.95, 0.0]])
+        clearance = AutomaticMode._swept_command_clearance(
+            points, 0.75, 0.0, 0.2,
+        )
+        assert clearance == pytest.approx(0.95)
+
+    def test_obstacle_on_command_centerline_is_detected(self):
+        points = np.array([[0.45, 0.0, 0.0]])
+        clearance = AutomaticMode._swept_command_clearance(
+            points, 0.75, 0.0, 0.2,
+        )
+        assert clearance == pytest.approx(0.0)
+
+
+class TestHeadingAlignment:
+    def test_goal_behind_requires_a_half_turn(self):
+        error = AutomaticMode._wrapped_heading_error(
+            (0.0, 0.0, -1.0), 0.0, (-5.0, 0.0),
+        )
+        assert abs(error) == pytest.approx(3.141592653589793)
+
+    def test_goal_to_right_has_positive_yaw_error(self):
+        error = AutomaticMode._wrapped_heading_error(
+            (0.0, 0.0, -1.0), 0.0, (0.0, 5.0),
+        )
+        assert error == pytest.approx(3.141592653589793 / 2.0)
+
+    def test_current_heading_to_goal_has_zero_error(self):
+        error = AutomaticMode._wrapped_heading_error(
+            (0.0, 0.0, -1.0), 0.0, (5.0, 0.0),
+        )
+        assert error == pytest.approx(0.0)
+
+    def _runtime_guard(self):
+        mode = AutomaticMode.__new__(AutomaticMode)
+        mode._runtime_heading_alignment_enabled = True
+        mode._runtime_heading_alignment_trigger_rad = math.radians(100.0)
+        mode._runtime_heading_alignment_settle_rad = math.radians(12.0)
+        mode._runtime_heading_alignment_max_distance_m = 8.0
+        mode._runtime_heading_alignment_kp = 1.2
+        mode._runtime_heading_alignment_max_rate = 0.5
+        mode._runtime_heading_alignment_active = False
+        mode._runtime_heading_alignment_started_mono = None
+        mode._traj_cached_points = [(1.0, 0.0), (2.0, 0.0)]
+        mode._traj_cached_family = "STRAIGHT"
+        mode._traj_force_replan = False
+        return mode
+
+    def test_runtime_guard_turns_in_place_when_goal_is_behind(self):
+        mode = self._runtime_guard()
+        st = types.SimpleNamespace(position_ned_m=(0.0, 0.0, -1.0), yaw_rad=0.0)
+
+        active, completed, yaw_rate = mode._runtime_heading_alignment_command(
+            st, (-5.0, 0.0), 10.0,
+        )
+
+        assert active and not completed
+        assert yaw_rate == pytest.approx(-0.5)
+        assert mode._traj_cached_points == []
+        assert mode._traj_force_replan
+
+    def test_runtime_guard_replans_after_heading_settles(self):
+        mode = self._runtime_guard()
+        st_behind = types.SimpleNamespace(
+            position_ned_m=(0.0, 0.0, -1.0), yaw_rad=0.0,
+        )
+        mode._runtime_heading_alignment_command(
+            st_behind, (-5.0, 0.0), 10.0,
+        )
+        st_aligned = types.SimpleNamespace(
+            position_ned_m=(0.0, 0.0, -1.0), yaw_rad=math.pi,
+        )
+
+        active, completed, yaw_rate = mode._runtime_heading_alignment_command(
+            st_aligned, (-5.0, 0.0), 11.0,
+        )
+
+        assert not active and completed
+        assert yaw_rate == 0.0
+        assert mode._traj_cached_points == []
+        assert mode._traj_force_replan
+
+    def test_runtime_guard_catches_goal_behind_beyond_near_goal_window(self):
+        """A crossed goal must stop forward motion even when still >8 m away."""
+        mode = self._runtime_guard()
+        st = types.SimpleNamespace(position_ned_m=(0.0, 0.0, -1.0), yaw_rad=0.0)
+
+        active, completed, yaw_rate = mode._runtime_heading_alignment_command(
+            st, (-20.0, 0.0), 10.0,
+        )
+
+        assert active and not completed
+        assert yaw_rate == pytest.approx(-0.5)
 
 
 # ── mock helpers ──

@@ -78,6 +78,10 @@ class CbmbaParams:
     enabled: bool = True
     resolution: float = 0.75
     inflation_radius: float = 1.5
+    # LiDAR/map obstacles are already measured on the obstacle surface, so
+    # applying the full generic inflation to them makes narrow passages look
+    # closed.  Explicit geometric obstacles keep ``inflation_radius``.
+    surface_observation_inflation_radius: float = 0.75
     max_search_nodes: int = 16000
     max_planning_time_ms: float = 0.0
     """Hard wall-clock budget (ms) for one A* search.  0 disables the budget.
@@ -151,6 +155,17 @@ def _obstacle_half_extents(obstacle: dict) -> _ObstacleExtents:
         )
     radius = max(obstacle.get("size", 0) or 0, 0)
     return _ObstacleExtents(x=radius, y=radius, z=radius)
+
+
+def _effective_obstacle_inflation(
+    obstacle: dict,
+    default_inflation: float,
+    params: Optional[CbmbaParams] = None,
+) -> float:
+    """Select inflation for a geometric obstacle or a surface observation."""
+    if params is not None and obstacle.get("type") in {"lidar", "map"}:
+        return max(0.0, float(params.surface_observation_inflation_radius))
+    return max(0.0, float(default_inflation))
 
 
 def _vec3_to_cell(vec: List[float], origin: List[float], resolution: float) -> _Cell:
@@ -461,7 +476,9 @@ class CbmbaAStarPlanner:
             or _distance_between(start, self.last_start) > p.replan_distance_threshold
             or _distance_between(goal, self.last_goal) > p.replan_distance_threshold
             or (now - self.last_plan_time) > p.replan_time_threshold
-            or self._is_path_blocked(obstacles, self.last_path, p.inflation_radius)
+            or self._is_path_blocked(
+                obstacles, self.last_path, p.inflation_radius, p,
+            )
         )
         if not should:
             return self.last_path
@@ -497,13 +514,16 @@ class CbmbaAStarPlanner:
             if any(not math.isfinite(v) for v in pos):
                 continue
 
-            min_x = pos[0] - extents.x - inflation_radius
-            max_x = pos[0] + extents.x + inflation_radius
-            min_y = pos[1] - extents.y - inflation_radius
-            max_y = pos[1] + extents.y + inflation_radius
-            min_z = pos[2] - extents.z - inflation_radius
+            obstacle_inflation = _effective_obstacle_inflation(
+                obstacle, inflation_radius, p,
+            )
+            min_x = pos[0] - extents.x - obstacle_inflation
+            max_x = pos[0] + extents.x + obstacle_inflation
+            min_y = pos[1] - extents.y - obstacle_inflation
+            max_y = pos[1] + extents.y + obstacle_inflation
+            min_z = pos[2] - extents.z - obstacle_inflation
             max_z = (
-                pos[2] + extents.z + inflation_radius
+                pos[2] + extents.z + obstacle_inflation
                 + (p.building_downward_seal_depth if is_building_volume else 0)
             )
 
@@ -869,6 +889,7 @@ class CbmbaAStarPlanner:
         obstacles: List[dict],
         path: List[List[float]],
         inflation_radius: float,
+        params: Optional[CbmbaParams] = None,
     ) -> bool:
         """Check if any obstacle intersects the path (matching old JS ``isPathBlocked``)."""
         if not path or len(path) < 2:
@@ -876,11 +897,16 @@ class CbmbaAStarPlanner:
         for obstacle in (obstacles or []):
             center = obstacle["position"]
             size = obstacle.get("size", 0) or 0
+            obstacle_inflation = _effective_obstacle_inflation(
+                obstacle, inflation_radius, params,
+            )
             for i in range(len(path) - 1):
                 a = path[i]
                 b = path[i + 1]
                 proj = _project_to_segment(center, a, b)
-                clearance = _vec3_length(_vec3_sub(proj, center)) - (size + inflation_radius)
+                clearance = _vec3_length(_vec3_sub(proj, center)) - (
+                    size + obstacle_inflation
+                )
                 if clearance < 0:
                     return True
         return False

@@ -39,6 +39,7 @@ from __future__ import annotations
 import logging
 import math
 import multiprocessing
+import os
 import queue
 import threading
 import time
@@ -48,18 +49,34 @@ logger = logging.getLogger("process_workers")
 
 
 def _configure_child_logging() -> None:
-    """Give a spawned child process the same console logging as the parent.
+    """Give a spawned child process the same logging policy as the parent.
 
     ``spawn`` re-imports modules but does NOT re-run the parent's
-    ``logging.basicConfig``, so the child's root logger would otherwise sit at
-    the default WARNING level.  This is a separate OS process, so configuring
-    it can never contend with the main loop.
+    logging configuration. The policy is passed through environment variables
+    because Windows starts a fresh Python process for each worker.
     """
     try:
+        quiet = os.environ.get("AIRSIM_FLIGHT_QUIET", "0") == "1"
+        log_file = os.environ.get("AIRSIM_FLIGHT_LOG_FILE", "")
+        formatter = logging.Formatter(
+            "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+            datefmt="%H:%M:%S",
+        )
+        console = logging.StreamHandler()
+        console.setLevel(logging.ERROR if quiet else logging.INFO)
+        console.setFormatter(formatter)
+        handlers = [console]
+        if log_file:
+            file_handler = logging.FileHandler(
+                log_file, mode="a", encoding="utf-8"
+            )
+            file_handler.setLevel(logging.INFO)
+            file_handler.setFormatter(formatter)
+            handlers.append(file_handler)
         logging.basicConfig(
             level=logging.INFO,
-            format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-            datefmt="%H:%M:%S",
+            handlers=handlers,
+            force=True,
         )
     except Exception:  # noqa: BLE001 — never let logging setup kill a worker
         pass

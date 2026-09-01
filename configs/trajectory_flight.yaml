@@ -6,9 +6,10 @@
 # Notes (Phase C1-R):
 #   * geofence_radius_m is a hard safety bound: 42.6 m goal + column-avoidance
 #     lateral offset must stay inside it.  50 m is the current validation cap.
-#   * max_flight_duration_s is a FINITE mission timeout for ALL goal sources
-#     (actor and config_fixed).  300 s ≈ 170 s straight-line at 0.25 m/s plus
-#     avoidance margin.  mission_complete → success; time_limit → failure.
+#   * max_flight_duration_s is a safety timeout for ALL goal sources
+#     (actor and config_fixed).  The mission normally ends at MissionEnd;
+#     480 s (8 minutes) is the hard upper limit.  mission_complete → success;
+#     time_limit → failure.
 #
 # Use with:
 #   python scripts/flight_mode.py --local-navigation-mode trajectory \
@@ -19,10 +20,10 @@ minimal_flight:
   target_z_ned: -1.0
   max_vertical_speed_mps: 0.5
   takeoff_timeout_s: 20.0
-  max_flight_duration_s: 300.0     # finite timeout for ALL missions (incl. actor)
+  max_flight_duration_s: 480.0     # 8-minute hard timeout; MissionEnd ends earlier
   command_duration_s: 0.2
-  forward_speed_mps: 0.15          # 降速给避障更多反应时间
-  side_speed_mps: 0.20
+  forward_speed_mps: 1.0           # faster cruise; safety layer still slows near obstacles
+  side_speed_mps: 0.60
   front_threshold_m: 2.5
   emergency_distance_m: 0.8
   geofence_radius_m: 50.0          # ≥42.6 m goal + avoidance margin

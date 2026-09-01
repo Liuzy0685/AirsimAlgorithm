@@ -174,6 +174,36 @@ class TrajectoryPlannerParams:
     # discouraged (oscillation) but not forbidden.
     direct_opposite_switch_penalty: float = 1.0
 
+    # U-shaped/dead-end escape. Once a reverse family is selected, keep
+    # backing out until the forward corridor is genuinely open.
+    reverse_hold_enabled: bool = True
+    reverse_release_front_clearance_m: float = 4.0
+    # Hard bounds on that hold.  They turn a prolonged reverse into the
+    # RecoveryStateMachine's climb/wall strategy instead of allowing the
+    # local planner to keep backing toward the map boundary.
+    reverse_hold_max_duration_s: float = 2.0
+    reverse_hold_max_distance_m: float = 1.0
+
+    # If hysteresis keeps a STRAIGHT trajectory while its direction has
+    # diverged from the remaining goal direction, prefer a safe arc that
+    # starts bringing the vehicle back toward MissionEnd.
+    straight_goal_rejoin_enabled: bool = True
+    straight_goal_alignment_trigger: float = 0.82
+    straight_goal_alignment_min_gain: float = 0.10
+    straight_goal_rejoin_max_score_loss: float = 1.5
+
+    # Keep a clear, narrow corridor centered instead of alternating side arcs
+    # around two nearby pillars.
+    narrow_passage_enabled: bool = True
+    narrow_passage_side_probe_m: float = 1.0
+    narrow_passage_side_obstacle_max_distance_m: float = 2.5
+    narrow_passage_max_center_clearance_m: float = 1.6
+    # Keep the centerline briefly after entering a confirmed gap. This avoids
+    # a last-second side arc when one pillar leaves the local scan.
+    narrow_passage_hold_enabled: bool = True
+    narrow_passage_hold_max_duration_s: float = 6.0
+    narrow_passage_hold_max_distance_m: float = 4.5
+
     # Adaptive horizon (sec 8): shorten the planning horizon near obstacles.
     adaptive_horizon_enabled: bool = True
     min_horizon_m: float = 2.0
@@ -192,6 +222,7 @@ class TrajectoryPlannerParams:
 
     weights: Dict[str, float] = field(default_factory=lambda: {
         "goal_progress": 2.0,
+        "goal_heading_alignment": 6.0,
         "global_path_alignment": 3.0,
         "clearance": 3.0,
         "smoothness": 1.0,
@@ -221,6 +252,11 @@ class TrajectoryCandidate:
 
     # scoring breakdown (for detailed logs)
     goal_progress: float = 0.0
+    # Alignment of the trajectory's terminal direction with the remaining
+    # direction to MissionEnd.  This is intentionally separate from
+    # ``goal_progress``: a candidate may make forward progress while its nose
+    # keeps pointing away from the goal after an obstacle bypass.
+    goal_heading_alignment: float = 0.0
     global_path_alignment: float = 0.0
     clearance: float = 0.0
     smoothness: float = 0.0
@@ -257,6 +293,11 @@ class TrajectoryMemory:
     history_length: int = 10
     # Monotonic time the current family was first selected (hysteresis, sec 4).
     current_family_held_since: float = -float("inf")
+    reverse_hold_started_at: float = -float("inf")
+    reverse_hold_start_position: Optional[Tuple[float, float]] = None
+    narrow_passage_active: bool = False
+    narrow_passage_started_at: float = -float("inf")
+    narrow_passage_start_position: Optional[Tuple[float, float]] = None
 
     def record(self, family: str, score: float, path_version: int,
                points: Optional[List[Tuple[float, float]]] = None) -> None:
@@ -275,6 +316,11 @@ class TrajectoryMemory:
         self.previous_points = []
         self.history = []
         self.current_family_held_since = -float("inf")
+        self.reverse_hold_started_at = -float("inf")
+        self.reverse_hold_start_position = None
+        self.narrow_passage_active = False
+        self.narrow_passage_started_at = -float("inf")
+        self.narrow_passage_start_position = None
 
 
 # ── plan result ──
@@ -303,6 +349,8 @@ class TrajectoryPlanResult:
     horizon_m: float = 0.0
     # Nearest-obstacle distance driving the adaptive horizon.
     min_distance_m: float = float("inf")
+    # Whether the selected straight command is protected by the passage hold.
+    narrow_passage_active: bool = False
 
 
 # ── generator backend (deterministic now; diffusion later) ──
@@ -480,12 +528,99 @@ class LocalTrajectoryPlanner:
 
         best = max(valid_cands, key=lambda c: c.total_score)
 
+        # A short forward arc can be locally valid inside a U-shaped obstacle
+        # while still driving deeper into the dead end. Once a safe reverse
+        # arc is selected, hold that escape direction until the front opens.
+        reverse_hold = (
+            p.reverse_hold_enabled
+            and prev is not None
+            and prev.startswith("REVERSE_")
+            and front_clear_m < p.reverse_release_front_clearance_m
+        )
+        reverse_hold_exhausted = False
+        if reverse_hold:
+            now = self._clock()
+            if self._memory.reverse_hold_started_at == -float("inf"):
+                self._memory.reverse_hold_started_at = now
+                self._memory.reverse_hold_start_position = (
+                    drone_position_ned[0], drone_position_ned[1],
+                )
+            reverse_elapsed = now - self._memory.reverse_hold_started_at
+            start_xy = self._memory.reverse_hold_start_position
+            reverse_distance = 0.0
+            if start_xy is not None:
+                reverse_distance = math.hypot(
+                    drone_position_ned[0] - start_xy[0],
+                    drone_position_ned[1] - start_xy[1],
+                )
+            reverse_hold_exhausted = (
+                reverse_elapsed >= max(0.0, p.reverse_hold_max_duration_s)
+                or reverse_distance >= max(0.0, p.reverse_hold_max_distance_m)
+            )
+
+        # The reverse corridor has been tried long enough.  Invalidate this
+        # planning result so automatic_mode requests the bounded recovery
+        # maneuver (climb if clear, otherwise fixed-side wall following).
+        # Never replace it with a forward candidate here: that is precisely
+        # the short-cut that can drive deeper into a U-shaped obstacle.
+        if reverse_hold_exhausted:
+            result.escape_hint = self._build_escape_hint(candidates)
+            result.compute_ms = (_time_module.perf_counter() - t0) * 1000.0
+            return result
+
+        if reverse_hold:
+            reverse_cands = [
+                c for c in valid_cands if c.family.startswith("REVERSE_")
+            ]
+            if reverse_cands:
+                best = max(reverse_cands, key=lambda c: c.total_score)
+
+        # A direct path through two nearby side surfaces is safer and more
+        # stable than repeatedly choosing left/right bypass arcs. The direct
+        # candidate has already passed the whole-trajectory clearance gate.
+        narrow_passage_detected = (
+            not reverse_hold
+            and p.narrow_passage_enabled
+            and _candidate_is_narrow_passage(
+                _candidate_by_family(valid_cands, STRAIGHT),
+                drone_position_ned, yaw_rad, distance_field, p,
+            )
+        )
+        narrow_passage = narrow_passage_detected
+        if (
+            not narrow_passage
+            and p.narrow_passage_hold_enabled
+            and self._memory.narrow_passage_active
+            and prev == STRAIGHT
+        ):
+            straight = _candidate_by_family(valid_cands, STRAIGHT)
+            if straight is not None and straight.valid:
+                now_hold = self._clock()
+                start_xy = self._memory.narrow_passage_start_position
+                held_distance = 0.0
+                if start_xy is not None:
+                    held_distance = math.hypot(
+                        drone_position_ned[0] - start_xy[0],
+                        drone_position_ned[1] - start_xy[1],
+                    )
+                held_duration = now_hold - self._memory.narrow_passage_started_at
+                narrow_passage = (
+                    held_duration < max(0.0, p.narrow_passage_hold_max_duration_s)
+                    and held_distance < max(0.0, p.narrow_passage_hold_max_distance_m)
+                )
+        if narrow_passage:
+            best = _candidate_by_family(valid_cands, STRAIGHT)
+
         # ── family-switch hysteresis (sec 4) — a *soft* gate, never a hard lock ──
         now = self._clock()
         switch_reason = "score_exceeded"
-        if prev is not None and prev != best.family:
+        if narrow_passage:
+            switch_reason = "narrow_passage"
+        if not narrow_passage and prev is not None and prev != best.family:
             held_for = now - self._memory.current_family_held_since
-            if held_for < p.family_switch_min_hold_time_s:
+            if reverse_hold:
+                switch_reason = "reverse_dead_end_hold"
+            elif held_for < p.family_switch_min_hold_time_s:
                 switch_reason = "hold_time"
             elif best.total_score - self._memory.previous_score < p.family_switch_min_score_improvement:
                 switch_reason = "insufficient_improvement"
@@ -494,12 +629,43 @@ class LocalTrajectoryPlanner:
                 if incumbent is not None:
                     best = incumbent
 
+        # A stale straight family is a special case for hysteresis.  It is
+        # safe geometrically, so ordinary family persistence can keep it
+        # alive even after the nose has diverged from the yellow goal line.
+        # Prefer a non-reverse candidate with a materially better terminal
+        # heading toward MissionEnd, but only if it remains within the
+        # configured score-loss budget.  Candidate validity/clearance was
+        # checked above and therefore remains the hard safety gate.
+        if (
+            not narrow_passage
+            and
+            p.straight_goal_rejoin_enabled
+            and best.family == STRAIGHT
+            and best.goal_heading_alignment < p.straight_goal_alignment_trigger
+        ):
+            rejoin_cands = [
+                c for c in valid_cands
+                if not c.is_reverse
+                and c.family != STRAIGHT
+                and c.goal_heading_alignment
+                    >= best.goal_heading_alignment + p.straight_goal_alignment_min_gain
+                and c.total_score
+                    >= best.total_score - p.straight_goal_rejoin_max_score_loss
+            ]
+            if rejoin_cands:
+                best = max(
+                    rejoin_cands,
+                    key=lambda c: (c.goal_heading_alignment, c.total_score),
+                )
+                switch_reason = "straight_goal_rejoin"
+
         # ── command derivation (execute first segment) ──
         cmd_vx, cmd_vy = self._command_from_candidate(best)
         result.selected = best
         result.command_vx = cmd_vx
         result.command_vy = cmd_vy
         result.command_vz = 0.0
+        result.narrow_passage_active = narrow_passage and best.family == STRAIGHT
 
         # ── family switch detection (for logs) ──
         if prev is not None and prev != best.family:
@@ -508,6 +674,24 @@ class LocalTrajectoryPlanner:
         elif self._memory.current_family_held_since == -float("inf"):
             self._memory.current_family_held_since = now
         self._memory.record(best.family, best.total_score, global_path_version, best.points)
+        if result.narrow_passage_active:
+            if not self._memory.narrow_passage_active:
+                self._memory.narrow_passage_started_at = now
+                self._memory.narrow_passage_start_position = (
+                    drone_position_ned[0], drone_position_ned[1],
+                )
+            self._memory.narrow_passage_active = True
+        else:
+            self._memory.narrow_passage_active = False
+            self._memory.narrow_passage_started_at = -float("inf")
+            self._memory.narrow_passage_start_position = None
+        if best.family.startswith("REVERSE_") and front_clear_m < p.reverse_release_front_clearance_m:
+            # Keep the reverse budget across planning cycles.  Once the front
+            # opens or a non-reverse family is selected, forget the episode.
+            pass
+        else:
+            self._memory.reverse_hold_started_at = -float("inf")
+            self._memory.reverse_hold_start_position = None
 
         result.compute_ms = (_time_module.perf_counter() - t0) * 1000.0
         return result
@@ -559,6 +743,24 @@ class LocalTrajectoryPlanner:
         arc_progress = sum((pt[0] - px0) * goal_unit[0] + (pt[1] - py0) * goal_unit[1] for pt in points) / len(points)
         cand.goal_progress = _clamp01(0.5 * (endpoint_progress + arc_progress) / p.horizon_m)
 
+        # Terminal heading alignment: after bypassing an obstacle, prefer a
+        # safe arc whose direction at the end points toward MissionEnd from
+        # the drone's current position.  Do not use the candidate endpoint to
+        # form this vector: near the goal the planning horizon is often longer
+        # than the remaining distance, which would make every candidate look
+        # like it is pointing away after it geometrically overshoots the goal.
+        tx = points[-1][0] - points[-2][0]
+        ty = points[-1][1] - points[-2][1]
+        tangent_norm = math.hypot(tx, ty)
+        if tangent_norm > 1e-9:
+            tx /= tangent_norm
+            ty /= tangent_norm
+            cand.goal_heading_alignment = _clamp01(
+                max(0.0, tx * goal_unit[0] + ty * goal_unit[1])
+            )
+        else:
+            cand.goal_heading_alignment = 0.0
+
         # ── whole-path alignment (mean error over ALL points, exp decay) ──
         if global_path_xy:
             mean_err = sum(_point_to_path_distance_xy(pt, global_path_xy) for pt in points) / len(points)
@@ -584,6 +786,7 @@ class LocalTrajectoryPlanner:
         w = p.weights
         cand.total_score = (
             w.get("goal_progress", 0.0) * cand.goal_progress
+            + w.get("goal_heading_alignment", 0.0) * cand.goal_heading_alignment
             + w.get("global_path_alignment", 0.0) * cand.global_path_alignment
             + w.get("clearance", 0.0) * cand.clearance
             + w.get("smoothness", 0.0) * cand.smoothness
@@ -733,7 +936,11 @@ class LocalTrajectoryPlanner:
         best = float("inf")
         d = 0.0
         step = max(0.25, p.sample_spacing_m)
-        while d <= p.rejoin_clear_front_required_m + 1e-9:
+        lookahead_m = max(
+            p.rejoin_clear_front_required_m,
+            p.reverse_release_front_clearance_m if p.reverse_hold_enabled else 0.0,
+        )
+        while d <= lookahead_m + 1e-9:
             best = min(best, distance_field.distance_at(
                 px + cos_y * d, py + sin_y * d,
             ))
@@ -758,6 +965,42 @@ def _candidate_by_family(
         if c.family == family:
             return c
     return None
+
+
+def _candidate_is_narrow_passage(
+    straight: Optional[TrajectoryCandidate],
+    drone_position_ned: Tuple[float, float, float],
+    yaw_rad: float,
+    distance_field,
+    params: TrajectoryPlannerParams,
+) -> bool:
+    """Return true when a valid straight path is centered between side surfaces."""
+    if straight is None or not straight.valid:
+        return False
+    if straight.min_clearance_m > params.narrow_passage_max_center_clearance_m:
+        return False
+
+    px, py = drone_position_ned[0], drone_position_ned[1]
+    cos_y, sin_y = math.cos(yaw_rad), math.sin(yaw_rad)
+    probe_y = max(0.1, params.narrow_passage_side_probe_m)
+    side_limit = max(probe_y, params.narrow_passage_side_obstacle_max_distance_m)
+    side_samples = (0.75, 1.5, 2.25)
+    left_near = False
+    right_near = False
+    for forward in side_samples:
+        wx = px + forward * cos_y
+        wy = py + forward * sin_y
+        left_x = wx + probe_y * sin_y
+        left_y = wy - probe_y * cos_y
+        right_x = wx - probe_y * sin_y
+        right_y = wy + probe_y * cos_y
+        left_near = left_near or (
+            distance_field.distance_at(left_x, left_y) <= side_limit
+        )
+        right_near = right_near or (
+            distance_field.distance_at(right_x, right_y) <= side_limit
+        )
+    return left_near and right_near
 
 
 def _arc_points(curvature: float, horizon_m: float, spacing_m: float) -> List[Tuple[float, float]]:

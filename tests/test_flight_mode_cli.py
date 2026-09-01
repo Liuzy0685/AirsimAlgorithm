@@ -54,6 +54,16 @@ class TestCLIArgs:
         if args.max_duration is not None: overrides["max_flight_duration_s"] = float(args.max_duration)
         assert overrides == {}
 
+    def test_goal_coordinates_are_parsed(self):
+        from scripts.flight_mode import _parse_args
+        with patch("sys.argv", [
+            "flight_mode.py", "--mode", "auto", "--settings-json", "f.json",
+            "--confirm-simulation-clearance", "--goal-x", "15", "--goal-y", "0",
+        ]):
+            args = _parse_args()
+            assert args.goal_x == 15.0
+            assert args.goal_y == 0.0
+
 
 class TestSingleInstanceCLI:
     def test_acquire_lock_success(self):

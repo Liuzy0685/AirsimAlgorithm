@@ -216,3 +216,74 @@ class TestTrajectoryTracker:
         pts[4] = (1.0, 20.0)
         r = self._tracker().compute_command(pts, (0.0, 0.0, 0.0), 0.0)
         assert abs(r.vy) <= 0.20 + 1e-9
+
+    def test_reverse_trajectory_flips_only_forward_velocity(self):
+        # A reverse-right path lies behind and to the right: vx must be
+        # negative while the lateral command remains positive.
+        pts = [(0.0, 0.0), (-0.25, 0.0), (-0.5, 0.2), (-0.75, 0.4), (-1.0, 1.0)]
+        r = self._tracker().compute_command(
+            pts, (0.0, 0.0, 0.0), 0.0, is_reverse=True,
+        )
+        assert r.vx == pytest.approx(-0.25)
+        assert r.vy > 0.0
+
+    def test_terminal_goal_overrides_cached_path_direction(self):
+        tracker = TrajectoryTracker(
+            lookahead_m=1.0,
+            sample_spacing_m=0.25,
+            forward_speed_mps=1.0,
+            lateral_speed_mps=0.60,
+            command_lookahead_m=1.0,
+            terminal_goal_approach_radius_m=2.0,
+            terminal_goal_max_speed_mps=0.60,
+            terminal_braking_accel_mps2=0.80,
+        )
+        # The cached path continues north, while MissionEnd is east of the
+        # vehicle. The live endpoint must win inside the terminal radius.
+        r = tracker.compute_command(
+            [(0.0, 0.0), (1.0, 0.0), (2.0, 0.0)],
+            (0.0, 0.0, 0.0),
+            0.0,
+            goal_ned=(0.0, 1.0, -1.0),
+        )
+        assert r.vx == pytest.approx(0.0)
+        assert r.vy > 0.0
+
+    def test_terminal_goal_capture_holds_zero_horizontal_velocity(self):
+        tracker = TrajectoryTracker(
+            lookahead_m=1.0,
+            sample_spacing_m=0.25,
+            forward_speed_mps=1.0,
+            lateral_speed_mps=0.60,
+            terminal_goal_approach_radius_m=2.0,
+            terminal_goal_max_speed_mps=0.60,
+            terminal_capture_radius_m=0.02,
+        )
+        r = tracker.compute_command(
+            [(0.0, 0.0), (1.0, 0.0)],
+            (0.01, 0.0, 0.0),
+            0.0,
+            goal_ned=(0.0, 0.0, 0.0),
+        )
+        assert r.vx == pytest.approx(0.0)
+        assert r.vy == pytest.approx(0.0)
+
+    def test_terminal_slowdown_radius_alone_enables_live_goal_control(self):
+        tracker = TrajectoryTracker(
+            lookahead_m=1.0,
+            sample_spacing_m=0.25,
+            forward_speed_mps=1.0,
+            lateral_speed_mps=0.60,
+            terminal_slowdown_radius_m=2.0,
+            terminal_goal_kp=0.5,
+            terminal_goal_max_speed_mps=0.60,
+        )
+        r = tracker.compute_command(
+            [(0.0, 0.0), (1.0, 0.0), (2.0, 0.0)],
+            (1.0, 0.0, 0.0),
+            0.0,
+            goal_ned=(1.8, 0.5, 0.0),
+        )
+        assert r.vx > 0.0
+        assert r.vy > 0.0
+        assert math.hypot(r.vx, r.vy) <= 0.60 + 1e-9

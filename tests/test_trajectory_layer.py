@@ -159,6 +159,53 @@ class TestDistanceField:
 
 
 class TestTrajectoryPlanner:
+    def test_narrow_passage_prefers_centered_straight(self):
+        # Two nearby side surfaces leave the centerline open. The planner must
+        # not alternate between side arcs just because both pillars are close.
+        params = TrajectoryPlannerParams(
+            hard_clearance_m=0.90,
+            narrow_passage_enabled=True,
+            narrow_passage_side_probe_m=1.0,
+            narrow_passage_side_obstacle_max_distance_m=2.5,
+            narrow_passage_max_center_clearance_m=1.6,
+        )
+        r = _plan(
+            goal=(10.0, 0.0),
+            obstacles=[(3.0, -1.0), (3.0, 1.0)],
+            params=params,
+        )
+        assert r.selected is not None
+        assert r.selected.family == STRAIGHT
+        assert r.family_switch is None
+
+    def test_narrow_passage_holds_straight_when_one_side_leaves_scan(self):
+        # The opening can make one side disappear from the local field just
+        # before the vehicle exits. Keep the already safe centerline briefly.
+        memory = TrajectoryMemory()
+        params = TrajectoryPlannerParams(
+            hard_clearance_m=0.90,
+            narrow_passage_enabled=True,
+            narrow_passage_hold_enabled=True,
+            narrow_passage_hold_max_duration_s=6.0,
+            narrow_passage_hold_max_distance_m=4.5,
+        )
+        planner = LocalTrajectoryPlanner(params=params, memory=memory)
+        r1 = planner.plan(
+            (0.0, 0.0, 0.0), 0.0, (10.0, 0.0), None,
+            _df([(3.0, -1.0), (3.0, 1.0)]), None, 0,
+        )
+        assert r1.selected.family == STRAIGHT
+        assert r1.narrow_passage_active
+
+        # One side is no longer represented, while the direct path remains
+        # safe. A normal score comparison could select a side arc here.
+        r2 = planner.plan(
+            (1.0, 0.0, 0.0), 0.0, (10.0, 0.0), None,
+            _df([(3.0, 1.0)]), None, 0,
+        )
+        assert r2.selected.family == STRAIGHT
+        assert r2.narrow_passage_active
+
     def test_straight_wins_with_no_obstacles(self):
         r = _plan()
         assert r.selected is not None
@@ -320,6 +367,45 @@ class TestGoalTermination:
         ))
         r = gt.update((10.0, 0.0, -1.0), 1.0, (10.0, 0.0, -1.0), 0.0)
         assert not r.speed_low
+        assert not r.reached
+
+    def test_3d_distance_and_vertical_speed_are_required(self):
+        gt = GoalTerminationChecker(GoalTerminationParams(
+            distance_tolerance_m=1.0,
+            altitude_tolerance_m=0.4,
+            max_speed_mps=0.25,
+            max_vertical_speed_mps=0.20,
+            position_std_tolerance_m=0.20,
+            history_size_frames=1,
+            dwell_time_s=0.0,
+        ))
+        goal = (10.0, 0.0, -1.0)
+        r = gt.update(
+            (10.0, 0.0, -1.0),
+            speed_mps=0.0,
+            goal_ned=goal,
+            now=0.0,
+            velocity_ned_mps=(0.0, 0.0, 0.3),
+        )
+        assert not r.speed_low
+        assert not r.reached
+
+    def test_position_history_must_be_stable(self):
+        gt = GoalTerminationChecker(GoalTerminationParams(
+            distance_tolerance_m=1.0,
+            altitude_tolerance_m=0.4,
+            max_speed_mps=0.25,
+            position_std_tolerance_m=0.05,
+            history_size_frames=3,
+            dwell_time_s=0.0,
+        ))
+        goal = (10.0, 0.0, -1.0)
+        for now, x in enumerate((9.8, 10.2, 10.0)):
+            r = gt.update(
+                (x, 0.0, -1.0), 0.0, goal, float(now),
+                velocity_ned_mps=(0.0, 0.0, 0.0),
+            )
+        assert not r.position_stable
         assert not r.reached
 
 

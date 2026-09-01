@@ -17,6 +17,7 @@ env/
 
 # Logs
 logs/
+runs/
 *.log
 
 # OS

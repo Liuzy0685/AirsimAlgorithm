@@ -64,6 +64,19 @@ class RecoveryCommanderParams:
     cooldown_s: float = 2.5           # cooldown before re-entry allowed
     required_progress_m: float = 0.5  # min XY progress for early exit
     clear_distance_m: float = 2.0     # min front/left/right distance for clear exit
+    dead_end_escape_enabled: bool = True
+    dead_end_front_trigger_m: float = 2.5
+    dead_end_side_trigger_m: float = 2.0
+    vertical_climb_enabled: bool = True
+    vertical_clearance_m: float = 2.5
+    vertical_climb_speed_mps: float = 0.20
+    vertical_climb_duration_s: float = 1.2
+    vertical_climb_delta_m: float = 0.40
+    wall_follow_forward_speed_mps: float = 0.15
+    wall_follow_duration_s: float = 4.0
+    # U-shaped obstacles need a persistent wall side. Re-evaluating the side
+    # whenever that wall is close causes left/right oscillation in the opening.
+    wall_follow_side_lock_enabled: bool = True
 
 
 # ── state enum ──
@@ -84,11 +97,14 @@ def compute_recovery_command(
     committed_side: Optional[int] = None,
     guidance_dir: Optional[Tuple[float, float]] = None,
     params: Optional[RecoveryCommanderParams] = None,
+    elapsed_s: float = 0.0,
+    forced_mode: Optional[str] = None,
 ) -> Tuple[float, float, float, int]:
     """Return body-FRD recovery velocity ``(vx, vy, vz, committed_side)``.
 
     The command is always conservative (max horizontal speed ≤ params).
-    ``vz`` is always 0.  ``committed_side`` is +1 (right), -1 (left),
+    ``vz`` is normally 0; the dead-end climb probe uses negative ``vz``
+    because AirSim is NED.  ``committed_side`` is +1 (right), -1 (left),
     or 0 (none/not applicable).
 
     Priority:
@@ -107,11 +123,55 @@ def compute_recovery_command(
     """
     p = params or RecoveryCommanderParams()
 
-    if not decision.needs_recovery:
+    dead_end_mode = forced_mode or _dead_end_mode(lidar_rays, p)
+    if not decision.needs_recovery and dead_end_mode is None:
         return (0.0, 0.0, 0.0, 0)
 
     # ── side choice ──
-    side = _choose_side(lidar_rays, committed_side, guidance_dir)
+    if (
+        p.wall_follow_side_lock_enabled
+        and forced_mode in ("wall", "trajectory_no_feasible")
+        and committed_side is not None
+        and committed_side != 0
+    ):
+        # Keep the selected wall even when its local ray becomes short. The
+        # dispatch directional guard suppresses unsafe lateral motion; changing
+        # sides here is what creates the U-opening oscillation.
+        side = int(committed_side)
+    else:
+        side = _choose_side(lidar_rays, committed_side, guidance_dir)
+
+    if (
+        dead_end_mode == "climb"
+        and p.vertical_climb_enabled
+        and elapsed_s < p.vertical_climb_duration_s
+        and _upward_clearance(lidar_rays) >= p.vertical_clearance_m
+    ):
+        return (0.0, 0.0, -abs(p.vertical_climb_speed_mps), side)
+
+    if dead_end_mode == "wall":
+        front = _safe_ray(lidar_rays.get("front"))
+        vx = (
+            -abs(p.reverse_speed)
+            if front < p.dead_end_front_trigger_m
+            else abs(p.wall_follow_forward_speed_mps)
+        )
+        vy = side * abs(p.lateral_speed) if side != 0 else 0.0
+        return (vx, vy, 0.0, side)
+
+    # A trajectory planner local minimum is not necessarily a dead end.  If
+    # the forward sector is still open, advance while sidestepping around the
+    # obstacle; unconditional reverse here made Forest flights drift away
+    # from the goal and repeatedly re-enter recovery.
+    if forced_mode == "trajectory_no_feasible":
+        front = _safe_ray(lidar_rays.get("front"))
+        if front >= p.dead_end_front_trigger_m:
+            return (
+                abs(p.wall_follow_forward_speed_mps),
+                side * abs(p.lateral_speed) if side != 0 else 0.0,
+                0.0,
+                side,
+            )
 
     if decision.is_stuck:
         vy = side * p.lateral_speed if side != 0 else 0.0
@@ -122,6 +182,49 @@ def compute_recovery_command(
         return (0.0, vy, 0.0, side)
 
     return (0.0, 0.0, 0.0, 0)
+
+
+def _upward_clearance(lidar_rays: Dict[str, float]) -> float:
+    """Return the most restrictive clearance in the upward-facing sectors.
+
+    AirSim uses NED coordinates, but these are distances rather than signed
+    coordinates.  Missing vertical sectors are treated as zero clearance so
+    a climb can never be authorized by incomplete sensing.
+    """
+    names = ("up", "frontUp", "leftUp", "rightUp")
+    return min(_safe_ray(lidar_rays.get(name)) for name in names)
+
+
+def _dead_end_mode(
+    lidar_rays: Dict[str, float],
+    params: RecoveryCommanderParams,
+) -> Optional[str]:
+    """Classify a likely U-shaped dead end as ``climb`` or ``wall``.
+
+    This gate is deliberately strict: front and both horizontal sides must be
+    constrained before the special escape is activated.  A single blocked
+    forward ray therefore does not make the vehicle climb or wall-follow.
+    """
+    if not params.dead_end_escape_enabled:
+        return None
+
+    front = _safe_ray(lidar_rays.get("front"))
+    left = _safe_ray(lidar_rays.get("left"))
+    right = _safe_ray(lidar_rays.get("right"))
+    trapped = (
+        front < params.dead_end_front_trigger_m
+        and left < params.dead_end_side_trigger_m
+        and right < params.dead_end_side_trigger_m
+    )
+    if not trapped:
+        return None
+
+    if (
+        params.vertical_climb_enabled
+        and _upward_clearance(lidar_rays) >= params.vertical_clearance_m
+    ):
+        return "climb"
+    return "wall"
 
 
 def _choose_side(
@@ -200,7 +303,7 @@ class RecoveryStateResult:
     vx_body: float = 0.0
     vy_body: float = 0.0
     vz_body: float = 0.0
-    event: Optional[str] = None          # "enter", "active", "exit_timeout", "exit_safety", "exit_progress", "cooldown_expired"
+    event: Optional[str] = None          # "enter", "active", "exit_climb", "exit_timeout", "exit_safety", "exit_progress", "cooldown_expired"
     elapsed_s: float = 0.0
     cooldown_remaining_s: float = 0.0
     committed_side: Optional[int] = None  # +1 right, -1 left, 0 none, None not set
@@ -228,6 +331,7 @@ class RecoveryStateMachine:
         self._command: Tuple[float, float, float] = (0.0, 0.0, 0.0)
         self._committed_side: Optional[int] = None
         self._entry_position: Optional[Tuple[float, float, float]] = None
+        self._mode: str = "normal"
 
     # ── public API ──
 
@@ -285,9 +389,20 @@ class RecoveryStateMachine:
                 left = _safe_ray(lidar_rays.get("left"))
                 right = _safe_ray(lidar_rays.get("right"))
                 min_clearance = min(front, left, right)
+                # A trajectory-local minimum is often a narrow passage: the
+                # side surfaces can remain close even after the forward exit
+                # has opened. Requiring both side rays to clear here turns a
+                # short escape into the full recovery timeout. For this mode,
+                # progress plus a clear front is sufficient; genuine dead-end
+                # climb/wall recovery keeps the stricter three-ray condition.
+                clear_for_exit = (
+                    front >= p.clear_distance_m
+                    if self._mode == "trajectory_no_feasible"
+                    else min_clearance >= p.clear_distance_m
+                )
                 if (elapsed >= p.min_duration_s
                         and progress >= p.required_progress_m
-                        and min_clearance >= p.clear_distance_m):
+                        and clear_for_exit):
                     self._state = RecoveryState.RECOVERY_COOLDOWN
                     self._cooldown_until = now + p.cooldown_s
                     return RecoveryStateResult(
@@ -302,8 +417,42 @@ class RecoveryStateMachine:
             else:
                 progress = 0.0
 
+            # A climb is a bounded probe, not a new indefinite flight mode.
+            # If the ceiling becomes constrained, immediately switch to the
+            # already-committed wall side.  If the probe reaches its time or
+            # height budget while remaining clear, hand control back to the
+            # planner so it can replan at the new altitude.
+            if self._mode == "climb":
+                climbed_m = 0.0
+                if current_position is not None and self._entry_position is not None:
+                    # NED Z decreases when the vehicle climbs.
+                    climbed_m = max(0.0, self._entry_position[2] - current_position[2])
+                upward_clear = _upward_clearance(lidar_rays)
+                if upward_clear < p.vertical_clearance_m:
+                    self._mode = "wall"
+                elif (
+                    elapsed >= p.vertical_climb_duration_s
+                    or climbed_m >= p.vertical_climb_delta_m
+                ):
+                    self._state = RecoveryState.RECOVERY_COOLDOWN
+                    self._cooldown_until = now + p.cooldown_s
+                    return RecoveryStateResult(
+                        state=self._state,
+                        event="exit_climb",
+                        elapsed_s=elapsed,
+                        committed_side=self._committed_side,
+                        recovery_progress_m=progress,
+                        needs_stuck_reset=True,
+                        cooldown_remaining_s=p.cooldown_s,
+                    )
+
             # 2b. Timeout exit
-            if elapsed >= p.max_duration_s:
+            active_limit = p.max_duration_s
+            if self._mode == "climb":
+                active_limit = max(active_limit, p.vertical_climb_duration_s)
+            elif self._mode == "wall":
+                active_limit = max(active_limit, p.wall_follow_duration_s)
+            if elapsed >= active_limit:
                 self._state = RecoveryState.RECOVERY_COOLDOWN
                 self._cooldown_until = now + p.cooldown_s
                 return RecoveryStateResult(
@@ -316,7 +465,7 @@ class RecoveryStateMachine:
 
             # 2c. Stay active — re-compute command to refresh committed_side
             self._command, self._committed_side = self._compute_cmd(
-                decision, lidar_rays, guidance_dir, bypass_side,
+                decision, lidar_rays, guidance_dir, bypass_side, elapsed,
             )
             return RecoveryStateResult(
                 state=self._state,
@@ -332,12 +481,18 @@ class RecoveryStateMachine:
 
         # 3. APF_ACTIVE: check entry condition
         if self._state == RecoveryState.APF_ACTIVE:
-            if decision.needs_recovery:
+            entry_mode = _dead_end_mode(lidar_rays, self._params)
+            if decision.needs_recovery or entry_mode is not None:
                 self._state = RecoveryState.RECOVERY_ACTIVE
                 self._active_start = now
                 self._entry_position = current_position
+                self._mode = entry_mode or (
+                    "trajectory_no_feasible"
+                    if decision.reason == "trajectory_no_feasible"
+                    else "normal"
+                )
                 self._command, self._committed_side = self._compute_cmd(
-                    decision, lidar_rays, guidance_dir, bypass_side,
+                    decision, lidar_rays, guidance_dir, bypass_side, 0.0,
                 )
                 return RecoveryStateResult(
                     state=self._state,
@@ -374,6 +529,7 @@ class RecoveryStateMachine:
         self._command = (0.0, 0.0, 0.0)
         self._committed_side = None
         self._entry_position = None
+        self._mode = "normal"
 
     # ── private ──
 
@@ -383,6 +539,7 @@ class RecoveryStateMachine:
         lidar_rays: Dict[str, float],
         guidance_dir: Optional[Tuple[float, float]],
         bypass_side: Optional[int],
+        elapsed_s: float = 0.0,
     ) -> Tuple[Tuple[float, float, float], int]:
         """Compute recovery command, inheriting bypass_side when active."""
         # Bypass inheritance: if a bypass episode is active, use its side
@@ -395,9 +552,21 @@ class RecoveryStateMachine:
             committed_side=effective_committed,
             guidance_dir=guidance_dir,
             params=self._params,
+            elapsed_s=elapsed_s,
+            forced_mode=self._mode if self._mode != "normal" else None,
         )
         return (cmd[0], cmd[1], cmd[2]), cmd[3]
 
     @property
     def state(self) -> str:
         return self._state
+
+    @property
+    def mode(self) -> str:
+        """Current recovery strategy: ``normal``, ``climb`` or ``wall``."""
+        return self._mode
+
+    @property
+    def params(self) -> RecoveryCommanderParams:
+        """Configured parameters for safety integration and diagnostics."""
+        return self._params
