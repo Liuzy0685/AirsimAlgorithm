@@ -35,10 +35,12 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Callable, Optional
+from typing import TYPE_CHECKING, Callable, Optional
 
-from adapters.airsim_client import AirSimClientAdapter
 from models.vehicle_state import VehicleState
+
+if TYPE_CHECKING:
+    from adapters.airsim_client import AirSimClientAdapter
 
 logger = logging.getLogger(__name__)
 
