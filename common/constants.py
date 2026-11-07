@@ -25,6 +25,11 @@ from __future__ import annotations
 # ---------------------------------------------------------------------------
 
 COORD_FRAME = "world_ned"
+PROTOCOL_VERSION = 1
+COORDINATION_STATES = (
+    "NORMAL", "CONFLICT_DETECTED", "AVOIDING", "CONFLICT_CLEARED",
+    "FORMATION_RECOVERING", "EMERGENCY",
+)
 
 # Coordinate-transform validation tolerances (CoordinateTransformer.validate).
 DEFAULT_TRANSFORM_POSITION_TOLERANCE_M = 0.5
