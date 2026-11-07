@@ -1,0 +1,38 @@
+# Two independent UAV agents. AirSim settings.json must define both UAV names
+# (the AirSim `vehicle_name` identifiers) and their LiDAR sensor names.
+# Set each marker's unique Actor Tag to the configured value below.
+# Align each PlayerStart marker with that vehicle's X/Y spawn offset in settings.json.
+drones:
+  - vehicle_name: Drone1
+    lidar_name: LidarSensor1
+    start_actor: PlayerStart1
+    goal_actor: MissionEnd1
+    # Higher value keeps right-of-way; the lower-priority drone yields.
+    yield_priority: 10
+    target_z: -1.0
+    local_navigation_mode: trajectory
+
+  - vehicle_name: Drone2
+    lidar_name: LidarSensor2
+    start_actor: PlayerStart2
+    goal_actor: MissionEnd2
+    yield_priority: 0
+    target_z: -1.0
+    local_navigation_mode: trajectory
+
+# ORCA is the active horizontal inter-UAV avoidance policy. Set algorithm to
+# priority_hold to run the deterministic CPA/priority baseline instead.
+coordination:
+  enabled: true
+  yield_enabled: true
+  algorithm: orca  # orca | priority_hold
+  # Clockwise preference in predicted conflicts; 0 restores unbiased ORCA.
+  # This modifies preference only; it never relaxes collision constraints.
+  passing_bias_mps: 0.1
+  prediction_horizon_s: 3.0
+  safety_distance_m: 2.0
+  peer_poll_interval_s: 0.2
+  diagnostic_log_interval_s: 0.5
+  max_state_timestamp_skew_s: 0.5
+  yield_release_margin_m: 0.75
+  yield_release_delay_s: 0.5
