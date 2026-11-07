@@ -13,10 +13,59 @@ import pytest
 
 from common.models import (
     AvoidanceCommand,
+    CommandLifecycle,
     FormationCommand,
     TelemetryMessage,
     VehicleState,
 )
+
+
+def _lifecycle(source="formation"):
+    return CommandLifecycle(
+        command_id="cmd-1", sequence_id=1, issued_at=1_000_000_000,
+        expires_at=2_000_000_000, source=source, task_id="task-1",
+        stream_id="session-1", ttl_s=0.4,
+    )
+
+
+def test_command_lifecycle_rejects_invalid_metadata():
+    with pytest.raises(ValueError, match="sequence_id"):
+        CommandLifecycle("cmd", -1, 1, 2, "formation", "task", "session", 0.4)
+    with pytest.raises(ValueError, match="issued_at/expires_at"):
+        CommandLifecycle("cmd", 1, 2, 2, "formation", "task", "session", 0.4)
+    with pytest.raises(ValueError, match="ttl_s"):
+        CommandLifecycle("cmd", 1, 1, 2, "formation", "task", "session", 0)
+
+
+def test_command_lifecycle_uses_separate_deadlines():
+    meta = _lifecycle()
+    assert meta.is_current(sim_time_ns=1_500_000_000,
+                           received_monotonic_seconds=10.0,
+                           now_monotonic_seconds=10.2)
+    assert not meta.is_current(sim_time_ns=2_000_000_000,
+                               received_monotonic_seconds=10.0,
+                               now_monotonic_seconds=10.2)
+    assert not meta.is_current(sim_time_ns=1_500_000_000,
+                               received_monotonic_seconds=10.0,
+                               now_monotonic_seconds=10.5)
+
+
+def test_cross_process_commands_require_lifecycle():
+    with pytest.raises(ValueError, match="requires lifecycle"):
+        FormationCommand("Drone1").require_lifecycle()
+    with pytest.raises(ValueError, match="requires lifecycle"):
+        AvoidanceCommand("Drone1").require_lifecycle()
+    command = FormationCommand("Drone1", lifecycle=_lifecycle())
+    assert command.require_lifecycle().command_id == "cmd-1"
+    avoidance = AvoidanceCommand("Drone1", source="orca", lifecycle=_lifecycle("orca"))
+    assert avoidance.require_lifecycle().source == "orca"
+
+
+def test_command_source_mismatch_rejected():
+    with pytest.raises(ValueError, match="source"):
+        FormationCommand("Drone1", lifecycle=_lifecycle("orca"))
+    with pytest.raises(ValueError, match="source"):
+        AvoidanceCommand("Drone1", source="orca", lifecycle=_lifecycle("formation"))
 
 
 # ---------------------------------------------------------------------------

@@ -7,6 +7,7 @@ coordination and control layers.
 from common import constants
 from common.models import (
     AvoidanceCommand,
+    CommandLifecycle,
     FormationCommand,
     TelemetryMessage,
     Vec3,
@@ -19,5 +20,6 @@ __all__ = [
     "Vec3",
     "FormationCommand",
     "AvoidanceCommand",
+    "CommandLifecycle",
     "TelemetryMessage",
 ]
