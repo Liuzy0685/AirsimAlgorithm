@@ -12,20 +12,22 @@ trajectory_planner:
   enabled: true
   num_candidates: 9            # 7 forward + 2 reverse (REJOIN variants added on demand)
   horizon_m: 4.0
-  sample_spacing_m: 0.25
+  sample_spacing_m: 0.30           # fewer samples per arc; same clearance checks
   planning_hz: 8.0             # local replan rate (tracking runs faster)
   max_compute_ms: 20.0
 
-  hard_clearance_m: 1.5
-  preferred_clearance_m: 2.0
+  # LiDAR returns are on the obstacle surface.  This leaves a practical
+  # narrow-passage gate while retaining a margin around the vehicle.
+  hard_clearance_m: 0.90
+  preferred_clearance_m: 1.30
 
   enable_distance_field_refinement: false
   refinement_gain: 0.2
 
-  forward_speed_mps: 0.15
-  lateral_speed_mps: 0.20
-  command_lookahead_m: 1.0
-  tracker_lookahead_m: 1.0
+  forward_speed_mps: 1.0       # faster cruise; safety filter still limits near obstacles
+  lateral_speed_mps: 0.60
+  command_lookahead_m: 1.1
+  tracker_lookahead_m: 1.1
 
   alignment_scale_m: 3.0       # exp decay scale for whole-path alignment
   consistency_scale_m: 0.5     # exp decay scale for geometric consistency
@@ -38,7 +40,7 @@ trajectory_planner:
     # Dynamic rejoin bonus (sec 6): reward alignment, but only offer a rejoin
     # when the front is clear this far (never steer into an obstacle face).
     alignment_bonus_weight: 1.0
-    clear_front_required_m: 3.0
+    clear_front_required_m: 2.5
 
   # Family-switch hysteresis (sec 4): a soft gate, never a hard side lock.
   family_switch:
@@ -47,6 +49,33 @@ trajectory_planner:
   # Direct LEFT↔RIGHT switch penalty (sec 5).
   direct_opposite_switch_penalty: 1.0
 
+  # U-shaped/dead-end escape. After a reverse family is selected, keep
+  # backing out until the forward corridor is open for this distance.
+  reverse_hold:
+    enabled: true
+    release_front_clearance_m: 4.0
+    max_duration_s: 2.0
+    max_distance_m: 1.0
+
+  # When a stale straight blue line diverges from the yellow goal direction,
+  # prefer a safe curved candidate that starts rejoining the goal direction.
+  straight_goal_rejoin:
+    enabled: true
+    alignment_trigger: 0.82       # about 35 degrees or more off the goal
+    min_alignment_gain: 0.05
+    max_score_loss: 3.0
+
+  # If the direct trajectory is clear while both sides contain nearby
+  # surfaces, keep the vehicle centered through the gap.
+  narrow_passage:
+    enabled: true
+    side_probe_m: 1.0
+    side_obstacle_max_distance_m: 2.5
+    max_center_clearance_m: 1.6
+    hold_enabled: true
+    hold_max_duration_s: 6.0
+    hold_max_distance_m: 4.5
+
   # Adaptive horizon (sec 8): shorten look-ahead near obstacles; hard
   # clearance is unchanged.
   adaptive_horizon:
@@ -54,13 +83,46 @@ trajectory_planner:
     min_horizon_m: 2.0
     mid_horizon_m: 3.0
     max_horizon_m: 4.0
-    near_threshold_m: 3.0
-    mid_threshold_m: 4.0
+    near_threshold_m: 2.5
+    mid_threshold_m: 3.5
 
   # APF safety-filter limits (APF may slow + nudge, never steer).
   apf_safety:
-    max_lateral_correction_mps: 0.25
-    max_speed_reduction_ratio: 0.8
+    max_lateral_correction_mps: 0.60
+    max_speed_reduction_ratio: 0.9
+
+  # Short, faster escape maneuver for a genuinely infeasible local plan.
+  # Directional guards and hard clearance are still applied at dispatch.
+  recovery:
+    reverse_speed_mps: 0.45
+    lateral_speed_mps: 0.45
+    # Recovery is bounded, but long enough to complete a short climb probe or
+    # a wall-follow segment. It never becomes an unlimited reverse maneuver.
+    max_duration_s: 5.0
+    cooldown_s: 1.5
+    dead_end_escape_enabled: true
+    dead_end_front_trigger_m: 2.5
+    dead_end_side_trigger_m: 2.0
+    vertical_climb_enabled: true
+    vertical_clearance_m: 2.5
+    vertical_climb_speed_mps: 0.30
+    vertical_climb_duration_s: 1.2
+    vertical_climb_delta_m: 0.40
+    wall_follow_forward_speed_mps: 0.45
+    wall_follow_duration_s: 4.0
+    wall_follow_side_lock_enabled: true
+
+  # Keep a fixed wall-follow side after trajectory recovery from a large
+  # U-shaped dead end. Release only after the selected wall end and front
+  # are both clear continuously; a temporarily open front is not sufficient.
+  dead_end_bypass:
+    min_lateral_speed_mps: 0.18
+    max_lateral_speed_mps: 0.45
+    front_speed_mps: 0.25
+    min_wall_follow_distance_m: 1.5
+    release_side_clearance_m: 3.5
+    release_front_clearance_m: 4.5
+    release_hold_s: 0.8
 
   # No-feasible → fast Recovery (do not wait for the stuck detector).
   no_feasible:
@@ -68,12 +130,17 @@ trajectory_planner:
     recovery_trigger_duration_s: 0.5
 
   # Never silently fall back to the old Guided APF / reactive path while in
-  # trajectory mode (sec 26).  trajectory_no_feasible holds in place and
-  # escalates to Recovery instead.
+  # trajectory mode (sec 26).  trajectory_no_feasible enters bounded recovery
+  # instead of silently following a stale trajectory.
   allow_guided_apf_fallback: false
 
   weights:
     goal_progress: 2.0
+    # After a bypass, reward candidates whose terminal tangent points back
+    # toward MissionEnd.  Hard clearance and the safety filter still win.
+    # Strongly prioritize returning the blue trajectory toward the yellow
+    # MissionEnd direction after an obstacle turn.
+    goal_heading_alignment: 6.0
     global_path_alignment: 3.0
     clearance: 3.0
     smoothness: 1.0
@@ -86,11 +153,36 @@ trajectory_memory:
   enabled: true
   history_length: 10
 
+# Before horizontal navigation, rotate in place if MissionEnd is not roughly
+# in front of the vehicle.  The runtime guard below handles a later overshoot;
+# otherwise the trajectory planner controls motion and obstacle avoidance.
+heading_alignment:
+  enabled: true
+  trigger_angle_deg: 20.0   # skip the turn when the goal is already ahead
+  settle_angle_deg: 8.0     # resume navigation inside this heading error
+  kp: 1.8                   # yaw-rate proportional gain (rad/s per rad)
+  max_yaw_rate_radps: 0.80
+  timeout_s: 20.0
+  # If the drone overshoots MissionEnd, turn in place before following a
+  # cached forward trajectory again.  This only activates within 8 m of goal.
+  runtime_enabled: true
+  runtime_trigger_angle_deg: 100.0
+  runtime_settle_angle_deg: 12.0
+  runtime_max_distance_m: 8.0
+  runtime_kp: 1.8
+  runtime_max_yaw_rate_radps: 0.65
+  runtime_command_duration_s: 0.05
+  # Catch a crossed goal even when it is still outside runtime_max_distance_m.
+  runtime_goal_behind_min_forward_m: 0.5
+
 goal_termination:
   enabled: true
   distance_tolerance_m: 1.0
   altitude_tolerance_m: 0.4
   max_speed_mps: 0.25
+  max_vertical_speed_mps: 0.20
+  position_std_tolerance_m: 0.20
+  history_size_frames: 10
   dwell_time_s: 1.0
 
 # Local distance-field window (not the whole historical map).
@@ -120,14 +212,35 @@ cbmba:
   global_replan_hz: 1.5
   max_compute_ms: 150.0
   path_switch_min_improvement_ratio: 0.10
+  # Surface observations already include the obstacle footprint at the hit
+  # point, so they use less inflation than explicit geometric obstacles.
+  surface_observation_inflation_radius: 0.75
+  line_of_sight_inflation: 0.0
 
 # Trajectory tracking error → force replan when too large.
 trajectory_tracking:
   replan_error_threshold_m: 0.5
+  # Rotate gradually with the selected path instead of flying a sideways arc
+  # with the nose fixed.  Near the goal the live goal is blended into tracking.
+  yaw_control:
+    enabled: true
+    kp: 1.8
+    max_yaw_rate_radps: 0.80
+    goal_blend_distance_m: 4.0
+    goal_direct_distance_m: 2.0
+    goal_slowdown_distance_m: 4.0
   # Cached-trajectory staleness (sec 9): if no fresh plan arrives, warn at
   # stale_warn_s and stop (hover) at stale_stop_s.
   stale_warn_s: 0.5
   stale_stop_s: 1.5
+  # Endpoint-only control. Cruise speed and obstacle-planning speed are
+  # unchanged; these limits apply only during the final approach.
+  terminal_goal_approach_radius_m: 2.0
+  terminal_slowdown_radius_m: 0.8
+  terminal_goal_kp: 0.8
+  terminal_goal_max_speed_mps: 0.60
+  terminal_braking_accel_mps2: 0.80
+  terminal_capture_radius_m: 0.02
 
 # Control-loop timing / watchdog (sec 10/11).  The loop runs at a fixed
 # target rate driven by a deadline scheduler — NOT by the AirSim command
@@ -137,6 +250,11 @@ control_loop:
   target_hz: 20.0            # control-loop rate (period = 1/target_hz = 50 ms)
   overrun_warn_ms: 80.0
   overrun_stop_ms: 500.0
+
+# Stop the mission if the vehicle leaves the commanded cruise altitude.
+altitude_safety:
+  enabled: true
+  error_stop_m: 0.8
 
 # Background LiDAR / perception worker (sec 10-14): the LiDAR RPC
 # (getLidarData) is slow (~100-200 ms) and must NOT block the control loop.
@@ -158,14 +276,22 @@ lidar_health:
 
 # In-simulator debug drawing + HUD (sec 19/20).
 trajectory_debug:
-  enabled: false                 # set true to draw into the Unreal viewport
+  enabled: true                  # draw navigation diagnostics into Unreal
+  async: true                    # render on a background AirSim connection
+  queue_size: 1                 # latest frame wins; never backlog old frames
   line_thickness: 5.0
-  point_size: 10.0
-  duration_s: 0.3
+  point_size: 20.0
+  goal_marker_size_m: 2.0         # large enough to see in Forest
+  goal_marker_height_m: 0.0       # keep the goal marker on the drone altitude
+  goal_z_offset_m: 0.0            # draw the goal guide on the drone altitude
+  duration_s: 0.45
+  update_period_s: 0.5             # expire each frame before the next one
+  max_obstacle_points: 200
   draw_global_path: true
   draw_selected_trajectory: true
   draw_obstacles: true
   draw_mission_goal: true
+  draw_goal_line: true
   hud_status: true
   # CSV trace (sec 21) — one row per control frame.  Output dir relative to
   # the project root; files are named trace_<timestamp>.csv.

@@ -205,6 +205,19 @@ class TestTrajectoryFlightConfig:
 
 
 class TestResolveMissionGoal:
+    def test_cli_fixed_goal_overrides_missing_or_present_actor(self):
+        goal, source, actor = _resolve_mission_goal(
+            actor_xyz=(42.0, 4.0, 0.4),
+            target_z_ned=-1.0,
+            fallback_start_ned=(0.0, 0.0, 0.0),
+            fallback_heading_rad=0.0,
+            fallback_dist_m=15.0,
+            goal_xy_override=(15.0, 0.0),
+        )
+        assert goal == (15.0, 0.0, -1.0)
+        assert source == "cli_fixed"
+        assert actor is None
+
     def test_actor_goal_z_is_cruise_altitude_not_ground(self):
         # MissionEnd actor sits on the ground at Z ≈ +0.4 NED; the drone cruises
         # at target_z_ned = -1.0.  The navigation goal Z must be the cruise

@@ -29,6 +29,24 @@ def _make_session(mode="manual"):
         return s, mc
 
 
+def test_initialize_falls_back_when_old_airsim_lacks_list_vehicles():
+    s = SharedFlightSession(settings_json="fake.json", mode="auto")
+    with patch(_ADAPTER) as ma_cls:
+        ma = ma_cls.return_value
+        ma.vehicle_name = "Drone1"
+        mc = MagicMock()
+        ma.get_raw_client.return_value = mc
+        ma.list_vehicles.side_effect = ConnectionError(
+            "listVehicles() failed: server could not find function"
+        )
+
+        s.initialize()
+
+        mc.getMultirotorState.assert_called_once_with(vehicle_name="Drone1")
+        assert s.state.vehicle_validated
+        assert s.state.phase == SessionPhase.INITIALIZED
+
+
 def _make_st(landed):
     st = MagicMock()
     st.landed_state = landed

@@ -174,6 +174,42 @@ export AIRSIM_PYTHONCLIENT_PATH="<AirSim源码>/PythonClient"
 - 日志、航迹 CSV、`.git`、`__pycache__`、`.pytest_cache`
 - 开发过程报告（`*_REPORT.md`、`*_AUDIT.md` 等）
 
+---
+
+## 当前分支运行说明
+
+本分支为 `feature-wang`，在原有轨迹规划和避障逻辑的基础上，补充了终点相关控制：无人机接近 `MissionEnd` 时使用实时终点位置，避免继续沿缓存蓝线飞过终点；进入捕获范围后减速并等待稳定，再结束任务。巡航速度仍由现有配置控制，没有为了终点逻辑降低全程速度。
+
+### Windows 启动步骤
+
+1. 先启动 Unreal 地图并点击 Play，确认 AirSim 已监听 `127.0.0.1:41451`。
+2. 打开 PowerShell，进入仓库并激活虚拟环境：
+
+```powershell
+cd "C:\Users\13520\Desktop\new\AirsimAlgorithm"
+.\.venv\Scripts\Activate.ps1
+$env:AIRSIM_PYTHONCLIENT_PATH = "D:\AirSimDev\AirSim\PythonClient"
+$env:PYTHONPATH = "$env:AIRSIM_PYTHONCLIENT_PATH;$env:PYTHONPATH"
+```
+
+3. 确认 `settings.json` 中的车辆名、LiDAR 名称与实际地图一致，然后运行自动轨迹模式：
+
+```powershell
+python -u scripts\flight_mode.py --mode auto --confirm-simulation-clearance --settings-json "C:\Users\13520\Documents\AirSim\settings.json" --local-navigation-mode trajectory --flight-config configs\trajectory_flight.yaml --max-duration 480 --quiet --log-file runs\flight.log
+```
+
+其中 `--max-duration 480` 是最长运行时间，正常情况下检测到 `MissionEnd` 后会提前结束。终点控制参数位于 `configs/trajectory_planner.yaml` 的 `trajectory_tracking` 和 `goal_termination` 配置段。
+
+### 连接测试
+
+如果程序提示 `WSAECONNREFUSED`，说明 Unreal/AirSim 尚未启动或端口不一致。可先执行只读 LiDAR 测试：
+
+```powershell
+python -u scripts\sector_smoke_test.py --settings-json "C:\Users\13520\Documents\AirSim\settings.json" --frames 3 --interval 0.2
+```
+
+看到 `Connected!` 和 `FOV FULLY COMPATIBLE` 后，再运行自动飞行命令。详细日志保存在 `runs\flight.log`，该目录已被 `.gitignore` 忽略，不会上传到仓库。
+
 ## License
 
 MIT（与 AirSim PythonClient 保持一致）。

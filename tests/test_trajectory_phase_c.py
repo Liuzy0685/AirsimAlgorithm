@@ -26,6 +26,7 @@ from planners.local_trajectory_planner import (
     HARD_LEFT,
     LEFT,
     REJOIN_SOFT,
+    REVERSE_LEFT,
     RIGHT,
     STRAIGHT,
     LocalTrajectoryPlanner,
@@ -67,6 +68,128 @@ class TestAdaptiveHorizon:
         assert pl._adaptive_horizon(3.5) == pytest.approx(3.0)      # mid
         assert pl._adaptive_horizon(10.0) == pytest.approx(4.0)     # far → max
         assert pl._adaptive_horizon(float("inf")) == pytest.approx(4.0)
+
+
+class TestGoalHeadingAlignment:
+    def test_terminal_direction_toward_goal_is_rewarded(self):
+        pl = _planner()
+        goal_unit = (math.sqrt(0.5), math.sqrt(0.5))
+        straight = [(0.0, 0.0), (1.0, 0.0)]
+        right = [(0.0, 0.0), (0.9, 0.1)]
+        c_straight = pl.evaluate_candidate(
+            STRAIGHT, straight, 0.0, False, (0, 0, 0), 0.0,
+            goal_unit, [], _df([]),
+        )
+        c_right = pl.evaluate_candidate(
+            RIGHT, right, 0.45, False, (0, 0, 0), 0.0,
+            goal_unit, [], _df([]),
+        )
+        assert c_right.goal_heading_alignment > c_straight.goal_heading_alignment
+
+    def test_weight_is_included_in_total_score(self):
+        p0 = TrajectoryPlannerParams(weights={"goal_heading_alignment": 0.0})
+        p2 = TrajectoryPlannerParams(weights={"goal_heading_alignment": 2.0})
+        pts = [(0.0, 0.0), (0.8, 0.6)]
+        args = (RIGHT, pts, 0.45, False, (0, 0, 0), 0.0,
+                (math.sqrt(0.5), math.sqrt(0.5)), [], _df([]))
+        c0 = _planner(p0).evaluate_candidate(*args)
+        c2 = _planner(p2).evaluate_candidate(*args)
+        assert c2.total_score - c0.total_score == pytest.approx(
+            2.0 * c0.goal_heading_alignment
+        )
+
+    def test_goal_heading_can_break_stale_bypass_turn_near_goal(self):
+        memory = TrajectoryMemory(
+            previous_family="SOFT_LEFT",
+            previous_score=8.7,
+            previous_points=[(28.88, -2.16), (29.20, -2.30)],
+            current_family_held_since=-100.0,
+        )
+        pl = _planner(memory=memory)
+        r = pl.plan(
+            (28.88, -2.16, -1.0), -0.3866, (29.70, -2.50),
+            [[0.0, 0.0], [29.70, -2.50]], _df([]),
+        )
+        assert r.selected is not None
+        assert r.selected.family == STRAIGHT
+
+    def test_reverse_hold_prevents_forward_turn_inside_dead_end(self):
+        memory = TrajectoryMemory(
+            previous_family=REVERSE_LEFT,
+            previous_score=0.0,
+            current_family_held_since=-100.0,
+        )
+        pl = _planner(memory=memory)
+        r = pl.plan(
+            (0.0, 0.0, -1.0), 0.0, (10.0, 0.0),
+            [[0.0, 0.0], [10.0, 0.0]], _df([(2.0, 0.0)]),
+        )
+        assert r.selected is not None
+        assert r.selected.family.startswith("REVERSE_")
+
+    def test_reverse_hold_exhaustion_requests_bounded_recovery(self):
+        clock = [0.0]
+        memory = TrajectoryMemory(
+            previous_family=REVERSE_LEFT,
+            previous_score=0.0,
+            current_family_held_since=-100.0,
+        )
+        params = TrajectoryPlannerParams(
+            reverse_hold_max_duration_s=2.0,
+            reverse_hold_max_distance_m=1.0,
+        )
+        pl = _planner(params=params, memory=memory, clock=lambda: clock[0])
+        first = pl.plan(
+            (0.0, 0.0, -1.0), 0.0, (10.0, 0.0),
+            [[0.0, 0.0], [10.0, 0.0]], _df([(2.0, 0.0)]),
+        )
+        assert first.selected is not None
+
+        clock[0] = 2.1
+        exhausted = pl.plan(
+            (-1.1, 0.0, -1.0), 0.0, (10.0, 0.0),
+            [[-1.1, 0.0], [10.0, 0.0]], _df([(0.9, 0.0)]),
+        )
+        assert exhausted.selected is None
+        assert exhausted.escape_hint is not None
+
+    def test_stale_straight_rejoins_goal_direction_despite_hysteresis(self):
+        memory = TrajectoryMemory(
+            previous_family=STRAIGHT,
+            previous_score=20.0,
+            current_family_held_since=-100.0,
+        )
+        params = TrajectoryPlannerParams(
+            straight_goal_alignment_trigger=0.82,
+            straight_goal_alignment_min_gain=0.10,
+            straight_goal_rejoin_max_score_loss=1.5,
+        )
+        pl = _planner(params=params, memory=memory)
+        result = pl.plan(
+            (0.0, 0.0, -1.0), 0.0, (10.0, 10.0),
+            [[0.0, 0.0], [10.0, 10.0]], _df([]),
+        )
+        assert result.selected is not None
+        assert result.selected.family != STRAIGHT
+        assert result.selected.goal_heading_alignment > 0.82
+
+    def test_goal_heading_weight_can_dominate_a_stale_straight_choice(self):
+        p_low = TrajectoryPlannerParams(
+            weights={"goal_heading_alignment": 0.0},
+        )
+        p_high = TrajectoryPlannerParams(
+            weights={"goal_heading_alignment": 6.0},
+        )
+        args = (
+            RIGHT, [(0.0, 0.0), (0.9, 0.1)], 0.45, False,
+            (0.0, 0.0, -1.0), 0.0,
+            (math.sqrt(0.5), math.sqrt(0.5)), [], _df([]),
+        )
+        low = _planner(p_low).evaluate_candidate(*args)
+        high = _planner(p_high).evaluate_candidate(*args)
+        assert high.total_score - low.total_score == pytest.approx(
+            6.0 * high.goal_heading_alignment
+        )
 
     def test_horizon_fixed_when_disabled(self):
         p = TrajectoryPlannerParams(adaptive_horizon_enabled=False, horizon_m=4.0)

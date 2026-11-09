@@ -877,6 +877,22 @@ class TestCbmbaPlanResult:
         assert not result.success
         assert result.nodes_expanded > 0
 
+    def test_surface_observation_inflation_keeps_narrow_gap_open(self):
+        """LiDAR/map surface points use their smaller passage inflation."""
+        planner = _make_planner(
+            resolution=0.5,
+            inflation_radius=1.5,
+            surface_observation_inflation_radius=0.75,
+        )
+        obstacles = [
+            _obstacle(5.0, -1.2, 0.0, size=0.0, obs_type="lidar"),
+            _obstacle(5.0, 1.2, 0.0, size=0.0, obs_type="map"),
+        ]
+        result = planner.plan_with_result(
+            obstacles, [0.0, 0.0, 0.0], [10.0, 0.0, 0.0],
+        )
+        assert result.success
+
 
 # ═══════════════════════════════════════════════════════════════════════
 # CbmbaParams

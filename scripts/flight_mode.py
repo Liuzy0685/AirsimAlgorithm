@@ -28,12 +28,52 @@ _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    datefmt="%H:%M:%S",
-)
 logger = logging.getLogger("flight_mode")
+
+_LOG_FORMAT = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+_LOG_DATE_FORMAT = "%H:%M:%S"
+
+
+def _configure_logging(quiet: bool = False, log_file: str | None = None) -> None:
+    """Configure compact console output and optional full diagnostic logging."""
+    console = logging.StreamHandler()
+    # In quiet mode, keep the console focused on actionable failures. The
+    # complete INFO/WARNING stream is still written to --log-file when used.
+    console.setLevel(logging.ERROR if quiet else logging.INFO)
+    formatter = logging.Formatter(_LOG_FORMAT, datefmt=_LOG_DATE_FORMAT)
+    console.setFormatter(formatter)
+
+    handlers = [console]
+    resolved_log_file = None
+    if log_file:
+        resolved_log_file = Path(log_file)
+        if not resolved_log_file.is_absolute():
+            resolved_log_file = _PROJECT_ROOT / resolved_log_file
+        resolved_log_file.parent.mkdir(parents=True, exist_ok=True)
+        # Start a fresh diagnostic file for each flight run.
+        file_handler = logging.FileHandler(
+            resolved_log_file, mode="w", encoding="utf-8"
+        )
+        file_handler.setLevel(logging.INFO)
+        file_handler.setFormatter(formatter)
+        handlers.append(file_handler)
+
+    logging.basicConfig(
+        level=logging.INFO,
+        handlers=handlers,
+        force=True,
+    )
+
+    # Multiprocessing workers are spawned as fresh Python processes on Windows.
+    # Pass the console/file policy through the environment so their logging
+    # setup matches the parent process too.
+    os.environ["AIRSIM_FLIGHT_QUIET"] = "1" if quiet else "0"
+    os.environ["AIRSIM_FLIGHT_LOG_FILE"] = (
+        str(resolved_log_file) if resolved_log_file else ""
+    )
+
+    if resolved_log_file:
+        print(f"Detailed log file: {resolved_log_file}")
 
 
 def _parse_args() -> argparse.Namespace:
@@ -69,6 +109,10 @@ def _parse_args() -> argparse.Namespace:
                    help="Override target_z_ned from flight config.")
     p.add_argument("--max-duration", type=float, default=None,
                    help="Override max_flight_duration_s from flight config.")
+    p.add_argument("--goal-x", type=float, default=None,
+                   help="Explicit world-NED goal X; overrides MissionEnd actor.")
+    p.add_argument("--goal-y", type=float, default=None,
+                   help="Explicit world-NED goal Y; overrides MissionEnd actor.")
     p.add_argument("--planner-mode", choices=["reactive", "apf_shadow", "apf"],
                    default="reactive",
                    help="Planner mode for auto flight: reactive, APF shadow logging, or APF control.")
@@ -97,6 +141,12 @@ def _parse_args() -> argparse.Namespace:
                    help="Override CBMBA planner resolution (default: 0.75). "
                         "Must be > 0 and finite. "
                         "Example: --cbmba-resolution 1.5")
+    p.add_argument("--quiet", action="store_true",
+                   help="Show only ERROR logs on the console; full diagnostics "
+                        "remain in --log-file.")
+    p.add_argument("--log-file", default=None,
+                   help="Save full INFO+ diagnostics to this file. Relative paths "
+                        "are resolved from the project root.")
     return p.parse_args()
 
 
@@ -209,6 +259,9 @@ def _run_auto(args: argparse.Namespace) -> int:
     if not args.settings_json:
         print("\n  ERROR: --settings-json is required for auto mode.\n")
         return 2
+    if (args.goal_x is None) != (args.goal_y is None):
+        print("\n  ERROR: --goal-x and --goal-y must be provided together.\n")
+        return 2
 
     lock_fh = _acquire_lock_or_die("auto")
     logger.info("Starting auto mode (LiDAR avoidance).")
@@ -219,6 +272,9 @@ def _run_auto(args: argparse.Namespace) -> int:
         cli_overrides["target_z_ned"] = float(args.target_z)
     if args.max_duration is not None:
         cli_overrides["max_flight_duration_s"] = float(args.max_duration)
+    if args.goal_x is not None:
+        cli_overrides["goal_x"] = float(args.goal_x)
+        cli_overrides["goal_y"] = float(args.goal_y)
     cli_overrides["planner_mode"] = args.planner_mode
     cli_overrides["guided_apf_control"] = args.guided_apf_control
     cli_overrides["local_navigation_mode"] = args.local_navigation_mode
@@ -282,6 +338,7 @@ def _run_auto(args: argparse.Namespace) -> int:
 
 def main() -> int:
     args = _parse_args()
+    _configure_logging(quiet=args.quiet, log_file=args.log_file)
     if args.mode == "manual":
         return _run_manual(args)
     else:
