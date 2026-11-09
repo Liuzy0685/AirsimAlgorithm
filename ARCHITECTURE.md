@@ -31,6 +31,10 @@
 2. 输出 `FormationCommand`，明确 `vehicle_name`、`mode`、目标/速度、`formation_id` 和 `CommandLifecycle`；不得直接调用 AirSim 飞行控制 API。
 3. 与 A 约定命令传递方式和失联/超时策略，并测试单机、双机、五机及避障优先级接管后的编队恢复。
 
+当前 B 离线实现位于 `formation/controller.py`，配置在 `configs/formation.yaml`。`FormationController.plan()` 接受 A 的完整 `SwarmStateSnapshot`、B 本机记录的快照接收单调时间和 `coordination.status`，生成带 `CommandLifecycle` 的跟随机 `FormationCommand`；单机无跟随机时返回空集。支持纵队、横队和 V 字队形，槽位按领航机 World NED 航向旋转。冲突/避障/紧急状态停止发布；只在 `CONFLICT_CLEARED` 后生成限速回归速度，收敛后恢复位置目标。快照不完整、过期、仿真时间差超限或领航机无效时不发布。B 不给领航机发运动命令，领航目标仍由 A 的导航任务决定。
+
+此模块目前是可调用的离线规划器；A 的权威状态服务、`coordination.status` 传输、`formation.command` 接收/ACK 与统一控制网关仍待接线。B 进程应在接收快照时记录本机单调时间，断线后停止调用/发布，并让 A 对命令做身份、序号、过期和安全检查。离线测试：`python -m pytest tests/test_formation_controller.py -q`。
+
 ### C：前端与遥测（`frontend/` 及遥测服务）
 
 1. 从 `common.models` 导入 `TelemetryMessage`、`VehicleState`，从快照读取有效状态并显示各机采集时间、失效原因和状态完整性。

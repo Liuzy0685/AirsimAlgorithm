@@ -1,0 +1,12 @@
+formation:
+  leader: Drone1
+  followers: [Drone2]
+  shape: column  # line | column | vee
+  spacing_m: 3.0
+  max_snapshot_age_s: 0.5
+  max_sim_skew_s: 0.5
+  command_ttl_s: 0.4
+  command_sim_lifetime_s: 0.5
+  recovery_gain: 0.5
+  max_recovery_speed_mps: 1.0
+  recovery_tolerance_m: 0.25
