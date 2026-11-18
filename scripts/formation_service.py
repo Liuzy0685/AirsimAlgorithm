@@ -14,6 +14,7 @@ from coordination.client import SwarmConnection
 from coordination.runtime_config import load_config
 from coordination.wire import build_envelope, parse_swarm_snapshot
 from formation.controller import FormationController, load_formation_config
+from formation.runtime import FormationStatusGate
 
 
 async def run(args):
@@ -26,13 +27,14 @@ async def run(args):
     planner = FormationController(formation, task_id=cfg.task_id, stream_id=str(uuid.uuid4()))
     producer = "b-formation-service"
     delay = 0.5
-    statuses = {}
+    gate = FormationStatusGate(formation.vehicle_names, task_id=cfg.task_id,
+                               max_age_s=cfg.disconnect_timeout_s)
     while True:
         connection = None
         try:
             connection = await SwarmConnection.connect(cfg.url, role="b_formation",
                 producer_id=producer, stream_id=planner.stream_id)
-            statuses.clear()
+            gate.reset()
             delay, last_ping = 0.5, 0.0
             while True:
                 if time.monotonic() - last_ping >= cfg.heartbeat_s:
@@ -47,18 +49,22 @@ async def run(args):
                 if env.message_type == "command.ack":
                     print(f"ACK {env.payload}", flush=True)
                 elif env.message_type == "coordination.status":
-                    statuses[env.payload["vehicle_name"]] = env.payload["state"]
+                    gate.ingest(env.payload, sequence_id=env.sequence_id,
+                                received_at=time.monotonic())
                 elif env.message_type == "swarm.snapshot":
                     received = time.monotonic()
                     snap = parse_swarm_snapshot(env, received_at=received)
-                    state = next((s for s in ("EMERGENCY", "AVOIDING", "CONFLICT_DETECTED", "CONFLICT_CLEARED", "FORMATION_RECOVERING")
-                                  if s in statuses.values()), "NORMAL")
+                    state = gate.state_for_snapshot(now=received)
+                    if state is None:
+                        continue
                     commands = planner.plan(snap, received_at_monotonic_s=received,
                         snapshot_stream_id=env.stream_id, coordination_state=state)
                     for command in commands.values():
                         await connection.send(build_envelope(message_type="formation.command",
                             producer_id=producer, stream_id=planner.stream_id,
                             sequence_id=command.lifecycle.sequence_id, payload=asdict(command)))
+                    if commands:
+                        gate.commands_emitted()
         except (ConnectionError, OSError, ValueError) as exc:
             print(f"B disconnected: {exc}; reconnect in {delay}s", flush=True)
         finally:
