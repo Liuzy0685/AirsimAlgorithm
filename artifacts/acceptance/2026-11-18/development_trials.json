@@ -1,0 +1,481 @@
+[
+  {
+    "trial": "maze_2_run01",
+    "passed": false,
+    "frames": 292,
+    "minimum_sampled_separation_m": 3.0,
+    "collision_events_excluding_landed_ground": 1,
+    "formation_error_rmse_m": null,
+    "vehicle_outcomes": {
+      "Drone1": null,
+      "Drone2": {
+        "reason": "ctrl_c",
+        "rejection": null,
+        "cleanup": {
+          "phase": "MANUAL_INTERVENTION_REQUIRED",
+          "landing_done": true,
+          "manual_intervention_required": true
+        }
+      }
+    },
+    "raw_summary_sha256": "466650b9b474e79d09eb3c3c7546b455a99180ebe94ad28c2a5c613aab3b964d"
+  },
+  {
+    "trial": "maze_2_run02",
+    "passed": false,
+    "frames": 284,
+    "minimum_sampled_separation_m": 3.0,
+    "collision_events_excluding_landed_ground": 0,
+    "formation_error_rmse_m": 3.0894710430516903,
+    "vehicle_outcomes": {
+      "Drone1": {
+        "reason": "coordinated_stop",
+        "rejection": null,
+        "cleanup": {
+          "phase": "CONTROL_RELEASED",
+          "landing_done": true,
+          "manual_intervention_required": false
+        }
+      },
+      "Drone2": {
+        "reason": "velocity_send_error",
+        "rejection": null,
+        "cleanup": {
+          "phase": "MANUAL_INTERVENTION_REQUIRED",
+          "landing_done": true,
+          "manual_intervention_required": true
+        }
+      }
+    },
+    "raw_summary_sha256": "ce3516619cccca67f47b9dbb29f7596c246c7e706d1953f1918ff50cecdd6b4b"
+  },
+  {
+    "trial": "maze_2_run03",
+    "passed": false,
+    "frames": 460,
+    "minimum_sampled_separation_m": 2.353524713323374,
+    "collision_events_excluding_landed_ground": 0,
+    "formation_error_rmse_m": 3.170489945976982,
+    "vehicle_outcomes": {
+      "Drone1": {
+        "reason": "time_limit",
+        "rejection": null,
+        "cleanup": {
+          "phase": "CONTROL_RELEASED",
+          "landing_attempted": true,
+          "landing_confirmed": true,
+          "control_released": true,
+          "manual_intervention_required": false
+        }
+      },
+      "Drone2": {
+        "reason": "time_limit",
+        "rejection": null,
+        "cleanup": {
+          "phase": "CONTROL_RELEASED",
+          "landing_attempted": true,
+          "landing_confirmed": true,
+          "control_released": true,
+          "manual_intervention_required": false
+        }
+      }
+    },
+    "raw_summary_sha256": "24f4fc927b737c475e11adf7d58eee6fc6eb4c8f9ffdfa1150c56d4861a0cfd3"
+  },
+  {
+    "trial": "maze_2_run04",
+    "passed": false,
+    "frames": 405,
+    "minimum_sampled_separation_m": 3.0,
+    "collision_events_excluding_landed_ground": 0,
+    "formation_error_rmse_m": 4.739471591605088,
+    "vehicle_outcomes": {
+      "Drone1": {
+        "reason": "coordinated_stop",
+        "rejection": null,
+        "cleanup": {
+          "phase": "CONTROL_RELEASED",
+          "landing_attempted": true,
+          "landing_confirmed": true,
+          "control_released": true,
+          "manual_intervention_required": false
+        }
+      },
+      "Drone2": {
+        "reason": "velocity_send_error",
+        "rejection": "final_velocity_lidar_clearance",
+        "cleanup": {
+          "phase": "MANUAL_INTERVENTION_REQUIRED",
+          "landing_attempted": true,
+          "landing_confirmed": false,
+          "control_released": false,
+          "manual_intervention_required": true
+        }
+      }
+    },
+    "raw_summary_sha256": "4d53f911d6a3639613b7cfa21fe6d9b244cb7a1d0303c0a61d69d3e9afef1dc0"
+  },
+  {
+    "trial": "maze_2_run05",
+    "passed": true,
+    "frames": 703,
+    "minimum_sampled_separation_m": 2.156772389243133,
+    "collision_events_excluding_landed_ground": 0,
+    "formation_error_rmse_m": 4.128454884886379,
+    "vehicle_outcomes": {
+      "Drone1": {
+        "reason": "mission_complete",
+        "rejection": null,
+        "cleanup": {
+          "phase": "CONTROL_RELEASED",
+          "landing_attempted": true,
+          "landing_confirmed": true,
+          "control_released": true,
+          "manual_intervention_required": false
+        }
+      },
+      "Drone2": {
+        "reason": "coordinated_stop",
+        "rejection": null,
+        "cleanup": {
+          "phase": "CONTROL_RELEASED",
+          "landing_attempted": true,
+          "landing_confirmed": true,
+          "control_released": true,
+          "manual_intervention_required": false
+        }
+      }
+    },
+    "raw_summary_sha256": "848f41058c381173ac626f99bf0839036d561143824a048fa9210a6fd3df9adc"
+  },
+  {
+    "trial": "maze_5_run01",
+    "passed": false,
+    "frames": 245,
+    "minimum_sampled_separation_m": 2.862124351653422,
+    "collision_events_excluding_landed_ground": 0,
+    "formation_error_rmse_m": 0.6830141862837034,
+    "vehicle_outcomes": {
+      "Drone1": {
+        "reason": "coordinated_stop",
+        "rejection": null,
+        "cleanup": {
+          "phase": "CONTROL_RELEASED",
+          "landing_attempted": true,
+          "landing_confirmed": true,
+          "control_released": true,
+          "manual_intervention_required": false
+        }
+      },
+      "Drone2": {
+        "reason": "velocity_send_error",
+        "rejection": "formation_expired_before_dispatch",
+        "cleanup": {
+          "phase": "MANUAL_INTERVENTION_REQUIRED",
+          "landing_attempted": true,
+          "landing_confirmed": false,
+          "control_released": false,
+          "manual_intervention_required": true
+        }
+      },
+      "Drone3": {
+        "reason": "coordinated_stop",
+        "rejection": null,
+        "cleanup": {
+          "phase": "CONTROL_RELEASED",
+          "landing_attempted": true,
+          "landing_confirmed": true,
+          "control_released": true,
+          "manual_intervention_required": false
+        }
+      },
+      "Drone4": {
+        "reason": "coordinated_stop",
+        "rejection": null,
+        "cleanup": {
+          "phase": "CONTROL_RELEASED",
+          "landing_attempted": true,
+          "landing_confirmed": true,
+          "control_released": true,
+          "manual_intervention_required": false
+        }
+      },
+      "Drone5": {
+        "reason": "coordinated_stop",
+        "rejection": null,
+        "cleanup": {
+          "phase": "CONTROL_RELEASED",
+          "landing_attempted": true,
+          "landing_confirmed": true,
+          "control_released": true,
+          "manual_intervention_required": false
+        }
+      }
+    },
+    "raw_summary_sha256": "08b6ba5effad2e0229ba6bfa679fb5407913c6468d40629af6428cd3c478c38e"
+  },
+  {
+    "trial": "maze_5_run02",
+    "passed": false,
+    "frames": 844,
+    "minimum_sampled_separation_m": 2.8690780846568575,
+    "collision_events_excluding_landed_ground": 0,
+    "formation_error_rmse_m": 9.63079328574626,
+    "vehicle_outcomes": {
+      "Drone1": {
+        "reason": "coordinated_stop",
+        "rejection": null,
+        "cleanup": {
+          "phase": "CONTROL_RELEASED",
+          "landing_attempted": true,
+          "landing_confirmed": true,
+          "control_released": true,
+          "manual_intervention_required": false
+        }
+      },
+      "Drone2": {
+        "reason": "coordinated_stop",
+        "rejection": null,
+        "cleanup": {
+          "phase": "CONTROL_RELEASED",
+          "landing_attempted": true,
+          "landing_confirmed": true,
+          "control_released": true,
+          "manual_intervention_required": false
+        }
+      },
+      "Drone3": {
+        "reason": "velocity_send_error",
+        "rejection": "final_velocity_lidar_clearance",
+        "cleanup": {
+          "phase": "MANUAL_INTERVENTION_REQUIRED",
+          "landing_attempted": true,
+          "landing_confirmed": false,
+          "control_released": false,
+          "manual_intervention_required": true
+        }
+      },
+      "Drone4": {
+        "reason": "coordinated_stop",
+        "rejection": null,
+        "cleanup": {
+          "phase": "CONTROL_RELEASED",
+          "landing_attempted": true,
+          "landing_confirmed": true,
+          "control_released": true,
+          "manual_intervention_required": false
+        }
+      },
+      "Drone5": {
+        "reason": "coordinated_stop",
+        "rejection": null,
+        "cleanup": {
+          "phase": "CONTROL_RELEASED",
+          "landing_attempted": true,
+          "landing_confirmed": true,
+          "control_released": true,
+          "manual_intervention_required": false
+        }
+      }
+    },
+    "raw_summary_sha256": "0eb718fa00d36e5a39f5f01c10ea2b014529159d56a2af99cec713424cc8b78b"
+  },
+  {
+    "trial": "maze_5_run03",
+    "passed": false,
+    "frames": 1061,
+    "minimum_sampled_separation_m": 2.8666344662386662,
+    "collision_events_excluding_landed_ground": 0,
+    "formation_error_rmse_m": 11.903039796929683,
+    "vehicle_outcomes": {
+      "Drone1": {
+        "reason": "coordinated_stop",
+        "rejection": null,
+        "cleanup": {
+          "phase": "CONTROL_RELEASED",
+          "landing_attempted": true,
+          "landing_confirmed": true,
+          "control_released": true,
+          "manual_intervention_required": false
+        }
+      },
+      "Drone2": {
+        "reason": "coordinated_stop",
+        "rejection": null,
+        "cleanup": {
+          "phase": "CONTROL_RELEASED",
+          "landing_attempted": true,
+          "landing_confirmed": true,
+          "control_released": true,
+          "manual_intervention_required": false
+        }
+      },
+      "Drone3": {
+        "reason": "coordinated_stop",
+        "rejection": null,
+        "cleanup": {
+          "phase": "CONTROL_RELEASED",
+          "landing_attempted": true,
+          "landing_confirmed": true,
+          "control_released": true,
+          "manual_intervention_required": false
+        }
+      },
+      "Drone4": {
+        "reason": "coordinated_stop",
+        "rejection": null,
+        "cleanup": {
+          "phase": "CONTROL_RELEASED",
+          "landing_attempted": true,
+          "landing_confirmed": true,
+          "control_released": true,
+          "manual_intervention_required": false
+        }
+      },
+      "Drone5": {
+        "reason": "coordinated_stop",
+        "rejection": null,
+        "cleanup": {
+          "phase": "CONTROL_RELEASED",
+          "landing_attempted": true,
+          "landing_confirmed": true,
+          "control_released": true,
+          "manual_intervention_required": false
+        }
+      }
+    },
+    "raw_summary_sha256": "664a6c42e78e42ffb3476a00b96300f2be693c586370d02cb91cdf99decb184b"
+  },
+  {
+    "trial": "maze_5_run04",
+    "passed": false,
+    "frames": 733,
+    "minimum_sampled_separation_m": 2.8893116445144535,
+    "collision_events_excluding_landed_ground": 118,
+    "formation_error_rmse_m": 6.324640627726182,
+    "vehicle_outcomes": {
+      "Drone1": {
+        "reason": "coordinated_stop",
+        "rejection": null,
+        "cleanup": {
+          "phase": "CONTROL_RELEASED",
+          "landing_attempted": true,
+          "landing_confirmed": true,
+          "control_released": true,
+          "manual_intervention_required": false
+        }
+      },
+      "Drone2": {
+        "reason": "coordinated_stop",
+        "rejection": null,
+        "cleanup": {
+          "phase": "CONTROL_RELEASED",
+          "landing_attempted": true,
+          "landing_confirmed": true,
+          "control_released": true,
+          "manual_intervention_required": false
+        }
+      },
+      "Drone3": {
+        "reason": "coordinated_stop",
+        "rejection": null,
+        "cleanup": {
+          "phase": "CONTROL_RELEASED",
+          "landing_attempted": true,
+          "landing_confirmed": true,
+          "control_released": true,
+          "manual_intervention_required": false
+        }
+      },
+      "Drone4": {
+        "reason": "collision:Cylinder3",
+        "rejection": "collision:Cylinder3",
+        "cleanup": {
+          "phase": "MANUAL_INTERVENTION_REQUIRED",
+          "landing_attempted": true,
+          "landing_confirmed": false,
+          "control_released": false,
+          "manual_intervention_required": true
+        }
+      },
+      "Drone5": {
+        "reason": "coordinated_stop",
+        "rejection": null,
+        "cleanup": {
+          "phase": "CONTROL_RELEASED",
+          "landing_attempted": true,
+          "landing_confirmed": true,
+          "control_released": true,
+          "manual_intervention_required": false
+        }
+      }
+    },
+    "raw_summary_sha256": "cb60db57c99b51bf27675b3555c67956a34893c7b92157d42132a65c8e98eefa"
+  },
+  {
+    "trial": "maze_5_run05",
+    "passed": false,
+    "frames": 490,
+    "minimum_sampled_separation_m": 2.924294681488863,
+    "collision_events_excluding_landed_ground": 0,
+    "formation_error_rmse_m": 3.9004878434825283,
+    "vehicle_outcomes": {
+      "Drone1": {
+        "reason": "coordinated_stop",
+        "rejection": null,
+        "cleanup": {
+          "phase": "CONTROL_RELEASED",
+          "landing_attempted": true,
+          "landing_confirmed": true,
+          "control_released": true,
+          "manual_intervention_required": false
+        }
+      },
+      "Drone2": {
+        "reason": "coordinated_stop",
+        "rejection": null,
+        "cleanup": {
+          "phase": "CONTROL_RELEASED",
+          "landing_attempted": true,
+          "landing_confirmed": true,
+          "control_released": true,
+          "manual_intervention_required": false
+        }
+      },
+      "Drone3": {
+        "reason": "coordinated_stop",
+        "rejection": null,
+        "cleanup": {
+          "phase": "CONTROL_RELEASED",
+          "landing_attempted": true,
+          "landing_confirmed": true,
+          "control_released": true,
+          "manual_intervention_required": false
+        }
+      },
+      "Drone4": {
+        "reason": "emergency_distance",
+        "rejection": "emergency_distance",
+        "cleanup": {
+          "phase": "MANUAL_INTERVENTION_REQUIRED",
+          "landing_attempted": true,
+          "landing_confirmed": false,
+          "control_released": false,
+          "manual_intervention_required": true
+        }
+      },
+      "Drone5": {
+        "reason": "coordinated_stop",
+        "rejection": null,
+        "cleanup": {
+          "phase": "CONTROL_RELEASED",
+          "landing_attempted": true,
+          "landing_confirmed": true,
+          "control_released": true,
+          "manual_intervention_required": false
+        }
+      }
+    },
+    "raw_summary_sha256": "a3888b8b5db30d86bb725bec0990b5f0e36246958bfec636da8b0aaa15ac009a"
+  }
+]

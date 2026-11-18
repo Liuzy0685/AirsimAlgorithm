@@ -186,6 +186,10 @@ def serialize_vehicle_state(state: VehicleState) -> dict:
             float(c) for c in state.angular_velocity_body_radps
         ],
         "timestamp": int(state.timestamp),
+        "ready": bool(state.ready),
+        "readiness_available": bool(state.readiness_available),
+        "can_arm": bool(state.can_arm),
+        "landed_state": state.landed_state,
         "received_monotonic_seconds": float(state.received_monotonic_seconds),
     }
 
@@ -313,7 +317,7 @@ def parse_formation_command_payload(payload: Any) -> FormationCommand:
         raise WireError("formation.command payload must be an object")
     lifecycle_raw = payload.get("lifecycle")
     unknown = set(payload) - {"vehicle_name", "mode", "target_position_ned_m",
-        "desired_velocity_ned_mps", "valid", "priority", "formation_id", "timestamp_s", "lifecycle"}
+        "desired_velocity_ned_mps", "valid", "priority", "formation_id", "timestamp_s", "lifecycle", "recovery_target_ned_m"}
     if unknown:
         raise WireError(f"unknown control fields: {sorted(unknown)}")
     if type(payload.get("valid", True)) is not bool or type(payload.get("priority", 50)) is not int:
@@ -322,7 +326,8 @@ def parse_formation_command_payload(payload: Any) -> FormationCommand:
     try:
         target = payload.get("target_position_ned_m", (0.0, 0.0, 0.0))
         velocity = payload.get("desired_velocity_ned_mps", (0.0, 0.0, 0.0))
-        for vector in (target, velocity):
+        recovery_target = payload.get("recovery_target_ned_m")
+        for vector in (target, velocity, recovery_target):
             if vector is not None and (len(vector) != 3 or any(type(v) not in (int, float) or not math.isfinite(v) for v in vector)):
                 raise ValueError("command vectors must contain three finite numbers")
         if not math.isfinite(float(payload.get("timestamp_s", 0.0))):
@@ -337,6 +342,7 @@ def parse_formation_command_payload(payload: Any) -> FormationCommand:
             formation_id=str(payload.get("formation_id", "")),
             timestamp_s=float(payload.get("timestamp_s", 0.0)),
             lifecycle=lifecycle,
+            recovery_target_ned_m=tuple(recovery_target) if recovery_target is not None else None,
         )
     except (TypeError, ValueError) as exc:
         raise WireError(f"invalid FormationCommand: {exc}") from exc
@@ -410,12 +416,19 @@ def parse_swarm_snapshot(envelope, *, received_at):
                     raise ValueError(f"invalid {key}")
                 vectors[key] = list(vector)
             q = vectors["orientation_quaternion_xyzw"]
+            ready = raw.get("ready", True)
+            readiness = raw.get("readiness_available", True)
+            if type(ready) is not bool or type(readiness) is not bool:
+                raise ValueError("invalid readiness flags")
+            if readiness and not ready:
+                raise ValueError("valid state reports vehicle not ready")
             if abs(sum(v*v for v in q) - 1) > 0.01:
                 raise ValueError("quaternion must be normalized")
             _, roll, pitch, yaw = _world_attitude(IDENTITY_ROTATION, q)
             states[name] = VehicleState(**vectors,
                 timestamp=_require_int(raw["timestamp"], "timestamp", minimum=1),
-                received_monotonic_seconds=received_at, ready=True,
+                received_monotonic_seconds=received_at, ready=ready, readiness_available=readiness,
+                can_arm=bool(raw.get("can_arm", False)), landed_state=raw.get("landed_state"),
                 roll_rad=roll, pitch_rad=pitch, yaw_rad=yaw)
         durations = [p[k] for k in ("collection_duration_s", "max_receive_skew_s", "max_sim_skew_s")]
         if any(type(v) not in (int, float) or not math.isfinite(v) or v < 0 for v in durations):

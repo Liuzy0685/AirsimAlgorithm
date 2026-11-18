@@ -89,7 +89,9 @@ class SharedFlightSession:
     _takeoff_called: bool = field(default=False, repr=False)
     altitude_confirmed: bool = field(default=False, repr=False)
     _landing_done: bool = field(default=False, repr=False)
+    _land_command_sent: bool = field(default=False, repr=False)
     _startup_floor_ts: int = field(default=0, repr=False)
+    _startup_ground_z: Optional[float] = field(default=None, repr=False)
 
     # ── lock ──
 
@@ -333,6 +335,15 @@ class SharedFlightSession:
         self._startup_floor_ts = timestamp
         logger.info("startup_floor_baseline_timestamp=%d", timestamp)
 
+    def set_verified_ground_reference(self, state, collision) -> bool:
+        from control.ground_contact import is_stationary_ground_contact
+        if not is_stationary_ground_contact(collision, state):
+            return False
+        self._startup_ground_z = float(state.position_ned_m[2])
+        self._startup_floor_ts = collision.raw_timestamp
+        logger.info("verified_startup_ground_reference z=%.4f timestamp=%d", self._startup_ground_z, self._startup_floor_ts)
+        return True
+
     # ── internal: arm failure ──
 
     def _confirm_altitude(self, vn: str) -> bool:
@@ -495,7 +506,9 @@ class SharedFlightSession:
         self._state.phase = SessionPhase.LANDING
         logger.info("land_command_sent  timeout=%.1fs", landing_timeout_s)
         try:
-            self._client.landAsync(timeout_sec=landing_timeout_s, vehicle_name=vn).join()
+            land_future=self._client.landAsync(timeout_sec=landing_timeout_s, vehicle_name=vn)
+            self._land_command_sent=True
+            land_future.join()
             logger.info("land_command_completed")
         except Exception as e:
             logger.warning("land_command_failed: %s", e)
@@ -571,6 +584,22 @@ class SharedFlightSession:
                 has_col = bool(col.has_collided)
                 col_obj = str(col.object_name) if col.object_name else ""
                 col_ts = int(col.time_stamp)
+                # Old Blocks builds report flying even after landAsync and
+                # pulse has_collided for one frame. Require a NEW ground event,
+                # an independently verified preflight ground height and normal.
+                verified_ground = False
+                if (self._startup_ground_z is not None and col_ts > self._startup_floor_ts
+                        and col_obj in {"Floor", "Floor_3", "(null)", ""}):
+                    normal = col.normal
+                    nx,ny,nz = float(normal.x_val),float(normal.y_val),float(normal.z_val)
+                    verified_ground = (all(math.isfinite(v) for v in (nx,ny,nz,pz))
+                        and math.hypot(nx,ny)<=.2 and nz<=-.9
+                        and abs(pz-self._startup_ground_z)<=.15)
+                if verified_ground and not floor_latched:
+                    floor_latched=True
+                    floor_latch_ts=col_ts
+                    floor_latch_obj=col_obj
+                    logger.info("verified_landing_ground_contact timestamp=%d ground_z=%.4f",col_ts,self._startup_ground_z)
 
                 # ── Latch detection: new landing-phase Floor timestamp ──
                 if not floor_latched and has_col and col_obj in _FLOOR_OK and col_ts != 0:
@@ -586,7 +615,7 @@ class SharedFlightSession:
 
                 # ── Non-floor collision after latch → cancel fallback ──
                 if floor_latched and has_col and col_ts != 0 and col_ts != floor_latch_ts:
-                    if col_obj not in _FLOOR_OK:
+                    if col_obj not in _FLOOR_OK and not verified_ground:
                         logger.warning(
                             "landing_non_floor_collision  object=%r  timestamp=%d  "
                             "latched_ts=%d — refusing fallback",

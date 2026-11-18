@@ -1,0 +1,88 @@
+{
+  "SettingsVersion": 1.2,
+  "SimMode": "Multirotor",
+  "ViewMode": "FlyWithMe",
+  "RpcEnabled": true,
+  "ApiServerPort": 41451,
+  "SubWindows": [
+    {
+      "WindowID": 0,
+      "CameraName": "0",
+      "ImageType": 0,
+      "VehicleName": "Drone1",
+      "Visible": true
+    },
+    {
+      "WindowID": 1,
+      "CameraName": "0",
+      "ImageType": 0,
+      "VehicleName": "Drone2",
+      "Visible": true
+    }
+  ],
+  "Vehicles": {
+    "Drone1": {
+      "VehicleType": "SimpleFlight",
+      "AutoCreate": true,
+      "DefaultVehicleState": "Disarmed",
+      "IsFpvVehicle": true,
+      "X": 0.5,
+      "Y": -3.0,
+      "Z": 0.0,
+      "Sensors": {
+        "LidarSensor1": {
+          "SensorType": 6,
+          "Enabled": true,
+          "NumberOfChannels": 32,
+          "RotationsPerSecond": 10,
+          "PointsPerSecond": 150000,
+          "Range": 40,
+          "X": 0.2,
+          "Y": 0.0,
+          "Z": 0.0,
+          "Roll": 0.0,
+          "Pitch": 0.0,
+          "Yaw": 0.0,
+          "VerticalFOVUpper": 30,
+          "VerticalFOVLower": -30,
+          "HorizontalFOVStart": -180,
+          "HorizontalFOVEnd": 180,
+          "DrawDebugPoints": false,
+          "DataFrame": "SensorLocalFrame"
+        }
+      }
+    },
+    "Drone2": {
+      "VehicleType": "SimpleFlight",
+      "AutoCreate": true,
+      "DefaultVehicleState": "Disarmed",
+      "IsFpvVehicle": false,
+      "X": 0.5,
+      "Y": 0.0,
+      "Z": 0.0,
+      "Sensors": {
+        "LidarSensor2": {
+          "SensorType": 6,
+          "Enabled": true,
+          "NumberOfChannels": 32,
+          "RotationsPerSecond": 10,
+          "PointsPerSecond": 150000,
+          "Range": 40,
+          "X": 0.2,
+          "Y": 0.0,
+          "Z": 0.0,
+          "Roll": 0.0,
+          "Pitch": 0.0,
+          "Yaw": 0.0,
+          "VerticalFOVUpper": 30,
+          "VerticalFOVLower": -30,
+          "HorizontalFOVStart": -180,
+          "HorizontalFOVEnd": 180,
+          "DrawDebugPoints": false,
+          "DataFrame": "SensorLocalFrame"
+        }
+      }
+    }
+  },
+  "DefaultVehicleConfig": "SimpleFlight"
+}

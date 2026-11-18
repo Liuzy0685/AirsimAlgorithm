@@ -1,0 +1,1343 @@
+{
+  "passed": false,
+  "results": [
+    {
+      "map": "Corridor",
+      "active_map": "/Game/Corridor",
+      "evidence_type": "live_airsim",
+      "transform": {
+        "validated": false,
+        "vehicles": {
+          "Drone1": {
+            "vehicle_name": "Drone1",
+            "position_error_m": 7.417618751525879,
+            "velocity_error_mps": 0.0,
+            "yaw_rad": 0.0,
+            "rotation_applied": false,
+            "ok": false,
+            "message": "position_error=7.418 m (tol 0.500), velocity_error=0.000000 m/s (tol 0.001000)"
+          },
+          "Drone2": {
+            "vehicle_name": "Drone2",
+            "position_error_m": 0.14649586752057076,
+            "velocity_error_mps": 0.0,
+            "yaw_rad": 0.0,
+            "rotation_applied": false,
+            "ok": true,
+            "message": ""
+          },
+          "Drone3": {
+            "vehicle_name": "Drone3",
+            "position_error_m": 0.12251424789428711,
+            "velocity_error_mps": 0.0,
+            "yaw_rad": 0.0,
+            "rotation_applied": false,
+            "ok": true,
+            "message": ""
+          },
+          "Drone4": {
+            "vehicle_name": "Drone4",
+            "position_error_m": 0.1464958768337965,
+            "velocity_error_mps": 0.0,
+            "yaw_rad": 0.0,
+            "rotation_applied": false,
+            "ok": true,
+            "message": ""
+          },
+          "Drone5": {
+            "vehicle_name": "Drone5",
+            "position_error_m": 0.09852027893066406,
+            "velocity_error_mps": 0.0,
+            "yaw_rad": 0.0,
+            "rotation_applied": false,
+            "ok": true,
+            "message": ""
+          }
+        },
+        "errors": [
+          "Drone1: position_error=7.418 m (tol 0.500), velocity_error=0.000000 m/s (tol 0.001000)"
+        ],
+        "warnings": []
+      },
+      "snapshots": [],
+      "spawn": [
+        {
+          "vehicle": "Drone1",
+          "landed_state": 0,
+          "local_position_m": [
+            0.0,
+            0.0,
+            7.48960018157959
+          ],
+          "speed_mps": 8.003532409667969,
+          "stationary_on_map": false
+        },
+        {
+          "vehicle": "Drone2",
+          "landed_state": 0,
+          "local_position_m": [
+            0.0,
+            0.0,
+            -0.020776797086000443
+          ],
+          "speed_mps": 0.0,
+          "stationary_on_map": true
+        },
+        {
+          "vehicle": "Drone3",
+          "landed_state": 0,
+          "local_position_m": [
+            0.0,
+            0.0,
+            7.48960018157959
+          ],
+          "speed_mps": 8.003532409667969,
+          "stationary_on_map": false
+        },
+        {
+          "vehicle": "Drone4",
+          "landed_state": 0,
+          "local_position_m": [
+            0.0,
+            0.0,
+            -0.02077680639922619
+          ],
+          "speed_mps": 0.0,
+          "stationary_on_map": true
+        },
+        {
+          "vehicle": "Drone5",
+          "landed_state": 0,
+          "local_position_m": [
+            0.0,
+            0.0,
+            7.48960018157959
+          ],
+          "speed_mps": 8.003532409667969,
+          "stationary_on_map": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "map": "oneBarrierCorridor",
+      "active_map": "/Game/oneBarrierCorridor",
+      "evidence_type": "live_airsim",
+      "transform": {
+        "validated": false,
+        "vehicles": {
+          "Drone1": {
+            "vehicle_name": "Drone1",
+            "position_error_m": 7.154605388641357,
+            "velocity_error_mps": 0.0,
+            "yaw_rad": 0.0,
+            "rotation_applied": false,
+            "ok": false,
+            "message": "position_error=7.155 m (tol 0.500), velocity_error=0.000000 m/s (tol 0.001000)"
+          },
+          "Drone2": {
+            "vehicle_name": "Drone2",
+            "position_error_m": 0.14649587869644165,
+            "velocity_error_mps": 0.0,
+            "yaw_rad": 0.0,
+            "rotation_applied": false,
+            "ok": true,
+            "message": ""
+          },
+          "Drone3": {
+            "vehicle_name": "Drone3",
+            "position_error_m": 0.14649581909179688,
+            "velocity_error_mps": 0.0,
+            "yaw_rad": 0.0,
+            "rotation_applied": false,
+            "ok": true,
+            "message": ""
+          },
+          "Drone4": {
+            "vehicle_name": "Drone4",
+            "position_error_m": 0.14649587869644165,
+            "velocity_error_mps": 0.0,
+            "yaw_rad": 0.0,
+            "rotation_applied": false,
+            "ok": true,
+            "message": ""
+          },
+          "Drone5": {
+            "vehicle_name": "Drone5",
+            "position_error_m": 0.12262201309204102,
+            "velocity_error_mps": 0.0,
+            "yaw_rad": 0.0,
+            "rotation_applied": false,
+            "ok": true,
+            "message": ""
+          }
+        },
+        "errors": [
+          "Drone1: position_error=7.155 m (tol 0.500), velocity_error=0.000000 m/s (tol 0.001000)"
+        ],
+        "warnings": []
+      },
+      "snapshots": [],
+      "spawn": [
+        {
+          "vehicle": "Drone1",
+          "landed_state": 0,
+          "local_position_m": [
+            0.0,
+            0.0,
+            7.250075817108154
+          ],
+          "speed_mps": 7.963901519775391,
+          "stationary_on_map": false
+        },
+        {
+          "vehicle": "Drone2",
+          "landed_state": 0,
+          "local_position_m": [
+            0.0,
+            0.0,
+            0.577866792678833
+          ],
+          "speed_mps": 0.0,
+          "stationary_on_map": true
+        },
+        {
+          "vehicle": "Drone3",
+          "landed_state": 0,
+          "local_position_m": [
+            0.0,
+            0.0,
+            7.250075817108154
+          ],
+          "speed_mps": 7.963901519775391,
+          "stationary_on_map": false
+        },
+        {
+          "vehicle": "Drone4",
+          "landed_state": 0,
+          "local_position_m": [
+            0.0,
+            0.0,
+            0.577866792678833
+          ],
+          "speed_mps": 0.0,
+          "stationary_on_map": true
+        },
+        {
+          "vehicle": "Drone5",
+          "landed_state": 0,
+          "local_position_m": [
+            0.0,
+            0.0,
+            7.250075817108154
+          ],
+          "speed_mps": 7.963901519775391,
+          "stationary_on_map": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "map": "uShapedBarrier",
+      "active_map": "/Game/uShapedBarrier",
+      "evidence_type": "live_airsim",
+      "transform": {
+        "validated": false,
+        "vehicles": {
+          "Drone1": {
+            "vehicle_name": "Drone1",
+            "position_error_m": 7.730274200439453,
+            "velocity_error_mps": 0.0,
+            "yaw_rad": 0.0,
+            "rotation_applied": false,
+            "ok": false,
+            "message": "position_error=7.730 m (tol 0.500), velocity_error=0.000000 m/s (tol 0.001000)"
+          },
+          "Drone2": {
+            "vehicle_name": "Drone2",
+            "position_error_m": 0.14649587869644165,
+            "velocity_error_mps": 0.0,
+            "yaw_rad": 0.0,
+            "rotation_applied": false,
+            "ok": true,
+            "message": ""
+          },
+          "Drone3": {
+            "vehicle_name": "Drone3",
+            "position_error_m": 0.14649587869644165,
+            "velocity_error_mps": 0.0,
+            "yaw_rad": 0.0,
+            "rotation_applied": false,
+            "ok": true,
+            "message": ""
+          },
+          "Drone4": {
+            "vehicle_name": "Drone4",
+            "position_error_m": 0.14649587869644165,
+            "velocity_error_mps": 0.0,
+            "yaw_rad": 0.0,
+            "rotation_applied": false,
+            "ok": true,
+            "message": ""
+          },
+          "Drone5": {
+            "vehicle_name": "Drone5",
+            "position_error_m": 0.14649581909179688,
+            "velocity_error_mps": 0.0,
+            "yaw_rad": 0.0,
+            "rotation_applied": false,
+            "ok": true,
+            "message": ""
+          }
+        },
+        "errors": [
+          "Drone1: position_error=7.730 m (tol 0.500), velocity_error=0.000000 m/s (tol 0.001000)"
+        ],
+        "warnings": []
+      },
+      "snapshots": [],
+      "spawn": [
+        {
+          "vehicle": "Drone1",
+          "landed_state": 0,
+          "local_position_m": [
+            0.0,
+            0.0,
+            7.778541088104248
+          ],
+          "speed_mps": 8.047844886779785,
+          "stationary_on_map": false
+        },
+        {
+          "vehicle": "Drone2",
+          "landed_state": 0,
+          "local_position_m": [
+            0.0,
+            0.0,
+            0.7280486226081848
+          ],
+          "speed_mps": 0.0,
+          "stationary_on_map": true
+        },
+        {
+          "vehicle": "Drone3",
+          "landed_state": 0,
+          "local_position_m": [
+            0.0,
+            0.0,
+            0.72804856300354
+          ],
+          "speed_mps": 0.0,
+          "stationary_on_map": true
+        },
+        {
+          "vehicle": "Drone4",
+          "landed_state": 0,
+          "local_position_m": [
+            0.0,
+            0.0,
+            0.7280486226081848
+          ],
+          "speed_mps": 0.0,
+          "stationary_on_map": true
+        },
+        {
+          "vehicle": "Drone5",
+          "landed_state": 0,
+          "local_position_m": [
+            0.0,
+            0.0,
+            7.802690505981445
+          ],
+          "speed_mps": 8.051384925842285,
+          "stationary_on_map": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "map": "regularMaze",
+      "active_map": "/Game/regularMaze",
+      "evidence_type": "live_airsim",
+      "transform": {
+        "validated": true,
+        "vehicles": {
+          "Drone1": {
+            "vehicle_name": "Drone1",
+            "position_error_m": 0.14649581909179688,
+            "velocity_error_mps": 0.0,
+            "yaw_rad": 0.0,
+            "rotation_applied": false,
+            "ok": true,
+            "message": ""
+          },
+          "Drone2": {
+            "vehicle_name": "Drone2",
+            "position_error_m": 0.14649581909179688,
+            "velocity_error_mps": 0.0,
+            "yaw_rad": 0.0,
+            "rotation_applied": false,
+            "ok": true,
+            "message": ""
+          },
+          "Drone3": {
+            "vehicle_name": "Drone3",
+            "position_error_m": 0.14649581909179688,
+            "velocity_error_mps": 0.0,
+            "yaw_rad": 0.0,
+            "rotation_applied": false,
+            "ok": true,
+            "message": ""
+          },
+          "Drone4": {
+            "vehicle_name": "Drone4",
+            "position_error_m": 0.14649581909179688,
+            "velocity_error_mps": 0.0,
+            "yaw_rad": 0.0,
+            "rotation_applied": false,
+            "ok": true,
+            "message": ""
+          },
+          "Drone5": {
+            "vehicle_name": "Drone5",
+            "position_error_m": 0.14649581909179688,
+            "velocity_error_mps": 0.0,
+            "yaw_rad": 0.0,
+            "rotation_applied": false,
+            "ok": true,
+            "message": ""
+          }
+        },
+        "errors": [],
+        "warnings": []
+      },
+      "snapshots": [
+        {
+          "sequence_id": 1,
+          "complete": true,
+          "collection_duration_s": 0.00138639999931911,
+          "max_receive_skew_s": 0.0009788999996089842,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.0003751999993255595,
+            "Drone2": 0.00020650000078603625,
+            "Drone3": 0.00023049999981594738,
+            "Drone4": 0.00016379999942728318,
+            "Drone5": 0.0001933999992616009
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 2,
+          "complete": true,
+          "collection_duration_s": 0.002265699999043136,
+          "max_receive_skew_s": 0.0013893000013922574,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.0007392999996227445,
+            "Drone2": 0.0003386999997019302,
+            "Drone3": 0.0002814999988913769,
+            "Drone4": 0.00032559999999648426,
+            "Drone5": 0.00023950000104377978
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 3,
+          "complete": true,
+          "collection_duration_s": 0.0016211999991355697,
+          "max_receive_skew_s": 0.001096599999073078,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.0004859000000578817,
+            "Drone2": 0.0003164999998261919,
+            "Drone3": 0.0002148000003217021,
+            "Drone4": 0.00020939999922120478,
+            "Drone5": 0.00017549999938637484
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 4,
+          "complete": true,
+          "collection_duration_s": 0.0019057999998040032,
+          "max_receive_skew_s": 0.0013173000006645452,
+          "max_sim_skew_s": 0.003000064,
+          "read_duration_s": {
+            "Drone1": 0.0005518999987543793,
+            "Drone2": 0.0003758000002562767,
+            "Drone3": 0.00027239999872108456,
+            "Drone4": 0.00023089999922376592,
+            "Drone5": 0.00023160000091593247
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 5,
+          "complete": true,
+          "collection_duration_s": 0.001799899999241461,
+          "max_receive_skew_s": 0.001099400000384776,
+          "max_sim_skew_s": 0.003000064,
+          "read_duration_s": {
+            "Drone1": 0.0006630000007135095,
+            "Drone2": 0.000243800001044292,
+            "Drone3": 0.0002199000009568408,
+            "Drone4": 0.0002502000006643357,
+            "Drone5": 0.00021600000036414713
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 6,
+          "complete": true,
+          "collection_duration_s": 0.0015607000004820293,
+          "max_receive_skew_s": 0.0010242999996989965,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.0005041000003984664,
+            "Drone2": 0.0002747999988059746,
+            "Drone3": 0.00024230000053648837,
+            "Drone4": 0.0001922999999806052,
+            "Drone5": 0.0001568000006955117
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 7,
+          "complete": true,
+          "collection_duration_s": 0.0017695999995339662,
+          "max_receive_skew_s": 0.0010681000003387453,
+          "max_sim_skew_s": 0.003000064,
+          "read_duration_s": {
+            "Drone1": 0.0006620999993174337,
+            "Drone2": 0.0002604000001156237,
+            "Drone3": 0.0002590000003692694,
+            "Drone4": 0.00017660000048635993,
+            "Drone5": 0.00020939999922120478
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 8,
+          "complete": true,
+          "collection_duration_s": 0.0021242000002530403,
+          "max_receive_skew_s": 0.0012752999991789693,
+          "max_sim_skew_s": 0.003000064,
+          "read_duration_s": {
+            "Drone1": 0.0007974000000103842,
+            "Drone2": 0.00028930000007676426,
+            "Drone3": 0.000228300001253956,
+            "Drone4": 0.00030950000109442044,
+            "Drone5": 0.0002662999995663995
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 9,
+          "complete": true,
+          "collection_duration_s": 0.0015636000007361872,
+          "max_receive_skew_s": 0.0010160000001633307,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.0005115000003570458,
+            "Drone2": 0.00023800000053597614,
+            "Drone3": 0.00016900000082387123,
+            "Drone4": 0.0002533999995648628,
+            "Drone5": 0.00019550000070012175
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 10,
+          "complete": true,
+          "collection_duration_s": 0.0015555000009044306,
+          "max_receive_skew_s": 0.0009618000003683846,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.0005588000003626803,
+            "Drone2": 0.0002447000006213784,
+            "Drone3": 0.00020770000082848128,
+            "Drone4": 0.00018000000090978574,
+            "Drone5": 0.00017560000014782418
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 11,
+          "complete": true,
+          "collection_duration_s": 0.0017152000000351109,
+          "max_receive_skew_s": 0.0010770999997475883,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.000593299999309238,
+            "Drone2": 0.00023120000150811393,
+            "Drone3": 0.00018460000137565657,
+            "Drone4": 0.0002978000011353288,
+            "Drone5": 0.00020640000002458692
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 12,
+          "complete": true,
+          "collection_duration_s": 0.0018008000006375369,
+          "max_receive_skew_s": 0.0011814000008598669,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.000568800000110059,
+            "Drone2": 0.00029910000012023374,
+            "Drone3": 0.0001961999987543095,
+            "Drone4": 0.00024929999926825985,
+            "Drone5": 0.0002542000001994893
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 13,
+          "complete": true,
+          "collection_duration_s": 0.0014527999992424157,
+          "max_receive_skew_s": 0.0010000000002037268,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.0004136000006838003,
+            "Drone2": 0.00025520000053802505,
+            "Drone3": 0.00019120000069960952,
+            "Drone4": 0.00021919999926467426,
+            "Drone5": 0.0001869000006990973
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 14,
+          "complete": true,
+          "collection_duration_s": 0.0019492000010359334,
+          "max_receive_skew_s": 0.0011837000001833076,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.0007268000008480158,
+            "Drone2": 0.0003572999994503334,
+            "Drone3": 0.00024839999969117343,
+            "Drone4": 0.00021580000066023786,
+            "Drone5": 0.00019150000116496813
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 15,
+          "complete": true,
+          "collection_duration_s": 0.0021667999990313547,
+          "max_receive_skew_s": 0.0013177000000723638,
+          "max_sim_skew_s": 0.003000064,
+          "read_duration_s": {
+            "Drone1": 0.0007896999995864462,
+            "Drone2": 0.0003089000001637032,
+            "Drone3": 0.0002696999999898253,
+            "Drone4": 0.0002502999996067956,
+            "Drone5": 0.00026190000062342733
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 16,
+          "complete": true,
+          "collection_duration_s": 0.002333399999770336,
+          "max_receive_skew_s": 0.0015803000005689682,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.0007126000000425847,
+            "Drone2": 0.00040519999856769573,
+            "Drone3": 0.00037369999881775584,
+            "Drone4": 0.00029799999902024865,
+            "Drone5": 0.00023490000057790894
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 17,
+          "complete": true,
+          "collection_duration_s": 0.0015265000001818407,
+          "max_receive_skew_s": 0.0009967000005417503,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.0004946999997628154,
+            "Drone2": 0.00026959999922837596,
+            "Drone3": 0.00023709999913990032,
+            "Drone4": 0.00015580000035697594,
+            "Drone5": 0.00018430000091029797
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 18,
+          "complete": true,
+          "collection_duration_s": 0.002001300001211348,
+          "max_receive_skew_s": 0.0014266000016505131,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.0005330999993020669,
+            "Drone2": 0.00034279999999853317,
+            "Drone3": 0.00034889999915321823,
+            "Drone4": 0.0002575999988039257,
+            "Drone5": 0.0002653999999893131
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 19,
+          "complete": true,
+          "collection_duration_s": 0.0017716999991534976,
+          "max_receive_skew_s": 0.0011070000000472646,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.0006049999992683297,
+            "Drone2": 0.0002795999989757547,
+            "Drone3": 0.00020190000032016542,
+            "Drone4": 0.0001816000003600493,
+            "Drone5": 0.00028869999914604705
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 20,
+          "complete": true,
+          "collection_duration_s": 0.0016272000011667842,
+          "max_receive_skew_s": 0.0010692000014387304,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.0005234999989625067,
+            "Drone2": 0.00024309999935212545,
+            "Drone3": 0.00021039999955974054,
+            "Drone4": 0.00021209999977145344,
+            "Drone5": 0.00024450000091746915
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 21,
+          "complete": true,
+          "collection_duration_s": 0.0016577999995206483,
+          "max_receive_skew_s": 0.0010520000014366815,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.000563599998713471,
+            "Drone2": 0.00025179999829560984,
+            "Drone3": 0.00019979999888164457,
+            "Drone4": 0.0001680999994277954,
+            "Drone5": 0.0002542000001994893
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 22,
+          "complete": true,
+          "collection_duration_s": 0.0018261000004713424,
+          "max_receive_skew_s": 0.0011448000004747882,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.0006437000010919292,
+            "Drone2": 0.0003431999994063517,
+            "Drone3": 0.00019580000116548035,
+            "Drone4": 0.0002057999990938697,
+            "Drone5": 0.00021830000150657725
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 23,
+          "complete": true,
+          "collection_duration_s": 0.001567000001159613,
+          "max_receive_skew_s": 0.0010278000008838717,
+          "max_sim_skew_s": 0.003000064,
+          "read_duration_s": {
+            "Drone1": 0.000492600000143284,
+            "Drone2": 0.00023739999960525893,
+            "Drone3": 0.00021670000023732428,
+            "Drone4": 0.00019719999909284525,
+            "Drone5": 0.00021830000150657725
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 24,
+          "complete": true,
+          "collection_duration_s": 0.0014506000006804243,
+          "max_receive_skew_s": 0.0009642999993957346,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.0004468000006454531,
+            "Drone2": 0.00020369999947433826,
+            "Drone3": 0.00015780000103404745,
+            "Drone4": 0.0002113999998982763,
+            "Drone5": 0.00024900000062189065
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 25,
+          "complete": true,
+          "collection_duration_s": 0.0016087999993033009,
+          "max_receive_skew_s": 0.0010167999989789678,
+          "max_sim_skew_s": 0.003000064,
+          "read_duration_s": {
+            "Drone1": 0.0005572999998548767,
+            "Drone2": 0.00024049999956332613,
+            "Drone3": 0.00021399999968707561,
+            "Drone4": 0.00021809999998367857,
+            "Drone5": 0.00018799999998009298
+          },
+          "errors": {}
+        }
+      ],
+      "spawn": [
+        {
+          "vehicle": "Drone1",
+          "landed_state": 0,
+          "local_position_m": [
+            0.0,
+            0.0,
+            1.1110512018203735
+          ],
+          "speed_mps": 0.0,
+          "stationary_on_map": true
+        },
+        {
+          "vehicle": "Drone2",
+          "landed_state": 0,
+          "local_position_m": [
+            0.0,
+            0.0,
+            1.1110512018203735
+          ],
+          "speed_mps": 0.0,
+          "stationary_on_map": true
+        },
+        {
+          "vehicle": "Drone3",
+          "landed_state": 0,
+          "local_position_m": [
+            0.0,
+            0.0,
+            1.1110512018203735
+          ],
+          "speed_mps": 0.0,
+          "stationary_on_map": true
+        },
+        {
+          "vehicle": "Drone4",
+          "landed_state": 0,
+          "local_position_m": [
+            0.0,
+            0.0,
+            1.1110512018203735
+          ],
+          "speed_mps": 0.0,
+          "stationary_on_map": true
+        },
+        {
+          "vehicle": "Drone5",
+          "landed_state": 0,
+          "local_position_m": [
+            0.0,
+            0.0,
+            1.1110512018203735
+          ],
+          "speed_mps": 0.0,
+          "stationary_on_map": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "map": "maze",
+      "active_map": "/Game/maze",
+      "evidence_type": "live_airsim",
+      "transform": {
+        "validated": true,
+        "vehicles": {
+          "Drone1": {
+            "vehicle_name": "Drone1",
+            "position_error_m": 0.14649581909179688,
+            "velocity_error_mps": 0.0,
+            "yaw_rad": 0.0,
+            "rotation_applied": false,
+            "ok": true,
+            "message": ""
+          },
+          "Drone2": {
+            "vehicle_name": "Drone2",
+            "position_error_m": 0.14649581909179688,
+            "velocity_error_mps": 0.0,
+            "yaw_rad": 0.0,
+            "rotation_applied": false,
+            "ok": true,
+            "message": ""
+          },
+          "Drone3": {
+            "vehicle_name": "Drone3",
+            "position_error_m": 0.14649581909179688,
+            "velocity_error_mps": 0.0,
+            "yaw_rad": 0.0,
+            "rotation_applied": false,
+            "ok": true,
+            "message": ""
+          },
+          "Drone4": {
+            "vehicle_name": "Drone4",
+            "position_error_m": 0.14649581909179688,
+            "velocity_error_mps": 0.0,
+            "yaw_rad": 0.0,
+            "rotation_applied": false,
+            "ok": true,
+            "message": ""
+          },
+          "Drone5": {
+            "vehicle_name": "Drone5",
+            "position_error_m": 0.14649581909179688,
+            "velocity_error_mps": 0.0,
+            "yaw_rad": 0.0,
+            "rotation_applied": false,
+            "ok": true,
+            "message": ""
+          }
+        },
+        "errors": [],
+        "warnings": []
+      },
+      "snapshots": [
+        {
+          "sequence_id": 1,
+          "complete": true,
+          "collection_duration_s": 0.0010775000009743962,
+          "max_receive_skew_s": 0.0008365999983652728,
+          "max_sim_skew_s": 0.003000064,
+          "read_duration_s": {
+            "Drone1": 0.00021250000099826138,
+            "Drone2": 0.0001951000012923032,
+            "Drone3": 0.00016870000035851263,
+            "Drone4": 0.00016090000099211466,
+            "Drone5": 0.00017609999849810265
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 2,
+          "complete": true,
+          "collection_duration_s": 0.0020576000006258255,
+          "max_receive_skew_s": 0.0012760000008711359,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.00073069999962172,
+            "Drone2": 0.00031630000012228265,
+            "Drone3": 0.0002913999996962957,
+            "Drone4": 0.00024670000129844993,
+            "Drone5": 0.00024110000049404334
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 3,
+          "complete": true,
+          "collection_duration_s": 0.0016876999998203246,
+          "max_receive_skew_s": 0.0011300000005576294,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.0005135999999765772,
+            "Drone2": 0.000282599999991362,
+            "Drone3": 0.00017639999896346126,
+            "Drone4": 0.00022259999968810007,
+            "Drone5": 0.0002741999996942468
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 4,
+          "complete": true,
+          "collection_duration_s": 0.001433200000974466,
+          "max_receive_skew_s": 0.0009662000011303462,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.0004346999994595535,
+            "Drone2": 0.0002172999993490521,
+            "Drone3": 0.00024670000129844993,
+            "Drone4": 0.0001987999985431088,
+            "Drone5": 0.00015660000099160243
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 5,
+          "complete": true,
+          "collection_duration_s": 0.0021895000008953502,
+          "max_receive_skew_s": 0.001398200000039651,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.0007451000001310604,
+            "Drone2": 0.0003040999999939231,
+            "Drone3": 0.0002554000002419343,
+            "Drone4": 0.0003059999999095453,
+            "Drone5": 0.0002905000001192093
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 6,
+          "complete": true,
+          "collection_duration_s": 0.001900999999634223,
+          "max_receive_skew_s": 0.0011961000000155764,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.0006624999987252522,
+            "Drone2": 0.00029539999923144933,
+            "Drone3": 0.0002347999998164596,
+            "Drone4": 0.00023969999892869964,
+            "Drone5": 0.0002442999993945705
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 7,
+          "complete": true,
+          "collection_duration_s": 0.0014733999996678904,
+          "max_receive_skew_s": 0.0009153999999398366,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.0005261999995127553,
+            "Drone2": 0.0002753999997366918,
+            "Drone3": 0.00019780000002356246,
+            "Drone4": 0.00015639999946870375,
+            "Drone5": 0.00013969999963592272
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 8,
+          "complete": true,
+          "collection_duration_s": 0.0017964000016945647,
+          "max_receive_skew_s": 0.0010649000014382182,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.0006976999993639765,
+            "Drone2": 0.0002879999992728699,
+            "Drone3": 0.00022899999930814374,
+            "Drone4": 0.00020190000032016542,
+            "Drone5": 0.00017740000112098642
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 9,
+          "complete": true,
+          "collection_duration_s": 0.001564999998663552,
+          "max_receive_skew_s": 0.0010124000000359956,
+          "max_sim_skew_s": 0.003000064,
+          "read_duration_s": {
+            "Drone1": 0.000517099999342463,
+            "Drone2": 0.00020840000070165843,
+            "Drone3": 0.00018350000027567148,
+            "Drone4": 0.00027210000007471535,
+            "Drone5": 0.0001799000001483364
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 10,
+          "complete": true,
+          "collection_duration_s": 0.0016221999994741054,
+          "max_receive_skew_s": 0.0010689999999158317,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.0005165000002307352,
+            "Drone2": 0.00028080000083718915,
+            "Drone3": 0.00018490000002202578,
+            "Drone4": 0.00024189999930968042,
+            "Drone5": 0.00021379999998316634
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 11,
+          "complete": true,
+          "collection_duration_s": 0.001688699998339871,
+          "max_receive_skew_s": 0.001045499999236199,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.0006040000007487833,
+            "Drone2": 0.0003066000008402625,
+            "Drone3": 0.00020039999981236178,
+            "Drone4": 0.00017859999934444204,
+            "Drone5": 0.00020190000032016542
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 12,
+          "complete": true,
+          "collection_duration_s": 0.001508800000010524,
+          "max_receive_skew_s": 0.0009682999989308883,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.0005017000003135763,
+            "Drone2": 0.00023739999960525893,
+            "Drone3": 0.00020849999964411836,
+            "Drone4": 0.00017949999892152846,
+            "Drone5": 0.00018769999951473437
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 13,
+          "complete": true,
+          "collection_duration_s": 0.001757900001393864,
+          "max_receive_skew_s": 0.001153500001237262,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.0005602999990514945,
+            "Drone2": 0.0002578000003268244,
+            "Drone3": 0.00026219999926979654,
+            "Drone4": 0.00021559999913733918,
+            "Drone5": 0.00022900000112713315
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 14,
+          "complete": true,
+          "collection_duration_s": 0.0014405999991140561,
+          "max_receive_skew_s": 0.0009805999998206971,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.0004270000008546049,
+            "Drone2": 0.00023070000133884605,
+            "Drone3": 0.00021469999956025276,
+            "Drone4": 0.0002043999993475154,
+            "Drone5": 0.0001847000003181165
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 15,
+          "complete": true,
+          "collection_duration_s": 0.0019803999985015253,
+          "max_receive_skew_s": 0.00131379999947967,
+          "max_sim_skew_s": 0.003000064,
+          "read_duration_s": {
+            "Drone1": 0.0006224000007932773,
+            "Drone2": 0.0003473999986454146,
+            "Drone3": 0.00025830000049609225,
+            "Drone4": 0.00027039999986300245,
+            "Drone5": 0.00023429999964719173
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 16,
+          "complete": true,
+          "collection_duration_s": 0.0016758000001573237,
+          "max_receive_skew_s": 0.0011349999986123294,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.0004957000001013512,
+            "Drone2": 0.0002693999995244667,
+            "Drone3": 0.0002769999991869554,
+            "Drone4": 0.00020039999981236178,
+            "Drone5": 0.00023229999897012021
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 17,
+          "complete": true,
+          "collection_duration_s": 0.0015159000013227342,
+          "max_receive_skew_s": 0.0009918999985529808,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.0004886000006081304,
+            "Drone2": 0.00020679999943240546,
+            "Drone3": 0.00024510000002919696,
+            "Drone4": 0.00020029999905091245,
+            "Drone5": 0.00019189999875379726
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 18,
+          "complete": true,
+          "collection_duration_s": 0.0022664999996777624,
+          "max_receive_skew_s": 0.0014714000008098083,
+          "max_sim_skew_s": 0.003000064,
+          "read_duration_s": {
+            "Drone1": 0.0007519999999203719,
+            "Drone2": 0.0003104999996139668,
+            "Drone3": 0.0003884999987349147,
+            "Drone4": 0.00031429999944521114,
+            "Drone5": 0.00023660000078962184
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 19,
+          "complete": true,
+          "collection_duration_s": 0.0016860999985510716,
+          "max_receive_skew_s": 0.00105000000075961,
+          "max_sim_skew_s": 0.003000064,
+          "read_duration_s": {
+            "Drone1": 0.0005903000001126202,
+            "Drone2": 0.00025719999939610716,
+            "Drone3": 0.00022150000040710438,
+            "Drone4": 0.00017780000052880496,
+            "Drone5": 0.000240999999732594
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 20,
+          "complete": true,
+          "collection_duration_s": 0.0017055000007530907,
+          "max_receive_skew_s": 0.0011701999992510537,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.000501500000609667,
+            "Drone2": 0.0003133999998681247,
+            "Drone3": 0.0002930999999080086,
+            "Drone4": 0.000210000000151922,
+            "Drone5": 0.0001877999984571943
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 21,
+          "complete": true,
+          "collection_duration_s": 0.0014897000000928529,
+          "max_receive_skew_s": 0.0009895000002870802,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.0004661999992094934,
+            "Drone2": 0.00022460000036517158,
+            "Drone3": 0.00022499999977299012,
+            "Drone4": 0.00021250000099826138,
+            "Drone5": 0.00017669999942881986
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 22,
+          "complete": true,
+          "collection_duration_s": 0.0020028000017191516,
+          "max_receive_skew_s": 0.0012504000005719718,
+          "max_sim_skew_s": 0.003000064,
+          "read_duration_s": {
+            "Drone1": 0.0007076000001688953,
+            "Drone2": 0.0003112999984296039,
+            "Drone3": 0.00028700000075332355,
+            "Drone4": 0.0002502999996067956,
+            "Drone5": 0.0002015999998548068
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 23,
+          "complete": true,
+          "collection_duration_s": 0.0017525999992358265,
+          "max_receive_skew_s": 0.0011978000002272893,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.0005165999991731951,
+            "Drone2": 0.0003001000004587695,
+            "Drone3": 0.00024219999977503903,
+            "Drone4": 0.00026249999973515514,
+            "Drone5": 0.00021980000019539148
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 24,
+          "complete": true,
+          "collection_duration_s": 0.001482199999372824,
+          "max_receive_skew_s": 0.0009360000003653113,
+          "max_sim_skew_s": 0.0,
+          "read_duration_s": {
+            "Drone1": 0.0005122999991726829,
+            "Drone2": 0.00021639999977196567,
+            "Drone3": 0.00020849999964411836,
+            "Drone4": 0.00019189999875379726,
+            "Drone5": 0.00017610000031709205
+          },
+          "errors": {}
+        },
+        {
+          "sequence_id": 25,
+          "complete": true,
+          "collection_duration_s": 0.0016161000003194204,
+          "max_receive_skew_s": 0.0010753999995358754,
+          "max_sim_skew_s": 0.003000064,
+          "read_duration_s": {
+            "Drone1": 0.0004992000012862263,
+            "Drone2": 0.00024560000019846484,
+            "Drone3": 0.0002173000011680415,
+            "Drone4": 0.00021090000154799782,
+            "Drone5": 0.00023460000011255033
+          },
+          "errors": {}
+        }
+      ],
+      "spawn": [
+        {
+          "vehicle": "Drone1",
+          "landed_state": 0,
+          "local_position_m": [
+            0.0,
+            0.0,
+            1.1060839891433716
+          ],
+          "speed_mps": 0.0,
+          "stationary_on_map": true
+        },
+        {
+          "vehicle": "Drone2",
+          "landed_state": 0,
+          "local_position_m": [
+            0.0,
+            0.0,
+            1.1060841083526611
+          ],
+          "speed_mps": 0.0,
+          "stationary_on_map": true
+        },
+        {
+          "vehicle": "Drone3",
+          "landed_state": 0,
+          "local_position_m": [
+            0.0,
+            0.0,
+            1.1060841083526611
+          ],
+          "speed_mps": 0.0,
+          "stationary_on_map": true
+        },
+        {
+          "vehicle": "Drone4",
+          "landed_state": 0,
+          "local_position_m": [
+            0.0,
+            0.0,
+            1.1060841083526611
+          ],
+          "speed_mps": 0.0,
+          "stationary_on_map": true
+        },
+        {
+          "vehicle": "Drone5",
+          "landed_state": 0,
+          "local_position_m": [
+            0.0,
+            0.0,
+            1.1060841083526611
+          ],
+          "speed_mps": 0.0,
+          "stationary_on_map": true
+        }
+      ],
+      "passed": true
+    }
+  ]
+}

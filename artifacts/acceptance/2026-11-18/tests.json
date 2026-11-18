@@ -1,0 +1,17 @@
+{
+  "platform": "Windows",
+  "python": "3.14",
+  "date": "2026-11-18",
+  "full_regression": {
+    "command": "python -m pytest -q",
+    "passed": 1390,
+    "duration_s": 253.54
+  },
+  "post_full_change": "Refuse reusing an existing launcher log directory containing stale ready/mission/stop markers.",
+  "post_change_targeted_regression": {
+    "command": "python -m pytest tests/test_blocks_runtime_regressions.py tests/test_swarm_wiring.py tests/test_acceptance_metrics.py -q",
+    "passed": 48,
+    "duration_s": 0.54
+  },
+  "current_collected_tests": 1391
+}

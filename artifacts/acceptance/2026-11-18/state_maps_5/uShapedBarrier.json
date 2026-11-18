@@ -1,0 +1,118 @@
+{
+  "map": "uShapedBarrier",
+  "active_map": "/Game/uShapedBarrier",
+  "evidence_type": "live_airsim",
+  "transform": {
+    "validated": false,
+    "vehicles": {
+      "Drone1": {
+        "vehicle_name": "Drone1",
+        "position_error_m": 7.730274200439453,
+        "velocity_error_mps": 0.0,
+        "yaw_rad": 0.0,
+        "rotation_applied": false,
+        "ok": false,
+        "message": "position_error=7.730 m (tol 0.500), velocity_error=0.000000 m/s (tol 0.001000)"
+      },
+      "Drone2": {
+        "vehicle_name": "Drone2",
+        "position_error_m": 0.14649587869644165,
+        "velocity_error_mps": 0.0,
+        "yaw_rad": 0.0,
+        "rotation_applied": false,
+        "ok": true,
+        "message": ""
+      },
+      "Drone3": {
+        "vehicle_name": "Drone3",
+        "position_error_m": 0.14649587869644165,
+        "velocity_error_mps": 0.0,
+        "yaw_rad": 0.0,
+        "rotation_applied": false,
+        "ok": true,
+        "message": ""
+      },
+      "Drone4": {
+        "vehicle_name": "Drone4",
+        "position_error_m": 0.14649587869644165,
+        "velocity_error_mps": 0.0,
+        "yaw_rad": 0.0,
+        "rotation_applied": false,
+        "ok": true,
+        "message": ""
+      },
+      "Drone5": {
+        "vehicle_name": "Drone5",
+        "position_error_m": 0.14649581909179688,
+        "velocity_error_mps": 0.0,
+        "yaw_rad": 0.0,
+        "rotation_applied": false,
+        "ok": true,
+        "message": ""
+      }
+    },
+    "errors": [
+      "Drone1: position_error=7.730 m (tol 0.500), velocity_error=0.000000 m/s (tol 0.001000)"
+    ],
+    "warnings": []
+  },
+  "snapshots": [],
+  "spawn": [
+    {
+      "vehicle": "Drone1",
+      "landed_state": 0,
+      "local_position_m": [
+        0.0,
+        0.0,
+        7.778541088104248
+      ],
+      "speed_mps": 8.047844886779785,
+      "stationary_on_map": false
+    },
+    {
+      "vehicle": "Drone2",
+      "landed_state": 0,
+      "local_position_m": [
+        0.0,
+        0.0,
+        0.7280486226081848
+      ],
+      "speed_mps": 0.0,
+      "stationary_on_map": true
+    },
+    {
+      "vehicle": "Drone3",
+      "landed_state": 0,
+      "local_position_m": [
+        0.0,
+        0.0,
+        0.72804856300354
+      ],
+      "speed_mps": 0.0,
+      "stationary_on_map": true
+    },
+    {
+      "vehicle": "Drone4",
+      "landed_state": 0,
+      "local_position_m": [
+        0.0,
+        0.0,
+        0.7280486226081848
+      ],
+      "speed_mps": 0.0,
+      "stationary_on_map": true
+    },
+    {
+      "vehicle": "Drone5",
+      "landed_state": 0,
+      "local_position_m": [
+        0.0,
+        0.0,
+        7.802690505981445
+      ],
+      "speed_mps": 8.051384925842285,
+      "stationary_on_map": false
+    }
+  ],
+  "passed": false
+}

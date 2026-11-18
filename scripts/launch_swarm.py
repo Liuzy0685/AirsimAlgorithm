@@ -33,6 +33,8 @@ def _parse_args():
                         help="Delay between process launches in seconds.")
     parser.add_argument("--with-formation", action="store_true", help="Also start B's formation runner.")
     parser.add_argument("--formation-config", default=str(ROOT / "configs/formation.yaml"))
+    parser.add_argument("--log-dir", help="Explicit run output directory for reproducible acceptance runs.")
+    parser.add_argument("--stop-file", help="Cooperative fleet stop request file.")
     return parser.parse_args()
 
 
@@ -63,6 +65,9 @@ def _build_command(member: dict, args, log_dir: Path) -> list[str]:
         "--trajectory-config", str(member.get("trajectory_config", ROOT / "configs" / "trajectory_planner.yaml")),
         "--local-navigation-mode", str(member.get("local_navigation_mode", "trajectory")),
         "--log-file", str(log_dir / f"{name}.log"),
+        "--result-json", str(log_dir / f"{name}.result.json"),
+        "--stop-file", str(log_dir / f"{name}.stop"),
+        "--mission-complete-file", str(log_dir / "mission.complete"),
         "--quiet",
     ]
     if member.get("start_actor"):
@@ -83,9 +88,11 @@ def _stop_group(processes: list[tuple[str, subprocess.Popen]]) -> None:
     for _, proc in processes:
         if proc.poll() is None:
             try:
-                proc.send_signal(
-                    signal.CTRL_BREAK_EVENT if sys.platform == "win32" else signal.SIGINT
-                )
+                stop_file = getattr(proc, "stop_file", None)
+                if stop_file is not None:
+                    Path(stop_file).touch()
+                else:
+                    proc.send_signal(signal.CTRL_BREAK_EVENT if sys.platform == "win32" else signal.SIGINT)
             except Exception as exc:
                 print(
                     f"Could not request graceful shutdown for process {proc.pid}: {exc}. "
@@ -132,8 +139,10 @@ def main() -> int:
         print("ERROR: each drone needs a unique, non-empty AirSim vehicle_name.", file=sys.stderr)
         return 2
 
-    log_dir = ROOT / "runs" / f"swarm_{time.strftime('%Y%m%d_%H%M%S')}"
-    log_dir.mkdir(parents=True, exist_ok=True)
+    log_dir = (Path(args.log_dir).resolve() if args.log_dir else
+               ROOT / "runs" / f"swarm_{time.strftime('%Y%m%d_%H%M%S')}_{time.monotonic_ns()}")
+    # A reused directory can contain an old ready/mission/stop marker.
+    log_dir.mkdir(parents=True, exist_ok=False)
     processes: list[tuple[str, subprocess.Popen]] = []
     log_handles = []
     from coordination.runtime_config import load_config
@@ -164,6 +173,7 @@ def main() -> int:
                 subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0
             )
             proc = subprocess.Popen(command, cwd=ROOT, creationflags=creationflags)
+            proc.stop_file = log_dir / f"{name}.stop"
             processes.append((name, proc))
             time.sleep(max(0.0, args.startup_delay))
         if args.with_formation:
@@ -174,6 +184,13 @@ def main() -> int:
                 cwd=ROOT, creationflags=creationflags, stdout=handle, stderr=handle)
             processes.append(("B-formation-service", proc))
         while processes:
+            if (log_dir / "mission.complete").exists():
+                print("Fleet mission completed; requesting coordinated landing.",flush=True)
+                _request_graceful_stop(processes)
+                return 0
+            if args.stop_file and Path(args.stop_file).exists():
+                _request_graceful_stop(processes)
+                return 0
             remaining = []
             for name, proc in processes:
                 code = proc.poll()

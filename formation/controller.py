@@ -28,8 +28,11 @@ class FormationConfig:
     recovery_gain: float
     max_recovery_speed_mps: float
     recovery_tolerance_m: float
+    allow_legacy_readiness: bool = False
 
     def __post_init__(self) -> None:
+        if type(self.allow_legacy_readiness) is not bool:
+            raise ValueError("allow_legacy_readiness must be boolean")
         names = (self.leader, *self.followers)
         if not MIN_DRONES <= len(names) <= MAX_DRONES or len(set(names)) != len(names):
             raise ValueError("formation requires 1..5 distinct vehicles")
@@ -85,6 +88,10 @@ class FormationController:
         if shape not in ("line", "column", "vee"):
             raise ValueError("shape must be line, column or vee")
         self.config = replace(self.config, shape=shape)
+
+    def slot_targets(self, leader: VehicleState) -> dict[str, tuple[float, float, float]]:
+        """Pure targets for measured tracking error, without emitting commands."""
+        return {name:self._slot(leader,index) for index,name in enumerate(self.config.followers)}
 
     def plan(self, snapshot: SwarmStateSnapshot, *, received_at_monotonic_s: float,
              now_monotonic_s: float | None = None, coordination_state: str = "NORMAL",
@@ -147,6 +154,7 @@ class FormationController:
                 vehicle_name=name, mode=mode, target_position_ned_m=target,
                 desired_velocity_ned_mps=velocity, formation_id=self.config.shape,
                 lifecycle=lifecycle,
+                recovery_target_ned_m=target if recovering else None,
             )
         if converged:
             self._recovering = False
@@ -164,7 +172,9 @@ class FormationController:
                 or snapshot.max_sim_timestamp_skew > self.config.max_sim_skew_s):
             return False
         for state in snapshot.states.values():
-            if not isinstance(state, VehicleState) or not state.ready or type(state.timestamp) is not int or state.timestamp <= 0:
+            if (not isinstance(state, VehicleState)
+                    or (not state.ready and (state.readiness_available or not self.config.allow_legacy_readiness))
+                    or type(state.timestamp) is not int or state.timestamp <= 0):
                 return False
             for vector in (state.position_ned_m, state.linear_velocity_ned_mps):
                 if len(vector) != 3 or not all(math.isfinite(value) for value in vector):

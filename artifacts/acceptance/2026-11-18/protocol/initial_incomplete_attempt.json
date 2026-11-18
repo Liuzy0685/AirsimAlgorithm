@@ -1,0 +1,67 @@
+{
+  "evidence_type": "live_airsim_protocol_only_no_actuation",
+  "checks": [
+    {
+      "name": "valid_command_ack",
+      "actual": "accepted",
+      "expected": "accepted",
+      "passed": true
+    },
+    {
+      "name": "permit_for_accepted_command",
+      "actual": "4da0cd8d-7edb-45da-bd37-3c5ae5169a0e",
+      "expected": "4da0cd8d-7edb-45da-bd37-3c5ae5169a0e",
+      "passed": true
+    },
+    {
+      "name": "duplicate_id",
+      "actual": "duplicate_command_id",
+      "expected": "duplicate_command_id",
+      "passed": true
+    },
+    {
+      "name": "old_sequence",
+      "actual": "stale_sequence",
+      "expected": "stale_sequence",
+      "passed": true
+    },
+    {
+      "name": "unknown_vehicle",
+      "actual": "unknown_vehicle",
+      "expected": "unknown_vehicle",
+      "passed": true
+    },
+    {
+      "name": "wrong_task",
+      "actual": "task_id_mismatch",
+      "expected": "task_id_mismatch",
+      "passed": true
+    },
+    {
+      "name": "expired_sim_window",
+      "actual": "expired",
+      "expected": "expired",
+      "passed": true
+    },
+    {
+      "name": "paused_command_ack",
+      "actual": "accepted",
+      "expected": "accepted",
+      "passed": true
+    },
+    {
+      "name": "sim_clock_stayed_paused",
+      "actual": 1795006758821569536,
+      "expected": 1795006758821569536,
+      "passed": true
+    },
+    {
+      "name": "wall_ttl_expires_during_pause",
+      "actual": null,
+      "expected": null,
+      "passed": true
+    }
+  ],
+  "passed": false,
+  "limitation": "No airborne failure recovery was tested."
+}

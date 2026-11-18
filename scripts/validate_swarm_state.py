@@ -69,6 +69,7 @@ def main():
             return 2
         provider = StateProvider.from_adapter(
             adapter, names, tf,
+            allow_legacy_readiness=config.get("state_service", {}).get("allow_legacy_readiness", False),
             max_age_s=max(0.5, config.get("coordination", {}).get("peer_poll_interval_s", 0.2) * 3),
             max_skew_s=config.get("coordination", {}).get("max_state_timestamp_skew_s", 0.5),
         )
@@ -79,6 +80,9 @@ def main():
                 max_receive_skew_s=snap.max_time_skew, max_sim_skew_s=snap.max_sim_timestamp_skew,
                 read_duration_s=snap.read_duration_s, errors=snap.errors,
                 yaw_rad={name: state.yaw_rad for name, state in snap.states.items()}))
+            evidence["snapshots"][-1]["readiness"] = {
+                name: dict(reported=state.readiness_available, ready=state.ready)
+                for name, state in snap.states.items()}
             reads = " ".join(f"{name}={duration*1000:.1f}ms"
                              for name, duration in snap.read_duration_s.items())
             print(f"snapshot={snap.sequence_id} complete={snap.collection_complete} "

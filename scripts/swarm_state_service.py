@@ -37,6 +37,7 @@ def make_publisher(config, settings_json, service_config):
             raise RuntimeError(f"coordinate validation failed: {report.errors}")
         provider = StateProvider.from_adapter(adapter, names, tf,
             max_age_s=service_config.snapshot_max_age_s,
+            allow_legacy_readiness=service_config.allow_legacy_readiness,
             max_skew_s=config["coordination"]["max_state_timestamp_skew_s"])
         publisher = SwarmStatePublisher(provider, producer_id="a-state-service", stream_id=str(uuid.uuid4()))
         publisher.collect_and_publish()
