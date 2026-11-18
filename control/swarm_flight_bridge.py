@@ -368,6 +368,18 @@ class SwarmFlightBridge:
             kwargs = dict(kwargs, duration=duration)
         return tuple(values), kwargs
 
+    def cache_cleanup_lidar(self, frame):
+        """Use the worker's last real scan after planner shutdown, without renewing it."""
+        snap=self.link.snapshot()
+        if self._unverified_emergency or snap is None or frame is None or not frame.frame_valid:
+            return False
+        if (not 0<=time.monotonic()-frame.received_monotonic_seconds<self.cfg.snapshot_max_age_s
+                or abs(frame.raw_timestamp_ns-max(s.timestamp for s in snap.states.values()))>
+                   int(self.cfg.snapshot_max_age_s*1e9)):
+            return False
+        self.update_lidar(frame)
+        return True
+
     def prepare_cleanup(self):
         if (self._unverified_emergency or self.link.snapshot() is None
                 or (self.mode is not None and (self.points is None

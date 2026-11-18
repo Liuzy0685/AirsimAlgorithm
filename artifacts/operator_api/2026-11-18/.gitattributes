@@ -1,0 +1,4 @@
+# Preserve the raw evidence bytes across Windows checkouts.
+*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+*.csv -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+*.xml -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

@@ -1,0 +1,547 @@
+{
+  "checks": [
+    {
+      "name": "capabilities_and_flight_enabled",
+      "passed": true
+    },
+    {
+      "name": "operator_auth_required",
+      "passed": true
+    },
+    {
+      "name": "measured_map",
+      "passed": true
+    },
+    {
+      "name": "old_map_rejected",
+      "passed": true
+    },
+    {
+      "name": "live_preflight",
+      "passed": true
+    },
+    {
+      "name": "create_task",
+      "passed": true
+    },
+    {
+      "name": "create_replay_same_task",
+      "passed": true
+    },
+    {
+      "name": "initial_shape_vee",
+      "passed": true
+    },
+    {
+      "name": "initial_shape_line",
+      "passed": true
+    },
+    {
+      "name": "start_accepted",
+      "passed": true
+    },
+    {
+      "name": "start_replay_same_receipt",
+      "passed": true
+    },
+    {
+      "name": "B_unwired_is_explicit",
+      "passed": true
+    },
+    {
+      "name": "complete_task_and_release",
+      "passed": true
+    },
+    {
+      "name": "second_task_after_verified_release",
+      "passed": true
+    },
+    {
+      "name": "stop_accepted_before_cleanup",
+      "passed": true
+    },
+    {
+      "name": "stop_and_release",
+      "passed": true
+    },
+    {
+      "name": "sampled_separation",
+      "passed": true
+    }
+  ],
+  "evidence_type": "live_airsim_operator_http",
+  "limitation": "B runtime configuration was not implemented/tested in flight. Sampled API states do not prove continuous-time separation.",
+  "map_revision": "09abc7c7f29997ff39aaed1ec7293697aa5f245b06801ed9254174a7e126aa34",
+  "minimum_sampled_separation_m": 2.2778190450535987,
+  "missions": [
+    {
+      "applied_formation": {
+        "shape": "line",
+        "spacing_m": 3.0
+      },
+      "applied_revision": 3,
+      "b_control_online": false,
+      "b_status": null,
+      "config": {
+        "formation": {
+          "shape": "line",
+          "spacing_m": 3.0
+        },
+        "leader": "Drone1",
+        "leader_goal_ned_m": [
+          15.5,
+          -3.0,
+          -2.0
+        ],
+        "map_id": "maze",
+        "map_revision": "09abc7c7f29997ff39aaed1ec7293697aa5f245b06801ed9254174a7e126aa34",
+        "vehicle_names": [
+          "Drone1",
+          "Drone2"
+        ]
+      },
+      "created_at_unix_ms": 1795016237758,
+      "formation_runtime": null,
+      "formation_runtime_stale": true,
+      "manual_intervention_required": false,
+      "mission_id": "af59729ead18422f9ed168821f5fbdf5",
+      "pending_formation": null,
+      "process_id": 33228,
+      "reason": "mission_complete",
+      "requested_formation": {
+        "shape": "line",
+        "spacing_m": 3.0
+      },
+      "revision": 3,
+      "runtime": {
+        "collection_complete": true,
+        "coordination": {
+          "Drone1": {
+            "active_command_id": null,
+            "reason": "controller_status_stale",
+            "sim_timestamp_ns": 0,
+            "snapshot_id": null,
+            "state": "EMERGENCY",
+            "task_id": "af59729ead18422f9ed168821f5fbdf5",
+            "vehicle_name": "Drone1"
+          },
+          "Drone2": {
+            "active_command_id": null,
+            "reason": "controller_status_stale",
+            "sim_timestamp_ns": 0,
+            "snapshot_id": null,
+            "state": "EMERGENCY",
+            "task_id": "af59729ead18422f9ed168821f5fbdf5",
+            "vehicle_name": "Drone2"
+          }
+        },
+        "errors": {},
+        "snapshot_id": 644,
+        "stale": false,
+        "stream_id": "fef04467-636b-47a8-abab-eb0e7171cdfc",
+        "timestamp_unix_ms": 1795016370305,
+        "vehicles": {
+          "Drone1": {
+            "angular_velocity_body_radps": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "can_arm": false,
+            "landed_state": 0,
+            "linear_velocity_ned_mps": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "orientation_quaternion_xyzw": [
+              0.0,
+              0.0,
+              2.6482462089916226e-06,
+              0.9999999403953552
+            ],
+            "pitch_rad": 0.0,
+            "position_ned_m": [
+              15.591038703918457,
+              -2.968168031424284,
+              1.1109600067138672
+            ],
+            "readiness_available": false,
+            "ready": false,
+            "received_monotonic_seconds": 23055.1768028,
+            "roll_rad": 0.0,
+            "timestamp": 1795016335890730752,
+            "yaw_rad": 5.29649210231246e-06
+          },
+          "Drone2": {
+            "angular_velocity_body_radps": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "can_arm": false,
+            "landed_state": 1,
+            "linear_velocity_ned_mps": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "orientation_quaternion_xyzw": [
+              0.0,
+              0.0,
+              0.0002712542191147804,
+              0.9999999403953552
+            ],
+            "pitch_rad": 0.0,
+            "position_ned_m": [
+              15.646844863891602,
+              0.07977588474750519,
+              1.1109635829925537
+            ],
+            "readiness_available": false,
+            "ready": false,
+            "received_monotonic_seconds": 23055.1768028,
+            "roll_rad": 0.0,
+            "timestamp": 1795016335890730752,
+            "yaw_rad": 0.0005425084325049724
+          }
+        }
+      },
+      "state": "COMPLETED",
+      "vehicle_results": {
+        "Drone1": {
+          "airborne": true,
+          "api_control_acquired": true,
+          "api_control_released": true,
+          "armed": true,
+          "cleanup": {
+            "control_released": true,
+            "landing_attempted": true,
+            "landing_confirmed": true,
+            "manual_intervention_required": false,
+            "phase": "CONTROL_RELEASED"
+          },
+          "disarmed": true,
+          "flight_duration_s": 97.02121959999931,
+          "frames_completed": 1940,
+          "landing_confirmed": true,
+          "startup_floor_contact_baseline": true,
+          "success": true,
+          "takeoff_completed": true,
+          "termination_reason": "mission_complete"
+        },
+        "Drone2": {
+          "airborne": true,
+          "api_control_acquired": true,
+          "api_control_released": true,
+          "armed": true,
+          "cleanup": {
+            "control_released": true,
+            "landing_attempted": true,
+            "landing_confirmed": true,
+            "manual_intervention_required": false,
+            "phase": "CONTROL_RELEASED"
+          },
+          "disarmed": true,
+          "flight_duration_s": 97.04296800000157,
+          "frames_completed": 1938,
+          "landing_confirmed": true,
+          "startup_floor_contact_baseline": true,
+          "success": false,
+          "takeoff_completed": true,
+          "termination_reason": "coordinated_stop"
+        }
+      }
+    },
+    {
+      "applied_formation": {
+        "shape": "line",
+        "spacing_m": 3.0
+      },
+      "applied_revision": 1,
+      "b_control_online": false,
+      "b_status": null,
+      "config": {
+        "formation": {
+          "shape": "line",
+          "spacing_m": 3.0
+        },
+        "leader": "Drone1",
+        "leader_goal_ned_m": [
+          16.5,
+          -3.0,
+          -2.0
+        ],
+        "map_id": "maze",
+        "map_revision": "09abc7c7f29997ff39aaed1ec7293697aa5f245b06801ed9254174a7e126aa34",
+        "vehicle_names": [
+          "Drone1",
+          "Drone2"
+        ]
+      },
+      "created_at_unix_ms": 1795016371413,
+      "formation_runtime": null,
+      "formation_runtime_stale": true,
+      "manual_intervention_required": false,
+      "mission_id": "b8cfa10f252745b49cc96075f87f9c0f",
+      "pending_formation": null,
+      "process_id": 27792,
+      "reason": "launcher_returned_without_mission_completion",
+      "requested_formation": {
+        "shape": "line",
+        "spacing_m": 3.0
+      },
+      "revision": 1,
+      "runtime": {
+        "collection_complete": true,
+        "coordination": {
+          "Drone1": {
+            "active_command_id": null,
+            "reason": "controller_disconnected",
+            "sim_timestamp_ns": 0,
+            "snapshot_id": null,
+            "state": "EMERGENCY",
+            "task_id": "",
+            "vehicle_name": "Drone1"
+          },
+          "Drone2": {
+            "active_command_id": null,
+            "reason": "",
+            "sim_timestamp_ns": 0,
+            "snapshot_id": null,
+            "state": "NORMAL",
+            "task_id": "",
+            "vehicle_name": "Drone2"
+          }
+        },
+        "errors": {},
+        "snapshot_id": 188,
+        "stale": false,
+        "stream_id": "fd107379-dd45-4ecb-a7a8-776f549d66dd",
+        "timestamp_unix_ms": 1795016410713,
+        "vehicles": {
+          "Drone1": {
+            "angular_velocity_body_radps": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "can_arm": false,
+            "landed_state": 0,
+            "linear_velocity_ned_mps": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "orientation_quaternion_xyzw": [
+              0.0,
+              0.0,
+              2.6482457542442717e-06,
+              0.9999999403953552
+            ],
+            "pitch_rad": 0.0,
+            "position_ned_m": [
+              15.591038703918457,
+              -2.968168031424284,
+              1.110659122467041
+            ],
+            "readiness_available": false,
+            "ready": false,
+            "received_monotonic_seconds": 23095.5851516,
+            "roll_rad": 0.0,
+            "timestamp": 1795016367163397888,
+            "yaw_rad": 5.296491192817812e-06
+          },
+          "Drone2": {
+            "angular_velocity_body_radps": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "can_arm": false,
+            "landed_state": 1,
+            "linear_velocity_ned_mps": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "orientation_quaternion_xyzw": [
+              0.0,
+              0.0,
+              -0.5921739935874939,
+              0.8058100342750549
+            ],
+            "pitch_rad": 0.0,
+            "position_ned_m": [
+              15.646844863891602,
+              0.07977588474750519,
+              1.110743761062622
+            ],
+            "readiness_available": false,
+            "ready": false,
+            "received_monotonic_seconds": 23095.5851516,
+            "roll_rad": 0.0,
+            "timestamp": 1795016367163397888,
+            "yaw_rad": -1.267508112934796
+          }
+        }
+      },
+      "state": "STOPPED",
+      "stop_requested": true,
+      "vehicle_results": {
+        "Drone1": {
+          "airborne": true,
+          "api_control_acquired": true,
+          "api_control_released": true,
+          "armed": true,
+          "cleanup": {
+            "control_released": true,
+            "landing_attempted": true,
+            "landing_confirmed": true,
+            "manual_intervention_required": false,
+            "phase": "CONTROL_RELEASED"
+          },
+          "disarmed": true,
+          "flight_duration_s": 0.466689500000939,
+          "frames_completed": 1,
+          "landing_confirmed": true,
+          "startup_floor_contact_baseline": false,
+          "success": false,
+          "takeoff_completed": true,
+          "termination_reason": "coordinated_stop"
+        },
+        "Drone2": {
+          "airborne": true,
+          "api_control_acquired": true,
+          "api_control_released": true,
+          "armed": true,
+          "cleanup": {
+            "control_released": true,
+            "landing_attempted": true,
+            "landing_confirmed": true,
+            "manual_intervention_required": false,
+            "phase": "CONTROL_RELEASED"
+          },
+          "disarmed": true,
+          "flight_duration_s": 0.39436639999985346,
+          "frames_completed": 1,
+          "landing_confirmed": true,
+          "startup_floor_contact_baseline": false,
+          "success": false,
+          "takeoff_completed": true,
+          "termination_reason": "coordinated_stop"
+        }
+      }
+    }
+  ],
+  "passed": true,
+  "source_manifest": {
+    "files": {
+      "adapters/__init__.py": "d3362bf34ef396b9aa1b742aac37249320f4d889d4fc14b7ef9a33fbb27c7e47",
+      "adapters/airsim_client.py": "7014ea0c187dc94687d78501c92d1c1573065abb42d5110dbc6ac22db462ad7e",
+      "adapters/msgpack_compat.py": "cea88bd73e75e3bd7cea8768512c79a6f4d3192784b9a01c9c41544e42932901",
+      "common/__init__.py": "e560b403827836f21078bae3ab922a91f0fe985780a19c5ce8a607f5f1424045",
+      "common/constants.py": "b602f27471fc2b7445b19b877393ec200499c118d301d3aacbefb83591ea7f5a",
+      "common/models.py": "90723cadaea9b6c08fe449de5df5c603a04c0668eaa6206f12f83651f35fb0fa",
+      "control/__init__.py": "f0372215bbb99b0266694c685bffaddee3dd10bd0216e4e3bb59e51d1666224a",
+      "control/command_authority.py": "ba5526efbed067fb5c63434d7e00eacf6c7d720f40d6310115632f1d91ea1990",
+      "control/ground_contact.py": "581eb0a1524bdc989a7bf26ed3e51fab1c28a041316b91110ae6f28d54d500bd",
+      "control/safety_filter.py": "03495f4aea6fa5d1540b4b70fab1dc78b0c2b1f66bf5f5725d245205e9814a40",
+      "control/safety_supervisor.py": "00107cb61ea7b1f05e30278496deadd7a7d225988c8d1786fd4e4f48e42cb553",
+      "control/swarm_flight_bridge.py": "f7d052277cadc29472d9c990c85476a4f98bb7b550702a6540c3d93834ef0671",
+      "control/swept_clearance.py": "6caea3342f156f6bddadb9d3364f8696c23af9d421b02007a2b4acba9161316d",
+      "control/vehicle_command_gateway.py": "40ac879029a098a7b971a0f527c6f278fa7430f3a858f1132cf8cfb75d4d7721",
+      "control/velocity_arbitrator.py": "db58b6c951cfe0d11349d14035b4b0b59b10eb41909400163e9b22940ef19056",
+      "control/velocity_controller.py": "3318828d4ee211b54fe625c78042830015745303cce6d991b74f8b13c0bd7b81",
+      "coordination/__init__.py": "67658dfa498dd4b454b20bae193d3ec662acccbbbbfb40bd73f2c383310c9b07",
+      "coordination/acceptance_metrics.py": "29e2328665edecfa35f7c57ac128201816e09ce0fe8d53d2e6fb284ad5719d46",
+      "coordination/client.py": "d2048bf8e90f476445bbc40b4ff1afa179ea4a6af538d7fd0015130953af4db5",
+      "coordination/collision_predictor.py": "713856ee834ed0abf87b8bac8d7e1c119ee498cc08e3ef4d0972542bd90a503c",
+      "coordination/command_ingress.py": "f88029d7c29d03fcf51ac8b660ae8a6c9a091156818ac3f158e6804b40eb0a5d",
+      "coordination/controller_link.py": "5cb8165f09ec96dfb6b9782168061116f1399d67bb991e4d1938acbe72e53ac1",
+      "coordination/coordinate_transform.py": "85cd6d49e3cbb7def1da8c7f38a469d6d014829c091195fe82b42353afb24836",
+      "coordination/navigation.py": "44bd91c41dd3f3fa072cc82b18d203bc97ec90b175ee8a708584b04f3d0ebed2",
+      "coordination/operator_common.py": "90994e05fb4f4f79de8757680a445cf0abadb6f0a8a32854ba5f9a12ff5a2234",
+      "coordination/operator_http.py": "58b66a24bb80ed1d613979f0300292852fee5b46bfbc0e53924c67cfe5595a6d",
+      "coordination/operator_manager.py": "a3b247aecd33f00492c18368fb6ca4d3ad83faefeb367f9cef5de4fac0e23eec",
+      "coordination/operator_runtime.py": "cbb4497d6f7e387f1c9cef5fc60bc16cf3aab335bd1a021a3e55e8c9021b517b",
+      "coordination/orca_2d.py": "0c49a3bd570c4c72cae244bb6e00bdc6de00616bb2f4b05bbe99d1d1758ae514",
+      "coordination/runtime_config.py": "e62f502ac60096477c08cf4a5812970ca9e511b558ad1db4a7bebed09d353c6b",
+      "coordination/state_provider.py": "d2ce1bb7bb584b2b19f10bf4caa79fa80d6359567b07ecf865e6f23ba3a682f7",
+      "coordination/state_publisher.py": "58c5152bcafeb3dcb683a4e768ac025881d794fc918c441e752d96aacc809c14",
+      "coordination/state_service.py": "5d72b128e6472d2a4936cbf342db4e15fda690e65d8fa58a403cdb19706dd363",
+      "coordination/wire.py": "a230d31e61d24c34d1e6f0ccbf4efcf189e18fd7df3e601487cf05ecc2c03508",
+      "coordination/ws.py": "63ec2ab6d620e4666295b7adf095c1daa6496a853358e3de4b1fce76cdbb03a0",
+      "flight_modes/__init__.py": "ce7ab92a4f309bd5fea3f67a1d2f9d122155f07735777a308b0a85adf313ae7c",
+      "flight_modes/airsim_debug_draw.py": "349aacbf1513fabd0b4a06b39b4076e0a9a5db4b054e49c1b524be8a5a2b1a9e",
+      "flight_modes/automatic_mode.py": "8f032fb258b3d7182d78c5e111112569ce27ab0fe150deb660f985c96e6adc08",
+      "flight_modes/gamepad_config.py": "58facbb009229829183bed60c89744f3924f18ce820cc7ad01da03291a019462",
+      "flight_modes/gamepad_reader.py": "f41d9ea84d0e48276e9f9ba50bead54ba6a1c1765aa2e0a5f1f75052375013f6",
+      "flight_modes/gamepad_state.py": "d0428ac057bad21629d6ded28fde01c6f71721946ce875f04e3e9f1d95643dc8",
+      "flight_modes/manual_gamepad_mode.py": "de3014ddae4d38147ce46c1ccad3f6e233300f4f6ed429800bcd7faba14c4323",
+      "flight_modes/manual_mode.py": "72ee410e9681d3dacab0c31e43f484a44f16db5b9ed8a027acaca6b5821bf4af",
+      "flight_modes/shared_flight_session.py": "098072f30ba781b2602e4de54d98ced2a63f07d940222fd4670a1635ca4cd5d5",
+      "flight_modes/trajectory_flight_metrics.py": "46c0ade9f2daa1fd04582bff554e3dd8ae9e81939c597819bc6086a0a7331197",
+      "formation/__init__.py": "e26bfad46b7d6952f9489dc5c2b3d81a66d8fa76af8ab1258f424679a69aa74e",
+      "formation/controller.py": "1f3cc55079ed732fb68640c7d0b79091a44270df46a4475fafc89f364acce02a",
+      "formation/navigation.py": "4dc6ef367e6cedf2f97b44a6837d7859a28a3abb428c036bf99a3f5634ca4240",
+      "formation/runtime.py": "f189aac3a1b180b171456dc332913ad339e5e2837777b4b4e8b4584dd1547c09",
+      "models/__init__.py": "970a702ad160723a85ccea6988196db57b72fe88c17b3e8c62fe85730dd344c7",
+      "models/collision_state.py": "f5ccbef2289ca0f584315874172e935d129222c3f87d13c7a20aecfec3d78e13",
+      "models/directional_distances.py": "16df1d856eeea7b1653d97447cd2c0f8abe55f86826189465dbbfa04c498548e",
+      "models/fixture_result.py": "c1de2b8eacd54ddcd4c97a5cf06140b3ff557c09b4071ddba8dfe29dcbc07348",
+      "models/lidar_frame.py": "5bc2dd4f2781ceae79fc6985042f86dbeeaea6b69a43eac9ec783a2d16dc2f24",
+      "models/local_planner_command.py": "1594d574486f006659e82cb65243b59f364b59f478cc47414301566b796ee1f6",
+      "models/sector_measurement.py": "38204e20952f0a1a882068e699e944a04b73eb12f7a4f37e4c834f4f7a0fba5a",
+      "models/vehicle_state.py": "6ea3af73ae9695228eea881619d59f4393e2468d1cee831805df681938d109b3",
+      "perception/__init__.py": "d5903818b9451f9326706a0bd6725a91d78ec126dd4ee40b03985fd4e04d59a7",
+      "perception/perception_config.py": "e82853af90654be96f08b62d6f0762e93994ae6454529e368bec389280be7da9",
+      "perception/pointcloud_filter.py": "844b5adc284079f9b3db12dff089052e31ea671c2c04af863e2e5a8275846080",
+      "perception/pointcloud_to_sectors.py": "b89270f21b75b5a4447852ed57ff30a13053ebf170aa7557505a0069276888d4",
+      "perception/sensor_fov.py": "8a3b874944a9c103427ea63e158882c29080768dbfb52e4495f9157585a2a31b",
+      "planners/__init__.py": "da49cd2fa878800f5b8e7bbeddc8d6f6f4cc708569a46534c221a384c4fa6adf",
+      "planners/cbmba_astar.py": "ad0e2d436b4c7a192e7770800629cdc236f6a011fef9d891372bdebdce149df9",
+      "planners/cbmba_guidance.py": "ecbf55c82770bf090eb43f972bd0b9574c62d2636c5570ab41def9c8d5dc815e",
+      "planners/goal_termination.py": "d3d7a4ecb12e926bee1a8d99707303cb429cded26b7e8f0e2648de028dd57ca4",
+      "planners/improved_potential_field.py": "49d69864ecfb720954c6cc02d88cecaea7c13d2c2d58e952b32d724e454f0b2f",
+      "planners/local_recovery.py": "17f0524c36590da834e2139037a0753d3eb51febe1beb18f7824b20b39858d12",
+      "planners/local_trajectory_planner.py": "2c31fefcc54a6ac540e731a4a0ef9fdc552a593987711b6911d32b5076f0a211",
+      "planners/process_workers.py": "153c1a77eead6a8655c19693245ac3038566ae9dc741162ef798f0c9e5a85a04",
+      "planners/recovery_commander.py": "078a4c10fc3028e396d9a2f38861ec5557132dc79444a69e65accb5cc47da48a",
+      "planners/trajectory_tracker.py": "12a2ef32e881bc750a2191b410944b08bf2bd6f4f849d1b9972b8a0e672f19ee",
+      "planners/vertical_avoidance.py": "0d8620cc3673adb4f42ede57f680323375ed38804b05eba11c9caf91b4bc0b90",
+      "scripts/airborne_test_fixture.py": "cea94c447989771df867e81b84033e47e43396eb5121057626f7a88a8bd8b838",
+      "scripts/export_operator_map.py": "e6cdd6bec8fad80ddf770eb53357bc214f4d3c49b709ebd81dd7def3a2287032",
+      "scripts/export_swarm_acceptance.py": "1ee68be80ea800064bac01ade921d81758079d036f0d1005f9ec2c7065009e03",
+      "scripts/flight_mode.py": "4568fb0f4497021c6b6c9a3aab134963b07931f8f310acb19bad4622cd6616ee",
+      "scripts/formation_service.py": "f5553a0cff610bafc386ccaf4a01779be89a6eaa8535da0724c87c284645812c",
+      "scripts/gamepad_axes_test.py": "790e26e5d640b5d75543b7a1c2dea5f7c987008e74968e022a3d903e98b21d49",
+      "scripts/gamepad_debug.py": "ed7403a8acb6e79a2845b0d53db38fc0445515141d42dbf10aaf5ae73b03de28",
+      "scripts/launch_swarm.py": "84758f2e317ccc12ecdfdf00e25beae042f7f7541d542442c705121a870ed280",
+      "scripts/lidar_axis_calibration.py": "72519c4c71a7f8442e4a64a9aeb21a655527f98998f9956fa82095abe24685dd",
+      "scripts/minimal_lidar_flight.py": "22f0b4006fbce9ab4b331ce2a1316d38e93b404f7725b3f60a786aacf52b5dc9",
+      "scripts/operator_api.py": "d32c5bd98b81ad9cc01fc825b43db91853c345c8ef67dbabace951fd13c548aa",
+      "scripts/operator_mission_runner.py": "18c1f386786224e889efb151e82a68e1e5d6597976f0d9b6dcec81716fd2843f",
+      "scripts/plot_flight_trace.py": "be8b640001736fa056f946939eb5b787e2e518fadbb39b341feb9d0c63a8390c",
+      "scripts/run_swarm_acceptance.py": "88f107ddbb69b580b88e61ad01e41f72a034821fac9732c9ba770debe1061315",
+      "scripts/sector_smoke_test.py": "bc79ced986b6ca68803db58907179ab3959088f280f63a2243c638c9ca021347",
+      "scripts/sensor_smoke_test.py": "ebde2f4535d6a91dea92bf01c0becc40787220bb1a5e93af7bd739b436689f18",
+      "scripts/swarm_state_service.py": "e1fe467a54607715c97bb8b897b43d639e2c0447b6388d86231823a9cf13b77a",
+      "scripts/validate_blocks_maps.py": "02f52a2909bece6685d96002c06fdb5113d9d30619b285ba12626bcd9da21983",
+      "scripts/validate_live_swarm_protocol.py": "fed66bcade42b77974b80f725126e59b7c125d8163197d41f754ad7ed94e7183",
+      "scripts/validate_operator_api_live.py": "c2ceb8973cceefaa2a4bf198544c3241b7014fe984d5cdd5c92defbb5d96b8d8",
+      "scripts/validate_swarm_state.py": "8accb9afaf6943c0e26f71e37e922f5c2e47fcba680bea3bbdb1f92396b25115",
+      "sensors/__init__.py": "5472a41a736e98e134ceacf8377be93e7eb5247e66087930556e6e58cf80ffd5",
+      "sensors/collision_reader.py": "c9e8738cd9671febc38d73a2406f7058dc7c75ac0ac8b8b45e682893c55f8db6",
+      "sensors/lidar_reader.py": "ff7a33d37b7dd6357a5ed805954f69800e197688d457dff944e5b866883fae92",
+      "sensors/state_reader.py": "1cb5aead9f6231019387185ada329e3e9b3b64de0812b8112c6f9da7d6b9a036",
+      "transforms/__init__.py": "5e5124ac31dd2ceee6ccb95cb64cf4bce4cbfc81d2ef336d831f7d23c57d5c32",
+      "transforms/lidar_to_local_ned.py": "9c5ad6b328d4192ba2b82695e016c07a4ade2427ab9854d353692a1e252f9b7d",
+      "utils/__init__.py": "885ad77c9b0302c92269fe2358128eb1953f99f52945041c1a909bd854069b13",
+      "utils/consecutive_tracker.py": "4cc13aa5f3e1dc9b22c969cc1c0a3bb1737912f47eea9e38ef4a8fc3a540169d"
+    },
+    "sha256": "5fd39a3dba7a03e3743d19d3f28c0b20c488542f459c130bc9947a8350c08127"
+  },
+  "raw_report_sha256": "d84d08d64039e122c8ab18d7977fffb37172d0fe9f16743979521b5e91f6f21d",
+  "raw_snapshots_sha256": "97212943202ccc3cb900274e9d263b89637c131fd6efea1840c16e3ea004ce88"
+}

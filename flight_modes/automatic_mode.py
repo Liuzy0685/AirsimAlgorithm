@@ -4589,7 +4589,8 @@ class AutomaticMode:
                 self._swarm_bridge.begin_cruise(self)
             while self._running:
                 stop_file = vars(self._session).get("stop_file")
-                if stop_file is not None and stop_file.exists():
+                _coordinated_stop_requested = stop_file is not None and stop_file.exists()
+                if _coordinated_stop_requested and self._swarm_bridge is None:
                     term = "coordinated_stop"
                     break
                 fn += 1
@@ -4953,6 +4954,12 @@ class AutomaticMode:
                     break
                 if self._swarm_bridge is not None:
                     self._swarm_bridge.update_lidar(lf)
+                    # A stop immediately after takeoff must collect the same
+                    # fresh state/perception as cruise before entering cleanup.
+                    # Never bypass the gateway's verified-cleanup requirement.
+                    if _coordinated_stop_requested:
+                        term = "coordinated_stop"
+                        break
 
                 # Vertical-escape decision runs here, BEFORE the recovery state
                 # machine below, so the recovery tick sees this frame's episode
@@ -7083,6 +7090,11 @@ class AutomaticMode:
                 )
             if self._perception_worker is not None:
                 self._perception_worker.shutdown()
+                if (self._swarm_bridge is not None and term in
+                        {"mission_complete","time_limit","coordinated_stop","ctrl_c"}):
+                    _cleanup_perception=self._perception_worker.get_latest_snapshot()
+                    if _cleanup_perception is not None:
+                        self._swarm_bridge.cache_cleanup_lidar(_cleanup_perception.lf)
                 logger.info(
                     "perception_worker  state=stopped  polls=%d  errors=%d",
                     self._perception_worker.poll_count,
