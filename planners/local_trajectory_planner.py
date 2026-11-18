@@ -174,6 +174,14 @@ class TrajectoryPlannerParams:
     # discouraged (oscillation) but not forbidden.
     direct_opposite_switch_penalty: float = 1.0
 
+    # Side lock (sec 5b): while the front corridor is blocked, suppress a
+    # direct LEFT↔RIGHT lateral flip.  Symmetric left/right obstacles score
+    # in a near-tie, so the incumbent side flips on every small noise update
+    # and the vehicle oscillates in place.  Keeping the current side until the
+    # symmetry actually breaks (front clears) breaks that feedback loop.
+    side_lock_enabled: bool = True
+    side_lock_front_clearance_m: float = 2.5
+
     # U-shaped/dead-end escape. Once a reverse family is selected, keep
     # backing out until the forward corridor is genuinely open.
     reverse_hold_enabled: bool = True
@@ -620,6 +628,13 @@ class LocalTrajectoryPlanner:
             held_for = now - self._memory.current_family_held_since
             if reverse_hold:
                 switch_reason = "reverse_dead_end_hold"
+            elif (
+                p.side_lock_enabled
+                and family_side(prev) != 0
+                and family_side(best.family) == -family_side(prev)
+                and front_clear_m < p.side_lock_front_clearance_m
+            ):
+                switch_reason = "side_lock_front_blocked"
             elif held_for < p.family_switch_min_hold_time_s:
                 switch_reason = "hold_time"
             elif best.total_score - self._memory.previous_score < p.family_switch_min_score_improvement:

@@ -14,6 +14,7 @@ from __future__ import annotations
 import logging
 import math
 import os
+import hashlib
 import tempfile
 import time
 from dataclasses import dataclass, field
@@ -24,7 +25,13 @@ from typing import Any, Optional
 logger = logging.getLogger("flight_session")
 
 _LOCK_DIR = Path(tempfile.gettempdir()) / "adrone_flight_modes"
-_LOCK_FILE = _LOCK_DIR / "flight_mode.lock"
+
+
+def _vehicle_lock_file(vehicle_name: str) -> Path:
+    """Return a stable, per-vehicle lock path safe for Windows filenames."""
+    safe_name = "".join(c if c.isalnum() or c in "-_" else "_" for c in vehicle_name)
+    suffix = hashlib.sha1(vehicle_name.encode("utf-8")).hexdigest()[:8]
+    return _LOCK_DIR / f"flight_mode_{safe_name}_{suffix}.lock"
 
 
 class SessionPhase(Enum):
@@ -70,6 +77,8 @@ class SharedFlightSession:
     target_z_ned: float = -1.0
     takeoff_timeout_s: float = 20.0
     max_vertical_speed_mps: float = 0.5
+    vehicle_name_override: Optional[str] = None
+    lidar_name_override: Optional[str] = None
 
     _adapter: Any = field(default=None, repr=False)
     _client: Any = field(default=None, repr=False)
@@ -85,13 +94,17 @@ class SharedFlightSession:
     # ── lock ──
 
     @staticmethod
-    def acquire_lock(mode_label: str) -> Optional[Any]:
+    def acquire_lock(mode_label: str, vehicle_name: str = "Drone1") -> Optional[Any]:
         _LOCK_DIR.mkdir(parents=True, exist_ok=True)
+        lock_file = _vehicle_lock_file(vehicle_name)
+        fh = None
         try:
-            fh = open(str(_LOCK_FILE), "w", encoding="utf-8")
+            fh = open(str(lock_file), "a+", encoding="utf-8")
             import msvcrt
+            fh.seek(0)
             msvcrt.locking(fh.fileno(), msvcrt.LK_NBLCK, 1)
-            fh.write(f"{mode_label}\n{os.getpid()}\n"); fh.flush()
+            fh.seek(0); fh.truncate()
+            fh.write(f"{mode_label}\n{vehicle_name}\n{os.getpid()}\n"); fh.flush()
             return fh
         except (IOError, OSError):
             if fh: fh.close()
@@ -108,15 +121,19 @@ class SharedFlightSession:
         finally:
             try: fh.close()
             except Exception: pass
-        try: _LOCK_FILE.unlink(missing_ok=True)
-        except Exception: pass
+        # Keep the lock file in place. Unlinking after unlock can split active
+        # contenders across an old inode and a newly-created file.
 
     # ── public API ──
 
     def initialize(self) -> SharedFlightSession:
         from adapters.airsim_client import AirSimClientAdapter
         logger.info("Initializing %s mode session …", self.mode)
-        self._adapter = AirSimClientAdapter(readonly=False)
+        self._adapter = AirSimClientAdapter(
+            readonly=False,
+            vehicle_name=self.vehicle_name_override,
+            lidar_name=self.lidar_name_override,
+        )
         self._adapter.connect()
         self._client = self._adapter.get_raw_client()
         vn = self._adapter.vehicle_name

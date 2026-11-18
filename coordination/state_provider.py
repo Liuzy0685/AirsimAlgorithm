@@ -116,6 +116,11 @@ class StateProvider:
         }
         return cls(readers, transformer, **kwargs)
 
+    @property
+    def vehicle_names(self) -> tuple[str, ...]:
+        """Configured vehicle names (same order as the readers mapping)."""
+        return tuple(self._readers)
+
     def get_snapshot(self) -> SwarmStateSnapshot:
         # Coordinate validation is required even for an empty/partial result.
         report = self._transformer.last_validation

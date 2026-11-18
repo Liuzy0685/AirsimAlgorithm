@@ -33,6 +33,7 @@ from planners.local_trajectory_planner import (
     TrajectoryPlannerParams,
     TrajectoryMemory,
     _rejoin_variants,
+    family_side,
 )
 from flight_modes.trajectory_flight_metrics import (
     FamilyTransitionLog,
@@ -257,6 +258,69 @@ class TestDirectOppositePenalty:
         assert by_fam[HARD_LEFT].direct_opposite_switch is True
         assert by_fam[RIGHT].direct_opposite_switch is False
         assert by_fam[STRAIGHT].direct_opposite_switch is False
+
+
+# ── C2. side lock while front blocked (sec 5b) ──
+
+
+class TestSideLock:
+    def _scenario(self, side_lock_enabled):
+        clock = [0.0]
+        mem = TrajectoryMemory()
+        mem.previous_family = LEFT
+        mem.previous_score = -float("inf")   # improvement gate always passes
+        mem.current_family_held_since = -100.0  # hold-time gate always passes
+        params = TrajectoryPlannerParams(
+            family_switch_min_hold_time_s=0.0,
+            family_switch_min_score_improvement=0.0,
+            direct_opposite_switch_penalty=0.0,
+            side_consistency_bonus=0.0,
+            side_lock_enabled=side_lock_enabled,
+            side_lock_front_clearance_m=2.5,
+        )
+        pl = _planner(params=params, memory=mem, clock=lambda: clock[0])
+        # Obstacle dead ahead blocks the front corridor (front_clear ≈ 0)
+        # but leaves both LEFT and RIGHT arcs valid; the goal offset to the
+        # right makes the RIGHT family score strictly higher.
+        return pl.plan(
+            (0, 0, 0), 0.0, (10.0, 4.0),
+            [[0, 0], [10, 4]], _df([(2.7, 0.0)]),
+        )
+
+    def test_suppresses_opposite_flip_when_front_blocked(self):
+        r = self._scenario(side_lock_enabled=True)
+        assert r.selected is not None
+        assert family_side(r.selected.family) == -1   # incumbent LEFT survives
+        assert r.family_switch is None                 # no flip recorded
+
+    def test_disabled_allows_opposite_flip(self):
+        r = self._scenario(side_lock_enabled=False)
+        assert r.selected is not None
+        assert family_side(r.selected.family) == 1    # flips to RIGHT
+        assert r.family_switch is not None
+        assert r.family_switch[0] == LEFT
+        assert family_side(r.family_switch[1]) == 1
+
+    def test_no_lock_when_front_is_clear(self):
+        # Same setup but no obstacle → front_clear is large, so the side lock
+        # must NOT engage and the right-favouring goal wins normally.
+        clock = [0.0]
+        mem = TrajectoryMemory()
+        mem.previous_family = LEFT
+        mem.previous_score = -float("inf")
+        mem.current_family_held_since = -100.0
+        params = TrajectoryPlannerParams(
+            family_switch_min_hold_time_s=0.0,
+            family_switch_min_score_improvement=0.0,
+            direct_opposite_switch_penalty=0.0,
+            side_consistency_bonus=0.0,
+            side_lock_enabled=True,
+            side_lock_front_clearance_m=2.5,
+        )
+        pl = _planner(params=params, memory=mem, clock=lambda: clock[0])
+        r = pl.plan((0, 0, 0), 0.0, (10.0, 4.0), [[0, 0], [10, 4]], _df([]))
+        assert r.selected is not None
+        assert family_side(r.selected.family) == 1    # flips to RIGHT
 
 
 # ── D. REJOIN clear-front gate (sec 6) ──

@@ -5,7 +5,11 @@ Example:
 """
 
 import argparse
+from dataclasses import asdict
+import json
+import math
 import sys
+import time
 from pathlib import Path
 
 import yaml
@@ -22,6 +26,7 @@ def main():
     parser.add_argument("--settings-json", required=True)
     parser.add_argument("--swarm-config", default="configs/swarm.yaml")
     parser.add_argument("--samples", type=int, default=10)
+    parser.add_argument("--output-json", help="Save validation and per-snapshot timing evidence.")
     args = parser.parse_args()
     if args.samples < 1:
         parser.error("--samples must be positive")
@@ -44,11 +49,23 @@ def main():
         else:
             tf = CoordinateTransformer.from_settings_json(args.settings_json, names)
         report = tf.validate(client, markers=markers or None)
+        evidence = dict(transform=asdict(report), snapshots=[], passed=False)
+        def save():
+            def finite(value):
+                if isinstance(value, float) and not math.isfinite(value): return None
+                if isinstance(value, dict): return {k: finite(v) for k,v in value.items()}
+                if isinstance(value, (tuple, list)): return [finite(v) for v in value]
+                return value
+            if args.output_json:
+                output = Path(args.output_json)
+                output.parent.mkdir(parents=True, exist_ok=True)
+                output.write_text(json.dumps(finite(evidence), ensure_ascii=False, indent=2, allow_nan=False), encoding="utf-8")
         for name, check in report.vehicles.items():
             print(f"{name}: valid={check.ok} position_error_m={check.position_error_m:.4f} "
                   f"velocity_error_mps={check.velocity_error_mps:.4f} {check.message}")
         if not report.validated:
             print("Transform validation failed; no state snapshots will be used.")
+            save()
             return 2
         provider = StateProvider.from_adapter(
             adapter, names, tf,
@@ -57,6 +74,11 @@ def main():
         )
         for _ in range(args.samples):
             snap = provider.get_snapshot()
+            evidence["snapshots"].append(dict(sequence_id=snap.sequence_id,
+                collection_complete=snap.collection_complete, collection_duration_s=snap.collection_duration,
+                max_receive_skew_s=snap.max_time_skew, max_sim_skew_s=snap.max_sim_timestamp_skew,
+                read_duration_s=snap.read_duration_s, errors=snap.errors,
+                yaw_rad={name: state.yaw_rad for name, state in snap.states.items()}))
             reads = " ".join(f"{name}={duration*1000:.1f}ms"
                              for name, duration in snap.read_duration_s.items())
             print(f"snapshot={snap.sequence_id} complete={snap.collection_complete} "
@@ -64,7 +86,10 @@ def main():
                   f"read_skew={snap.max_time_skew*1000:.1f}ms "
                   f"sim_skew={snap.max_sim_timestamp_skew*1000:.1f}ms "
                   f"{reads} errors={snap.errors}")
-        return 0
+            time.sleep(config.get("coordination", {}).get("peer_poll_interval_s", 0.2))
+        evidence["passed"] = all(s["collection_complete"] for s in evidence["snapshots"])
+        save()
+        return 0 if evidence["passed"] else 2
     finally:
         adapter.close()
 

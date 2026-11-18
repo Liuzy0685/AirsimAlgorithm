@@ -117,6 +117,28 @@ python -m pytest tests/ -q
 
 正式实飞入口为 `scripts/flight_mode.py`：
 
+### 多无人机独立导航（第一阶段）
+
+当前 `configs/swarm.yaml` 默认启用 A 权威状态服务；启动器先启动并验证 A，再启动各机控制进程。加入 `--with-formation` 可同时启动 B 的编队服务：
+
+```powershell
+python scripts/launch_swarm.py --settings-json "C:\path\to\settings.json" --with-formation --confirm-simulation-clearance
+```
+
+两机/五机配置、独立启动、ACK 与异常处理见 [A 状态服务与控制网关交付说明](docs/A_交付说明_状态服务与命令入口.md)。本次接线已提供离线验证，真实 AirSim 协同飞行仍待运行验收。将 `state_service.enabled` 设为 `false` 可运行下述旧独立导航实验；该模式不消费 B 编队命令。
+
+启用状态服务而未启动 B 时，跟随机等待有效编队命令；领航机继续自己的导航任务。需要完整编队时使用上述 `--with-formation`，或单独运行 B 服务。
+
+`scripts/launch_swarm.py` 按 `configs/swarm.yaml` 为每架无人机启动独立的自动导航进程。双机默认将 Drone1 绑定到 `PlayerStart1`/`MissionEnd1`，Drone2 绑定到 `PlayerStart2`/`MissionEnd2`。建议在 UE 中放置空 Actor，并分别设置唯一的 Actor Tag 为这些名称；代码按 Actor Tag 或 Actor 内部名查询标记。程序读取 `PlayerStartN` 的场景位置作为各机共同坐标原点，并用它将对应的 `MissionEndN` 换算到本机导航坐标。AirSim 实际生成位置仍由 `settings.json` 的车辆 `X/Y/Z` 决定，因此请按场景中各 `PlayerStartN` 的位置设置这些数值，使生成位置与标记重合；程序会记录两者不一致的告警，但不会自动移动无人机。请确认 `settings.json` 已定义对应无人机和 LiDAR。默认以水平 2D ORCA 过滤本机局部规划器的期望速度，`priority_hold` 模式则按恒速 CPA 预测和优先级规则让行。`priority_hold` 模式下，优先级数值越高越有优先通行权；同优先级时按无人机名称确定唯一让行机。ORCA 模式中双方承担互惠避让责任，优先级不会豁免安全过滤。该实现用于仿真阶段的算法对比，不是经验证的飞行安全系统。
+
+```powershell
+python scripts/launch_swarm.py `
+  --settings-json "C:\path\to\settings.json" `
+  --confirm-simulation-clearance
+```
+
+也可以单独指定无人机及标记：`flight_mode.py --vehicle-name Drone2 --lidar-name LidarSensor2 --mission-start-actor PlayerStart2 --mission-end-actor MissionEnd2`。控制锁按无人机隔离，同一架无人机仍只能由一个 flight mode 控制。`configs/swarm.yaml` 默认启用水平 2D ORCA；将 `coordination.algorithm` 改为 `priority_hold` 可运行原有 CPA 加优先级悬停基线。首次验证时，请在空旷区域、低速和足够大的起始间距下运行，确认两架无人机都能读取对方状态；观察 `cbmba_mission_goal`、`inter_uav_prediction`、`inter_uav_orca_command` 和 `inter_uav_orca_fallback` 日志，再逐步测试交叉航线。ORCA 只处理无人机之间的水平速度冲突，LiDAR 仍处理静态障碍，垂直避障仍由原高度控制处理。当前实现没有建模机体加速度、旋翼下洗或通信延迟的不确定性；ORCA 无可行速度、对端状态过期或 ORCA 结果触及 LiDAR 硬安全间距时，所有优先级都会请求水平停车，并保留高度保持或必要的垂直逃逸。`passing_bias_mps` 默认 0.1 m/s，仅在预测冲突时调整期望速度以缓解对称相遇停滞；设为 0 可关闭。算法选型、修复内容和验证边界见 [多机避障选型说明](docs/multi_uav_avoidance_selection.md)。
+
 ```bash
 # 手动（键盘）
 python scripts/flight_mode.py --mode manual

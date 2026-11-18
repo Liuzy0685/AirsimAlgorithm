@@ -1,0 +1,31 @@
+# Requires matching vehicle/LiDAR names, spawn offsets and tagged markers in AirSim.
+drones:
+  - {vehicle_name: Drone1, lidar_name: LidarSensor1, start_actor: PlayerStart1, goal_actor: MissionEnd1, yield_priority: 10, target_z: -1.0, local_navigation_mode: trajectory}
+  - {vehicle_name: Drone2, lidar_name: LidarSensor2, start_actor: PlayerStart2, goal_actor: MissionEnd2, yield_priority: 0, target_z: -1.0, local_navigation_mode: trajectory}
+  - {vehicle_name: Drone3, lidar_name: LidarSensor3, start_actor: PlayerStart3, goal_actor: MissionEnd3, yield_priority: 0, target_z: -1.0, local_navigation_mode: trajectory}
+  - {vehicle_name: Drone4, lidar_name: LidarSensor4, start_actor: PlayerStart4, goal_actor: MissionEnd4, yield_priority: 0, target_z: -1.0, local_navigation_mode: trajectory}
+  - {vehicle_name: Drone5, lidar_name: LidarSensor5, start_actor: PlayerStart5, goal_actor: MissionEnd5, yield_priority: 0, target_z: -1.0, local_navigation_mode: trajectory}
+coordination:
+  enabled: true
+  yield_enabled: true
+  algorithm: orca
+  passing_bias_mps: 0.1
+  prediction_horizon_s: 3.0
+  safety_distance_m: 2.0
+  peer_poll_interval_s: 0.2
+  diagnostic_log_interval_s: 0.5
+  max_state_timestamp_skew_s: 0.5
+  yield_release_margin_m: 0.75
+  yield_release_delay_s: 0.5
+state_service:
+  enabled: true
+  host: 127.0.0.1
+  port: 8765
+  leader: Drone1
+  task_id: swarm-mission
+  snapshot_max_age_s: 0.6
+  heartbeat_s: 1.0
+  disconnect_timeout_s: 2.0
+  startup_timeout_s: 15.0
+  lease_ttl_s: 2.0
+  lifecycle_lease_s: 90.0

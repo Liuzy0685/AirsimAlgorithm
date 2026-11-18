@@ -113,6 +113,24 @@ class TestComputeRecoveryCommand:
         assert cmd[0] > 0
         assert cmd[1] > 0
 
+    def test_no_feasible_never_reverses_even_when_front_is_close(self):
+        """A dense-scene local minimum (front < 2.5 m, side still open) must
+        advance + sidestep, not reverse — reverse is reserved for a genuine
+        dead end (front+left+right all blocked)."""
+        decision = RecoveryDecision(
+            is_stuck=True,
+            needs_recovery=True,
+            reason="trajectory_no_feasible",
+        )
+        cmd = compute_recovery_command(
+            decision,
+            _rays(front=1.5, left=1.2, right=4.5),
+            forced_mode="trajectory_no_feasible",
+        )
+        assert cmd[0] > 0   # forward, never backward
+        assert cmd[1] > 0   # sidestep toward the open right side
+        assert cmd[3] == 1
+
     def test_oscillation_left_more_open(self):
         """Left clearance > right → go left (vy = -0.35)."""
         cmd = compute_recovery_command(_osc_decision(), _rays(left=10.0, right=2.0))

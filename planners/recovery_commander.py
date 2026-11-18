@@ -159,19 +159,22 @@ def compute_recovery_command(
         vy = side * abs(p.lateral_speed) if side != 0 else 0.0
         return (vx, vy, 0.0, side)
 
-    # A trajectory planner local minimum is not necessarily a dead end.  If
-    # the forward sector is still open, advance while sidestepping around the
-    # obstacle; unconditional reverse here made Forest flights drift away
-    # from the goal and repeatedly re-enter recovery.
+    # A trajectory planner local minimum is not necessarily a dead end.  Keep
+    # advancing + sidestepping toward the clearer side even when the front is
+    # momentarily close (a tree/building face 1–2 m ahead in a dense scene);
+    # unconditional reverse here made Forest flights drift away from the goal
+    # and repeatedly re-enter recovery.  Reverse is reserved for a genuine
+    # dead end (front+left+right all blocked), which is handled by the
+    # "wall"/"climb" mode above — not by this mode.  The dispatch directional
+    # guard zeroes any motion component whose ray is inside the hard
+    # clearance, so this forward command can never drive into an obstacle face.
     if forced_mode == "trajectory_no_feasible":
-        front = _safe_ray(lidar_rays.get("front"))
-        if front >= p.dead_end_front_trigger_m:
-            return (
-                abs(p.wall_follow_forward_speed_mps),
-                side * abs(p.lateral_speed) if side != 0 else 0.0,
-                0.0,
-                side,
-            )
+        return (
+            abs(p.wall_follow_forward_speed_mps),
+            side * abs(p.lateral_speed) if side != 0 else 0.0,
+            0.0,
+            side,
+        )
 
     if decision.is_stuck:
         vy = side * p.lateral_speed if side != 0 else 0.0

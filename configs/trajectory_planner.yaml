@@ -49,6 +49,14 @@ trajectory_planner:
   # Direct LEFT↔RIGHT switch penalty (sec 5).
   direct_opposite_switch_penalty: 1.0
 
+  # Side lock (sec 5b): while the front corridor is blocked, suppress a direct
+  # LEFT↔RIGHT lateral flip.  Symmetric left/right obstacles score in a
+  # near-tie, so without this the incumbent side flips on every noise update
+  # and the vehicle oscillates in place instead of committing to one side.
+  side_lock:
+    enabled: true
+    front_clearance_m: 2.5
+
   # U-shaped/dead-end escape. After a reverse family is selected, keep
   # backing out until the forward corridor is open for this distance.
   reverse_hold:
@@ -98,8 +106,11 @@ trajectory_planner:
     lateral_speed_mps: 0.45
     # Recovery is bounded, but long enough to complete a short climb probe or
     # a wall-follow segment. It never becomes an unlimited reverse maneuver.
-    max_duration_s: 5.0
-    cooldown_s: 1.5
+    # Dense forest/building scenes were spending too long reversing and
+    # wall-following; these shorter bounds make recovery a quick probe that
+    # hands back to the planner sooner (sec 26).
+    max_duration_s: 3.5
+    cooldown_s: 1.0
     dead_end_escape_enabled: true
     dead_end_front_trigger_m: 2.5
     dead_end_side_trigger_m: 2.0
@@ -109,7 +120,7 @@ trajectory_planner:
     vertical_climb_duration_s: 1.2
     vertical_climb_delta_m: 0.40
     wall_follow_forward_speed_mps: 0.45
-    wall_follow_duration_s: 4.0
+    wall_follow_duration_s: 2.5
     wall_follow_side_lock_enabled: true
 
   # Keep a fixed wall-follow side after trajectory recovery from a large
@@ -125,9 +136,11 @@ trajectory_planner:
     release_hold_s: 0.8
 
   # No-feasible → fast Recovery (do not wait for the stuck detector).
+  # Two consecutive infeasible plans over 0.25 s is enough to react in a dense
+  # scene; waiting longer just makes the drone hover in place before moving.
   no_feasible:
-    recovery_trigger_count: 3
-    recovery_trigger_duration_s: 0.5
+    recovery_trigger_count: 2
+    recovery_trigger_duration_s: 0.25
 
   # Never silently fall back to the old Guided APF / reactive path while in
   # trajectory mode (sec 26).  trajectory_no_feasible enters bounded recovery
@@ -255,6 +268,33 @@ control_loop:
 altitude_safety:
   enabled: true
   error_stop_m: 0.8
+
+# Climb-over vertical avoidance (trajectory mode).  The 2D local planner can
+# only steer laterally, so a low building ahead is always bypassed sideways.
+# This layer climbs over it instead when the obstacle is low AND the sides are
+# narrow enough that going around is clearly more expensive.  Default policy
+# stays "go around"; climbing is the exception, not the rule.
+vertical_avoidance:
+  enabled: true
+  front_blocked_m: 2.5      # front < this → obstacle directly ahead
+  front_clear_m: 4.0        # front >= this → obstacle passed (exit the climb)
+  low_obstacle_front_up_m: 3.0  # frontUp >= this → obstacle is low enough to climb over
+  up_clearance_m: 2.5       # min(up, frontUp, leftUp, rightUp) required to climb
+  max_climb_m: 2.0          # max altitude gain above the cruise target
+  climb_step_m: 0.6         # per-tick incremental climb-target step
+  narrow_side_m: 2.0        # min(left,right) < this → lateral is "expensive"
+  ceiling_margin_m: 0.3     # stop this far short of the max-climb ceiling
+  hysteresis_s: 0.5         # min active time before an "obstacle passed" exit
+  # Persistent-escape (state machine) parameters.  A climb exits only when the
+  # front stays clear for ``clear_frames_required`` consecutive frames AND the
+  # drone has climbed at least ``minimum_escape_height_m``; it then holds its
+  # altitude and flies forward ``forward_clearance_distance_m`` before descending
+  # (bounded by ``forward_clearance_max_duration_s``).
+  minimum_escape_height_m: 0.8
+  clear_frames_required: 5
+  forward_clearance_distance_m: 1.5
+  forward_clearance_speed_mps: 0.25
+  forward_clearance_max_duration_s: 8.0
 
 # Background LiDAR / perception worker (sec 10-14): the LiDAR RPC
 # (getLidarData) is slow (~100-200 ms) and must NOT block the control loop.
