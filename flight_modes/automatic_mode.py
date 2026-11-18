@@ -4124,7 +4124,14 @@ class AutomaticMode:
                     elif col.is_new_collision_event and col.raw_timestamp != initial_floor_ts:
                         # Subsequent new collision event (different ts) → reject
                         saw_new_event_after_first = True
-                    cons_clean = 0
+                    from control.ground_contact import is_stationary_ground_contact
+                    if (not saw_new_event_after_first and col.raw_timestamp == initial_floor_ts
+                            and is_stationary_ground_contact(col, st0)):
+                        # Legacy Blocks latches the last collision forever. A
+                        # stable landed contact is a baseline, not a new hit.
+                        cons_clean += 1
+                    else:
+                        cons_clean = 0
                 else:
                     cons_clean += 1
                 if cons_clean >= _WARMUP_CLEAR:
@@ -4133,6 +4140,9 @@ class AutomaticMode:
             if saw_new_event_after_first:
                 rk["termination_reason"] = "warmup_new_collision_event"
                 return AutomaticFlightResult(**rk)
+            from control.ground_contact import is_stationary_ground_contact
+            if is_stationary_ground_contact(col, st0):
+                self._session.set_verified_ground_reference(st0, col)
             if saw_floor and cons_clean < _WARMUP_CLEAR:
                 rk["termination_reason"] = "warmup_floor_persists"
                 return AutomaticFlightResult(**rk)
@@ -4200,6 +4210,7 @@ class AutomaticMode:
             from perception.pointcloud_filter import filter_pointcloud
             from perception.pointcloud_to_sectors import pointcloud_to_directional_distances
             from control.velocity_controller import VelocityController
+            from control.swarm_flight_bridge import FormationPermitExpired
 
             vc = VelocityController(
                 self._adapter,
@@ -4577,6 +4588,10 @@ class AutomaticMode:
             if self._swarm_bridge is not None:
                 self._swarm_bridge.begin_cruise(self)
             while self._running:
+                stop_file = vars(self._session).get("stop_file")
+                if stop_file is not None and stop_file.exists():
+                    term = "coordinated_stop"
+                    break
                 fn += 1
                 if self._swarm_bridge is not None:
                     self._swarm_bridge.tick()
@@ -4662,9 +4677,16 @@ class AutomaticMode:
                     formation_goal = self._swarm_bridge.goal(st)
                     if formation_goal is not None:
                         _mission_goal = formation_goal
+                    if not self._swarm_bridge.expects_navigation_progress(st):
+                        # Waiting for B or holding an attained slot is not a
+                        # stalled navigation task and must not launch recovery.
+                        self._progress_watchdog.reset(time.monotonic(),tuple(st.position_ned_m[:2]))
+                        self._recovery.reset()
+                        self._recovery_sm.reset()
+                        self._traj_request_recovery = False
                 _stg_sensor_ms = _rpc_lidar_ms + _rpc_state_ms + _rpc_collision_ms
 
-                if col.has_collided:
+                if col.has_collided and (not initial_floor_ts or col.raw_timestamp != initial_floor_ts):
                     term = f"collision:{col.object_name}"
                     break
                 if math.hypot(st.position_ned_m[0] - spawn[0], st.position_ned_m[1] - spawn[1]) > self._params.geofence_radius_m:
@@ -4918,8 +4940,7 @@ class AutomaticMode:
                     term = "perception:none"
                     break
                 if self._swarm_bridge is not None:
-                    self._swarm_bridge.points = fr.filtered_points_sensor
-                    self._swarm_bridge.points_at = lf.received_monotonic_seconds
+                    self._swarm_bridge.update_lidar(lf)
 
                 # Vertical-escape decision runs here, BEFORE the recovery state
                 # machine below, so the recovery tick sees this frame's episode
@@ -5831,8 +5852,11 @@ class AutomaticMode:
                             "true" if _goal_res.speed_low else "false",
                         )
                     if _goal_res.reached and not (self._swarm_bridge is not None and self._swarm_bridge.follower):
-                        term = "mission_complete"
-                        break
+                        if self._swarm_bridge is not None:
+                            self._swarm_bridge.leader_goal_hold = True
+                        if self._swarm_bridge is None or self._swarm_bridge.link.followers_settled():
+                            term = "mission_complete"
+                            break
 
                 # Phase C1-R sec 14: planning-stage wall time ends here (all
                 # planning/guidance done; only dispatch + logging remain).
@@ -6796,6 +6820,11 @@ class AutomaticMode:
                     and command_source != "control_loop_hover"
                 ):
                     _orca_preferred_vx, _orca_preferred_vy = selected_vx, selected_vy
+                    _preferred_speed = math.hypot(_orca_preferred_vx, _orca_preferred_vy)
+                    if _preferred_speed > self._params.forward_speed_mps:
+                        _speed_scale = self._params.forward_speed_mps / _preferred_speed
+                        _orca_preferred_vx *= _speed_scale
+                        _orca_preferred_vy *= _speed_scale
                     _orca_was_vertical_escape = command_source == "vertical_escape"
                     selected_vx, selected_vy, _orca_result = self._apply_inter_uav_orca(
                         st, selected_vx, selected_vy, st.yaw_rad,
@@ -6867,10 +6896,29 @@ class AutomaticMode:
                     _rpc_velocity_submit_ms = _rpc_velocity_command_ms
                     if self._swarm_bridge is not None:
                         self._swarm_bridge.report_dispatch(command_source, avoiding=_swarm_actively_avoiding)
-                except Exception:
+                except FormationPermitExpired:
+                    # Never fly an expired B target. A's bounded hold is a new
+                    # proposal and must pass the same fresh state/CPA/LiDAR gate.
+                    self._swarm_bridge.adopted_command = None
+                    try:
+                        self._last_velocity_future = vc.send_velocity_body_frd(
+                            0., 0., self._altitude_hold_velocity(st.position_ned_m[2],
+                                self._params.target_z_ned,self._params.max_vertical_speed_mps),
+                            duration=_selected_command_duration,vehicle_name=self._vn,
+                            yaw_rate=0.,yaw_rad=st.yaw_rad)
+                        command_source = "formation_expired_verified_hold"
+                        self._swarm_bridge.link.report("FORMATION_RECOVERING",command_source)
+                    except Exception as hold_error:
+                        self._swarm_bridge._unverified_emergency = True
+                        logger.error("expired_formation_hold_rejected reason=%s",hold_error)
+                        term = "velocity_send_error"
+                        break
+                except Exception as dispatch_error:
                     if self._swarm_bridge is not None:
                         self._swarm_bridge._unverified_emergency = True
-                        self._swarm_bridge.link.report("EMERGENCY", "velocity_send_error")
+                        reason = self._swarm_bridge.last_rejection_reason or str(dispatch_error)
+                        self._swarm_bridge.link.report("EMERGENCY",reason)
+                        logger.error("gateway_dispatch_rejected reason=%s",reason)
                     term = "velocity_send_error"
                     break
 

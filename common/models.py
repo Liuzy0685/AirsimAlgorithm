@@ -94,6 +94,9 @@ class FormationCommand:
         priority: Arbitration priority (lower than safety / avoidance).
         formation_id: Optional formation identifier for diagnostics.
         timestamp_s: Emission time (wall clock), seconds.
+        recovery_target_ned_m: Optional World-NED navigation goal for velocity
+            recovery. A plans around obstacles toward it; the requested
+            velocity bounds speed and never overrides the static planner.
     """
 
     vehicle_name: str
@@ -105,6 +108,7 @@ class FormationCommand:
     formation_id: str = ""
     timestamp_s: float = 0.0
     lifecycle: Optional[CommandLifecycle] = None
+    recovery_target_ned_m: Optional[Vec3] = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.vehicle_name, str) or not self.vehicle_name.strip():
@@ -115,6 +119,8 @@ class FormationCommand:
             _require_finite_3d(self.target_position_ned_m, "target_position_ned_m")
         else:
             _require_finite_3d(self.desired_velocity_ned_mps, "desired_velocity_ned_mps")
+        if self.recovery_target_ned_m is not None:
+            _require_finite_3d(self.recovery_target_ned_m, "recovery_target_ned_m")
         if self.lifecycle is not None and self.lifecycle.source != "formation":
             raise ValueError("FormationCommand lifecycle source must be 'formation'")
 

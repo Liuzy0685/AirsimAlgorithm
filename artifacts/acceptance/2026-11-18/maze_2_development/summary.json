@@ -1,0 +1,376 @@
+{
+  "frames": 703,
+  "complete_frames": 703,
+  "incomplete_frames": 0,
+  "minimum_sampled_separation_m": 2.156772389243133,
+  "minimum_piecewise_linear_separation_m": 2.1567289224733255,
+  "separation_observed_ok": true,
+  "configured_safety_distance_m": 2.0,
+  "path_length_m": {
+    "Drone1": 22.20123284200352,
+    "Drone2": 27.30171035457684
+  },
+  "low_speed_time_s": {
+    "Drone1": 48.713401399996656,
+    "Drone2": 7.3341388999961055
+  },
+  "formation_observed_frames": 551,
+  "formation_settled_frames": 27,
+  "formation_error_rmse_m": 4.128454884886379,
+  "maximum_formation_error_m": 7.122254103315117,
+  "collection_timing": {
+    "count": 703,
+    "mean_s": 0.0010577017069790264,
+    "p95_s": 0.001505100000940729,
+    "max_s": 0.0027958999999100342
+  },
+  "receive_intervals": {
+    "count": 702,
+    "mean_s": 0.20661999672364492,
+    "p95_s": 0.2157889999998588,
+    "max_s": 0.21979929999906744
+  },
+  "limitation": "Linear interpolation between measured samples is not a continuous-time safety proof; low speed includes deliberate holds and ground time.",
+  "environment": {
+    "map_label": "maze",
+    "vehicle_names": [
+      "Drone1",
+      "Drone2"
+    ],
+    "algorithm": "orca",
+    "settings_sha256": "0cc67ebf21a563c94ad2389535fa3bd48ce6bc51d8a6976b4a065ef8b8e27272",
+    "server_version": 1,
+    "started_at_unix_ms": 1795004600697,
+    "evidence_type": "live_airsim",
+    "cylinders": [
+      {
+        "name": "Cylinder_2",
+        "position_ned_m": [
+          10.300000190734863,
+          6.300000190734863,
+          -3.0
+        ],
+        "scale": [
+          2.5,
+          2.5,
+          10.0
+        ]
+      },
+      {
+        "name": "Cylinder2",
+        "position_ned_m": [
+          3.299999952316284,
+          -7.800000190734863,
+          -3.0
+        ],
+        "scale": [
+          2.0,
+          2.0,
+          10.0
+        ]
+      },
+      {
+        "name": "Cylinder3",
+        "position_ned_m": [
+          5.400000095367432,
+          0.20000000298023224,
+          -3.0
+        ],
+        "scale": [
+          2.0,
+          2.0,
+          10.0
+        ]
+      },
+      {
+        "name": "Cylinder4",
+        "position_ned_m": [
+          10.600000381469727,
+          -2.299999952316284,
+          -3.0
+        ],
+        "scale": [
+          2.0,
+          2.0,
+          10.0
+        ]
+      },
+      {
+        "name": "Cylinder5",
+        "position_ned_m": [
+          5.900000095367432,
+          10.100000381469727,
+          -3.0
+        ],
+        "scale": [
+          2.0,
+          2.0,
+          10.0
+        ]
+      },
+      {
+        "name": "Cylinder6",
+        "position_ned_m": [
+          16.700000762939453,
+          -8.300000190734863,
+          -3.0
+        ],
+        "scale": [
+          3.0,
+          3.0,
+          10.0
+        ]
+      },
+      {
+        "name": "Cylinder7",
+        "position_ned_m": [
+          20.100000381469727,
+          2.200000047683716,
+          -3.0
+        ],
+        "scale": [
+          3.0,
+          3.0,
+          10.0
+        ]
+      },
+      {
+        "name": "Cylinder8",
+        "position_ned_m": [
+          25.799999237060547,
+          -6.900000095367432,
+          -3.0
+        ],
+        "scale": [
+          3.0,
+          3.0,
+          10.0
+        ]
+      },
+      {
+        "name": "Cylinder9",
+        "position_ned_m": [
+          24.100000381469727,
+          -4.199999809265137,
+          -3.0
+        ],
+        "scale": [
+          2.0,
+          2.0,
+          10.0
+        ]
+      },
+      {
+        "name": "Cylinder10",
+        "position_ned_m": [
+          33.400001525878906,
+          2.200000047683716,
+          -3.0
+        ],
+        "scale": [
+          2.0,
+          2.0,
+          10.0
+        ]
+      },
+      {
+        "name": "Cylinder11",
+        "position_ned_m": [
+          30.100000381469727,
+          6.800000190734863,
+          -3.0
+        ],
+        "scale": [
+          2.0,
+          2.0,
+          10.0
+        ]
+      },
+      {
+        "name": "Cylinder12",
+        "position_ned_m": [
+          20.200000762939453,
+          10.699999809265137,
+          -3.0
+        ],
+        "scale": [
+          2.0,
+          2.0,
+          10.0
+        ]
+      },
+      {
+        "name": "Cylinder13",
+        "position_ned_m": [
+          39.599998474121094,
+          -2.9000000953674316,
+          -3.0
+        ],
+        "scale": [
+          2.0,
+          2.0,
+          10.0
+        ]
+      },
+      {
+        "name": "Cylinder14",
+        "position_ned_m": [
+          17.700000762939453,
+          5.199999809265137,
+          -3.0
+        ],
+        "scale": [
+          2.0,
+          2.0,
+          10.0
+        ]
+      },
+      {
+        "name": "Cylinder15",
+        "position_ned_m": [
+          3.299999952316284,
+          4.099999904632568,
+          -3.0
+        ],
+        "scale": [
+          4.0,
+          4.0,
+          10.0
+        ]
+      },
+      {
+        "name": "Cylinder16",
+        "position_ned_m": [
+          7.5,
+          -8.5,
+          -3.0
+        ],
+        "scale": [
+          2.0,
+          2.0,
+          10.0
+        ]
+      },
+      {
+        "name": "Cylinder17",
+        "position_ned_m": [
+          33.70000076293945,
+          -11.0,
+          -3.0
+        ],
+        "scale": [
+          2.0,
+          2.0,
+          10.0
+        ]
+      },
+      {
+        "name": "Cylinder18",
+        "position_ned_m": [
+          38.70000076293945,
+          8.899999618530273,
+          -3.0
+        ],
+        "scale": [
+          4.0,
+          4.0,
+          10.0
+        ]
+      },
+      {
+        "name": "Cylinder19",
+        "position_ned_m": [
+          10.399999618530273,
+          1.5,
+          -3.0
+        ],
+        "scale": [
+          2.0,
+          2.0,
+          10.0
+        ]
+      }
+    ]
+  },
+  "elapsed_s": 146.27639409999938,
+  "launcher_returncode": 0,
+  "vehicle_results": {
+    "Drone1": {
+      "success": true,
+      "termination_reason": "mission_complete",
+      "frames_completed": 2231,
+      "flight_duration_s": 111.71039639999981,
+      "api_control_acquired": true,
+      "armed": true,
+      "takeoff_completed": true,
+      "airborne": true,
+      "landing_confirmed": false,
+      "disarmed": false,
+      "api_control_released": false,
+      "startup_floor_contact_baseline": false,
+      "cleanup": {
+        "phase": "CONTROL_RELEASED",
+        "landing_attempted": true,
+        "landing_confirmed": true,
+        "control_released": true,
+        "manual_intervention_required": false
+      }
+    },
+    "Drone2": {
+      "success": false,
+      "termination_reason": "coordinated_stop",
+      "frames_completed": 2233,
+      "flight_duration_s": 111.84407009999995,
+      "api_control_acquired": true,
+      "armed": true,
+      "takeoff_completed": true,
+      "airborne": true,
+      "landing_confirmed": false,
+      "disarmed": false,
+      "api_control_released": false,
+      "startup_floor_contact_baseline": false,
+      "cleanup": {
+        "phase": "CONTROL_RELEASED",
+        "landing_attempted": true,
+        "landing_confirmed": true,
+        "control_released": true,
+        "manual_intervention_required": false
+      }
+    }
+  },
+  "collision_events": [
+    {
+      "t": 143.17893729999923,
+      "vehicle": "Drone1",
+      "object": "(null)",
+      "timestamp": 1795004701278526208,
+      "classification": "verified_ground_contact",
+      "normal": [
+        -5.5511137996368026e-17,
+        -6.241732686262935e-10,
+        -1.0
+      ]
+    },
+    {
+      "t": 143.59656939999877,
+      "vehicle": "Drone2",
+      "object": "(null)",
+      "timestamp": 1795004701686534912,
+      "classification": "verified_ground_contact",
+      "normal": [
+        1.6923079604325153e-09,
+        1.0935431449254907e-09,
+        -1.0
+      ]
+    }
+  ],
+  "collision_events_excluding_landed_ground": 0,
+  "shutdown_complete": true,
+  "flight_acceptance_passed": true,
+  "raw_evidence_sha256": {
+    "summary.json": "848f41058c381173ac626f99bf0839036d561143824a048fa9210a6fd3df9adc",
+    "snapshots.jsonl": "c4f03f648dd2304caa1f1bcaee79f7034f04302526f9f966259f9b123c655412",
+    "environment.json": "36d1cd930d6965694db5c7b3427d91098d97be38355cdde210eed1948f8b25d9"
+  },
+  "export_note": "All complete sampled positions exported; plots show cylinder centers, not obstacle outlines. No continuous-time safety or tight-formation accuracy certification."
+}

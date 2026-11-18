@@ -56,6 +56,8 @@ class VehicleState:
     can_arm: bool = False
     landed_state: Optional[int] = None
     received_monotonic_seconds: float = 0.0
+    # Older RPC adapters omit ready/can_arm; Python class defaults are not reports.
+    readiness_available: bool = True
 
     def __repr__(self) -> str:
         return (

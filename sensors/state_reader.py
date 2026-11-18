@@ -137,4 +137,5 @@ class StateReader:
             can_arm=bool(raw.can_arm),
             landed_state=int(raw.landed_state),
             received_monotonic_seconds=received_mono,
+            readiness_available="ready" in vars(raw),
         )

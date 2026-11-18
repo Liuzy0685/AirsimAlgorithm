@@ -33,6 +33,8 @@ class ControllerLink:
         self._received_command_at = 0.0
         self._command_sequence = {}
         self._requests = {}
+        self._peer_statuses = {}
+        self._permitted_commands = {}
 
     def start(self):
         self._thread = threading.Thread(target=lambda: asyncio.run(self._run()), daemon=True,
@@ -84,6 +86,8 @@ class ControllerLink:
                 self._last_sequence = -1
                 self._last_snapshot_id = -1
                 self._command_sequence.clear()
+                self._permitted_commands.clear()
+                self._peer_statuses.clear()
             if envelope.message_type == "swarm.snapshot":
                 if envelope.sequence_id <= self._last_sequence:
                     return
@@ -122,16 +126,54 @@ class ControllerLink:
                 self._command_sequence[key] = life.sequence_id
                 cmd.lifecycle = replace(life, ttl_s=min(life.ttl_s, remaining))
                 self._command, self._received_command_at = cmd, self.clock()
+                self._permitted_commands[life.command_id] = (cmd, self._received_command_at)
             elif (envelope.message_type == "coordination.status" and
                     envelope.payload.get("vehicle_name") == self.vehicle_name and
                     envelope.payload.get("reason") in ("formation_source_disconnected", "snapshot_unavailable")):
                 self._command = None
+                self._permitted_commands.clear()
+            if envelope.message_type == "coordination.status":
+                self._peer_statuses[envelope.payload.get("vehicle_name")] = (envelope.payload, self.clock())
+
+    def permitted_command(self, command_id):
+        """Finish a frame using its pinned, still-current permit; never extend it."""
+        with self._lock:
+            snap=self._snapshot
+            record=self._permitted_commands.get(command_id)
+            if (not self._connected or snap is None or not snap.collection_complete or snap.errors
+                    or self.clock()-snap.timestamp>=self.cfg.snapshot_max_age_s or record is None):
+                return None
+            cmd,received=record
+            if self._command is not None and self._command.lifecycle.command_id==command_id:
+                received=self._received_command_at
+            if not cmd.lifecycle.is_current(sim_time_ns=max(s.timestamp for s in snap.states.values()),
+                received_monotonic_seconds=received,now_monotonic_seconds=self.clock()):
+                return None
+            remaining=min(cmd.lifecycle.ttl_s-(self.clock()-received),
+                (cmd.lifecycle.expires_at-max(s.timestamp for s in snap.states.values()))/1e9)
+            return copy.deepcopy(cmd),remaining
+
+    def followers_settled(self):
+        snap = self.snapshot()
+        if snap is None:
+            return False
+        with self._lock:
+            for name in self.names - {self.cfg.leader}:
+                payload,at = self._peer_statuses.get(name, ({}, float('-inf')))
+                if (self.clock()-at >= self.cfg.disconnect_timeout_s or payload.get("state") != "NORMAL"
+                        or payload.get("task_id") != self.cfg.task_id or not payload.get("active_command_id")):
+                    return False
+                if sum(v*v for v in snap.states[name].linear_velocity_ned_mps) > .2**2:
+                    return False
+        return True
 
     def command_request(self, sequence):
         request_id = str(uuid.uuid4())
         with self._lock:
             now = self.clock()
             self._requests = {key: at for key, at in self._requests.items() if now-at < 2}
+            self._permitted_commands={key:(cmd,at) for key,(cmd,at) in self._permitted_commands.items()
+                if 0<=now-at<cmd.lifecycle.ttl_s}
             self._requests[request_id] = now
         return build_envelope(message_type="command.request", producer_id=self.producer_id,
             stream_id=self.stream_id, sequence_id=sequence, payload=dict(request_id=request_id))
@@ -186,6 +228,8 @@ class ControllerLink:
                     self._connected = False
                     self._snapshot = self._command = None
                     self._requests.clear()
+                    self._peer_statuses.clear()
+                    self._permitted_commands.clear()
                 if connection:
                     await connection.close()
             # Interruptible backoff with the protocol's 0.5/1/2/5 second cap.

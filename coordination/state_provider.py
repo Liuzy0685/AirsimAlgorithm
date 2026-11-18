@@ -82,6 +82,7 @@ class StateProvider:
         max_age_s: float = 0.5,
         max_skew_s: float = 0.5,
         clock: Callable[[], float] = time.monotonic,
+        allow_legacy_readiness: bool = False,
     ) -> None:
         names = tuple(readers)
         if not MIN_DRONES <= len(names) <= MAX_DRONES:
@@ -101,6 +102,9 @@ class StateProvider:
         self._max_age_s = max_age_s
         self._max_skew_s = max_skew_s
         self._clock = clock
+        if type(allow_legacy_readiness) is not bool:
+            raise ValueError("allow_legacy_readiness must be boolean")
+        self._allow_legacy_readiness = allow_legacy_readiness
         self._latest: SwarmStateSnapshot | None = None
         self._last_raw_timestamp: dict[str, int] = {}
         self._sequence = 0
@@ -215,11 +219,10 @@ class StateProvider:
         age = self._clock() - at
         return math.isfinite(at) and at > 0 and 0 <= age <= self._max_age_s
 
-    @staticmethod
-    def _validate_local(state: VehicleState) -> None:
+    def _validate_local(self, state: VehicleState) -> None:
         if not isinstance(state, VehicleState):
             raise ValueError("reader must return VehicleState")
-        if not state.ready:
+        if not state.ready and (state.readiness_available or not self._allow_legacy_readiness):
             raise ValueError("vehicle is not ready")
         if not isinstance(state.timestamp, int) or state.timestamp <= 0:
             raise ValueError("AirSim timestamp must be positive")

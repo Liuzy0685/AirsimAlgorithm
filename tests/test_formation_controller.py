@@ -84,6 +84,7 @@ def test_avoidance_handoff_and_recovery():
     assert plan(controller, snapshot(sequence=2), "NORMAL") == {}
     recovering = plan(controller, snapshot(sequence=3), "CONFLICT_CLEARED")["Drone2"]
     assert recovering.mode == "velocity"
+    assert recovering.recovery_target_ned_m == (-3, 0, -2)
     assert recovering.desired_velocity_ned_mps == pytest.approx((-1, 0, 0))
     assert math.dist(recovering.desired_velocity_ned_mps, (0, 0, 0)) <= 1
     settled = plan(controller, snapshot(positions={2: (-3, 0, -2)}, sequence=4),

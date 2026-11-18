@@ -1,0 +1,492 @@
+{
+  "map": "regularMaze",
+  "active_map": "/Game/regularMaze",
+  "evidence_type": "live_airsim",
+  "transform": {
+    "validated": true,
+    "vehicles": {
+      "Drone1": {
+        "vehicle_name": "Drone1",
+        "position_error_m": 0.14649581909179688,
+        "velocity_error_mps": 0.0,
+        "yaw_rad": 0.0,
+        "rotation_applied": false,
+        "ok": true,
+        "message": ""
+      },
+      "Drone2": {
+        "vehicle_name": "Drone2",
+        "position_error_m": 0.14649581909179688,
+        "velocity_error_mps": 0.0,
+        "yaw_rad": 0.0,
+        "rotation_applied": false,
+        "ok": true,
+        "message": ""
+      },
+      "Drone3": {
+        "vehicle_name": "Drone3",
+        "position_error_m": 0.14649581909179688,
+        "velocity_error_mps": 0.0,
+        "yaw_rad": 0.0,
+        "rotation_applied": false,
+        "ok": true,
+        "message": ""
+      },
+      "Drone4": {
+        "vehicle_name": "Drone4",
+        "position_error_m": 0.14649581909179688,
+        "velocity_error_mps": 0.0,
+        "yaw_rad": 0.0,
+        "rotation_applied": false,
+        "ok": true,
+        "message": ""
+      },
+      "Drone5": {
+        "vehicle_name": "Drone5",
+        "position_error_m": 0.14649581909179688,
+        "velocity_error_mps": 0.0,
+        "yaw_rad": 0.0,
+        "rotation_applied": false,
+        "ok": true,
+        "message": ""
+      }
+    },
+    "errors": [],
+    "warnings": []
+  },
+  "snapshots": [
+    {
+      "sequence_id": 1,
+      "complete": true,
+      "collection_duration_s": 0.00138639999931911,
+      "max_receive_skew_s": 0.0009788999996089842,
+      "max_sim_skew_s": 0.0,
+      "read_duration_s": {
+        "Drone1": 0.0003751999993255595,
+        "Drone2": 0.00020650000078603625,
+        "Drone3": 0.00023049999981594738,
+        "Drone4": 0.00016379999942728318,
+        "Drone5": 0.0001933999992616009
+      },
+      "errors": {}
+    },
+    {
+      "sequence_id": 2,
+      "complete": true,
+      "collection_duration_s": 0.002265699999043136,
+      "max_receive_skew_s": 0.0013893000013922574,
+      "max_sim_skew_s": 0.0,
+      "read_duration_s": {
+        "Drone1": 0.0007392999996227445,
+        "Drone2": 0.0003386999997019302,
+        "Drone3": 0.0002814999988913769,
+        "Drone4": 0.00032559999999648426,
+        "Drone5": 0.00023950000104377978
+      },
+      "errors": {}
+    },
+    {
+      "sequence_id": 3,
+      "complete": true,
+      "collection_duration_s": 0.0016211999991355697,
+      "max_receive_skew_s": 0.001096599999073078,
+      "max_sim_skew_s": 0.0,
+      "read_duration_s": {
+        "Drone1": 0.0004859000000578817,
+        "Drone2": 0.0003164999998261919,
+        "Drone3": 0.0002148000003217021,
+        "Drone4": 0.00020939999922120478,
+        "Drone5": 0.00017549999938637484
+      },
+      "errors": {}
+    },
+    {
+      "sequence_id": 4,
+      "complete": true,
+      "collection_duration_s": 0.0019057999998040032,
+      "max_receive_skew_s": 0.0013173000006645452,
+      "max_sim_skew_s": 0.003000064,
+      "read_duration_s": {
+        "Drone1": 0.0005518999987543793,
+        "Drone2": 0.0003758000002562767,
+        "Drone3": 0.00027239999872108456,
+        "Drone4": 0.00023089999922376592,
+        "Drone5": 0.00023160000091593247
+      },
+      "errors": {}
+    },
+    {
+      "sequence_id": 5,
+      "complete": true,
+      "collection_duration_s": 0.001799899999241461,
+      "max_receive_skew_s": 0.001099400000384776,
+      "max_sim_skew_s": 0.003000064,
+      "read_duration_s": {
+        "Drone1": 0.0006630000007135095,
+        "Drone2": 0.000243800001044292,
+        "Drone3": 0.0002199000009568408,
+        "Drone4": 0.0002502000006643357,
+        "Drone5": 0.00021600000036414713
+      },
+      "errors": {}
+    },
+    {
+      "sequence_id": 6,
+      "complete": true,
+      "collection_duration_s": 0.0015607000004820293,
+      "max_receive_skew_s": 0.0010242999996989965,
+      "max_sim_skew_s": 0.0,
+      "read_duration_s": {
+        "Drone1": 0.0005041000003984664,
+        "Drone2": 0.0002747999988059746,
+        "Drone3": 0.00024230000053648837,
+        "Drone4": 0.0001922999999806052,
+        "Drone5": 0.0001568000006955117
+      },
+      "errors": {}
+    },
+    {
+      "sequence_id": 7,
+      "complete": true,
+      "collection_duration_s": 0.0017695999995339662,
+      "max_receive_skew_s": 0.0010681000003387453,
+      "max_sim_skew_s": 0.003000064,
+      "read_duration_s": {
+        "Drone1": 0.0006620999993174337,
+        "Drone2": 0.0002604000001156237,
+        "Drone3": 0.0002590000003692694,
+        "Drone4": 0.00017660000048635993,
+        "Drone5": 0.00020939999922120478
+      },
+      "errors": {}
+    },
+    {
+      "sequence_id": 8,
+      "complete": true,
+      "collection_duration_s": 0.0021242000002530403,
+      "max_receive_skew_s": 0.0012752999991789693,
+      "max_sim_skew_s": 0.003000064,
+      "read_duration_s": {
+        "Drone1": 0.0007974000000103842,
+        "Drone2": 0.00028930000007676426,
+        "Drone3": 0.000228300001253956,
+        "Drone4": 0.00030950000109442044,
+        "Drone5": 0.0002662999995663995
+      },
+      "errors": {}
+    },
+    {
+      "sequence_id": 9,
+      "complete": true,
+      "collection_duration_s": 0.0015636000007361872,
+      "max_receive_skew_s": 0.0010160000001633307,
+      "max_sim_skew_s": 0.0,
+      "read_duration_s": {
+        "Drone1": 0.0005115000003570458,
+        "Drone2": 0.00023800000053597614,
+        "Drone3": 0.00016900000082387123,
+        "Drone4": 0.0002533999995648628,
+        "Drone5": 0.00019550000070012175
+      },
+      "errors": {}
+    },
+    {
+      "sequence_id": 10,
+      "complete": true,
+      "collection_duration_s": 0.0015555000009044306,
+      "max_receive_skew_s": 0.0009618000003683846,
+      "max_sim_skew_s": 0.0,
+      "read_duration_s": {
+        "Drone1": 0.0005588000003626803,
+        "Drone2": 0.0002447000006213784,
+        "Drone3": 0.00020770000082848128,
+        "Drone4": 0.00018000000090978574,
+        "Drone5": 0.00017560000014782418
+      },
+      "errors": {}
+    },
+    {
+      "sequence_id": 11,
+      "complete": true,
+      "collection_duration_s": 0.0017152000000351109,
+      "max_receive_skew_s": 0.0010770999997475883,
+      "max_sim_skew_s": 0.0,
+      "read_duration_s": {
+        "Drone1": 0.000593299999309238,
+        "Drone2": 0.00023120000150811393,
+        "Drone3": 0.00018460000137565657,
+        "Drone4": 0.0002978000011353288,
+        "Drone5": 0.00020640000002458692
+      },
+      "errors": {}
+    },
+    {
+      "sequence_id": 12,
+      "complete": true,
+      "collection_duration_s": 0.0018008000006375369,
+      "max_receive_skew_s": 0.0011814000008598669,
+      "max_sim_skew_s": 0.0,
+      "read_duration_s": {
+        "Drone1": 0.000568800000110059,
+        "Drone2": 0.00029910000012023374,
+        "Drone3": 0.0001961999987543095,
+        "Drone4": 0.00024929999926825985,
+        "Drone5": 0.0002542000001994893
+      },
+      "errors": {}
+    },
+    {
+      "sequence_id": 13,
+      "complete": true,
+      "collection_duration_s": 0.0014527999992424157,
+      "max_receive_skew_s": 0.0010000000002037268,
+      "max_sim_skew_s": 0.0,
+      "read_duration_s": {
+        "Drone1": 0.0004136000006838003,
+        "Drone2": 0.00025520000053802505,
+        "Drone3": 0.00019120000069960952,
+        "Drone4": 0.00021919999926467426,
+        "Drone5": 0.0001869000006990973
+      },
+      "errors": {}
+    },
+    {
+      "sequence_id": 14,
+      "complete": true,
+      "collection_duration_s": 0.0019492000010359334,
+      "max_receive_skew_s": 0.0011837000001833076,
+      "max_sim_skew_s": 0.0,
+      "read_duration_s": {
+        "Drone1": 0.0007268000008480158,
+        "Drone2": 0.0003572999994503334,
+        "Drone3": 0.00024839999969117343,
+        "Drone4": 0.00021580000066023786,
+        "Drone5": 0.00019150000116496813
+      },
+      "errors": {}
+    },
+    {
+      "sequence_id": 15,
+      "complete": true,
+      "collection_duration_s": 0.0021667999990313547,
+      "max_receive_skew_s": 0.0013177000000723638,
+      "max_sim_skew_s": 0.003000064,
+      "read_duration_s": {
+        "Drone1": 0.0007896999995864462,
+        "Drone2": 0.0003089000001637032,
+        "Drone3": 0.0002696999999898253,
+        "Drone4": 0.0002502999996067956,
+        "Drone5": 0.00026190000062342733
+      },
+      "errors": {}
+    },
+    {
+      "sequence_id": 16,
+      "complete": true,
+      "collection_duration_s": 0.002333399999770336,
+      "max_receive_skew_s": 0.0015803000005689682,
+      "max_sim_skew_s": 0.0,
+      "read_duration_s": {
+        "Drone1": 0.0007126000000425847,
+        "Drone2": 0.00040519999856769573,
+        "Drone3": 0.00037369999881775584,
+        "Drone4": 0.00029799999902024865,
+        "Drone5": 0.00023490000057790894
+      },
+      "errors": {}
+    },
+    {
+      "sequence_id": 17,
+      "complete": true,
+      "collection_duration_s": 0.0015265000001818407,
+      "max_receive_skew_s": 0.0009967000005417503,
+      "max_sim_skew_s": 0.0,
+      "read_duration_s": {
+        "Drone1": 0.0004946999997628154,
+        "Drone2": 0.00026959999922837596,
+        "Drone3": 0.00023709999913990032,
+        "Drone4": 0.00015580000035697594,
+        "Drone5": 0.00018430000091029797
+      },
+      "errors": {}
+    },
+    {
+      "sequence_id": 18,
+      "complete": true,
+      "collection_duration_s": 0.002001300001211348,
+      "max_receive_skew_s": 0.0014266000016505131,
+      "max_sim_skew_s": 0.0,
+      "read_duration_s": {
+        "Drone1": 0.0005330999993020669,
+        "Drone2": 0.00034279999999853317,
+        "Drone3": 0.00034889999915321823,
+        "Drone4": 0.0002575999988039257,
+        "Drone5": 0.0002653999999893131
+      },
+      "errors": {}
+    },
+    {
+      "sequence_id": 19,
+      "complete": true,
+      "collection_duration_s": 0.0017716999991534976,
+      "max_receive_skew_s": 0.0011070000000472646,
+      "max_sim_skew_s": 0.0,
+      "read_duration_s": {
+        "Drone1": 0.0006049999992683297,
+        "Drone2": 0.0002795999989757547,
+        "Drone3": 0.00020190000032016542,
+        "Drone4": 0.0001816000003600493,
+        "Drone5": 0.00028869999914604705
+      },
+      "errors": {}
+    },
+    {
+      "sequence_id": 20,
+      "complete": true,
+      "collection_duration_s": 0.0016272000011667842,
+      "max_receive_skew_s": 0.0010692000014387304,
+      "max_sim_skew_s": 0.0,
+      "read_duration_s": {
+        "Drone1": 0.0005234999989625067,
+        "Drone2": 0.00024309999935212545,
+        "Drone3": 0.00021039999955974054,
+        "Drone4": 0.00021209999977145344,
+        "Drone5": 0.00024450000091746915
+      },
+      "errors": {}
+    },
+    {
+      "sequence_id": 21,
+      "complete": true,
+      "collection_duration_s": 0.0016577999995206483,
+      "max_receive_skew_s": 0.0010520000014366815,
+      "max_sim_skew_s": 0.0,
+      "read_duration_s": {
+        "Drone1": 0.000563599998713471,
+        "Drone2": 0.00025179999829560984,
+        "Drone3": 0.00019979999888164457,
+        "Drone4": 0.0001680999994277954,
+        "Drone5": 0.0002542000001994893
+      },
+      "errors": {}
+    },
+    {
+      "sequence_id": 22,
+      "complete": true,
+      "collection_duration_s": 0.0018261000004713424,
+      "max_receive_skew_s": 0.0011448000004747882,
+      "max_sim_skew_s": 0.0,
+      "read_duration_s": {
+        "Drone1": 0.0006437000010919292,
+        "Drone2": 0.0003431999994063517,
+        "Drone3": 0.00019580000116548035,
+        "Drone4": 0.0002057999990938697,
+        "Drone5": 0.00021830000150657725
+      },
+      "errors": {}
+    },
+    {
+      "sequence_id": 23,
+      "complete": true,
+      "collection_duration_s": 0.001567000001159613,
+      "max_receive_skew_s": 0.0010278000008838717,
+      "max_sim_skew_s": 0.003000064,
+      "read_duration_s": {
+        "Drone1": 0.000492600000143284,
+        "Drone2": 0.00023739999960525893,
+        "Drone3": 0.00021670000023732428,
+        "Drone4": 0.00019719999909284525,
+        "Drone5": 0.00021830000150657725
+      },
+      "errors": {}
+    },
+    {
+      "sequence_id": 24,
+      "complete": true,
+      "collection_duration_s": 0.0014506000006804243,
+      "max_receive_skew_s": 0.0009642999993957346,
+      "max_sim_skew_s": 0.0,
+      "read_duration_s": {
+        "Drone1": 0.0004468000006454531,
+        "Drone2": 0.00020369999947433826,
+        "Drone3": 0.00015780000103404745,
+        "Drone4": 0.0002113999998982763,
+        "Drone5": 0.00024900000062189065
+      },
+      "errors": {}
+    },
+    {
+      "sequence_id": 25,
+      "complete": true,
+      "collection_duration_s": 0.0016087999993033009,
+      "max_receive_skew_s": 0.0010167999989789678,
+      "max_sim_skew_s": 0.003000064,
+      "read_duration_s": {
+        "Drone1": 0.0005572999998548767,
+        "Drone2": 0.00024049999956332613,
+        "Drone3": 0.00021399999968707561,
+        "Drone4": 0.00021809999998367857,
+        "Drone5": 0.00018799999998009298
+      },
+      "errors": {}
+    }
+  ],
+  "spawn": [
+    {
+      "vehicle": "Drone1",
+      "landed_state": 0,
+      "local_position_m": [
+        0.0,
+        0.0,
+        1.1110512018203735
+      ],
+      "speed_mps": 0.0,
+      "stationary_on_map": true
+    },
+    {
+      "vehicle": "Drone2",
+      "landed_state": 0,
+      "local_position_m": [
+        0.0,
+        0.0,
+        1.1110512018203735
+      ],
+      "speed_mps": 0.0,
+      "stationary_on_map": true
+    },
+    {
+      "vehicle": "Drone3",
+      "landed_state": 0,
+      "local_position_m": [
+        0.0,
+        0.0,
+        1.1110512018203735
+      ],
+      "speed_mps": 0.0,
+      "stationary_on_map": true
+    },
+    {
+      "vehicle": "Drone4",
+      "landed_state": 0,
+      "local_position_m": [
+        0.0,
+        0.0,
+        1.1110512018203735
+      ],
+      "speed_mps": 0.0,
+      "stationary_on_map": true
+    },
+    {
+      "vehicle": "Drone5",
+      "landed_state": 0,
+      "local_position_m": [
+        0.0,
+        0.0,
+        1.1110512018203735
+      ],
+      "speed_mps": 0.0,
+      "stationary_on_map": true
+    }
+  ],
+  "passed": true
+}

@@ -103,6 +103,9 @@ def _parse_args() -> argparse.Namespace:
                    help="LiDAR sensor name on the selected vehicle.")
     p.add_argument("--swarm-config", default=None,
                    help="Enable inter-UAV prediction and configured priority yielding.")
+    p.add_argument("--result-json", help="Write automatic flight result and verified cleanup outcome.")
+    p.add_argument("--stop-file", help="Request cooperative stop by creating this file; cleanup is not interrupted.")
+    p.add_argument("--mission-complete-file", help="Notify fleet supervisor before starting leader landing.")
     p.add_argument("--confirm-simulation-clearance", action="store_true",
                    help="Required for auto mode.")
     p.add_argument("--perception-config",
@@ -335,6 +338,9 @@ def _run_auto(args: argparse.Namespace) -> int:
     session._owns_lock = True
 
     bridge = None
+    if getattr(args, "stop_file", None):
+        session.stop_file = Path(args.stop_file)
+    result_data = {"success": False, "termination_reason": "startup_not_completed"}
     try:
         session.initialize()
 
@@ -357,14 +363,22 @@ def _run_auto(args: argparse.Namespace) -> int:
             swarm_config_path=args.swarm_config,
         )
         result = auto.run()
-        if bridge is not None and result.termination_reason not in ("mission_complete", "time_limit"):
+        from dataclasses import asdict
+        result_data = asdict(result)
+        if result.termination_reason == "mission_complete" and getattr(args,"mission_complete_file",None):
+            Path(args.mission_complete_file).touch()
+        if bridge is not None and result.termination_reason not in ("mission_complete", "time_limit", "coordinated_stop", "ctrl_c"):
             bridge._unverified_emergency = True
-            bridge.link.report("EMERGENCY", result.termination_reason or "automatic_mode_failed")
+            reason = bridge.last_rejection_reason or result.termination_reason or "automatic_mode_failed"
+            result_data["rejection_reason"] = reason
+            bridge.link.report("EMERGENCY",reason)
         print(f"\n  Result: {result}")
-        return 0 if result.success else 1
+        return 0 if result.success or result.termination_reason == "coordinated_stop" else 1
     except KeyboardInterrupt:
+        result_data = {"success": False, "termination_reason": "coordinated_stop"}
         return 0
     except Exception as e:
+        result_data = {"success": False, "termination_reason": f"exception:{e}"}
         logger.error("Auto mode error: %s", e)
         return 1
     finally:
@@ -373,6 +387,19 @@ def _run_auto(args: argparse.Namespace) -> int:
         session.cleanup()
         if bridge is not None:
             bridge.close()
+        if getattr(args, "result_json", None):
+            import json
+            output = Path(args.result_json)
+            output.parent.mkdir(parents=True, exist_ok=True)
+            result_data["cleanup"] = {"phase": session.state.phase.name,
+                "landing_attempted": bool(session._land_command_sent),
+                "landing_confirmed": session.state.phase.name in {"LANDED","DISARMED","CONTROL_RELEASED"},
+                "control_released": session.state.phase.name == "CONTROL_RELEASED",
+                "manual_intervention_required": session.state.phase.name == "MANUAL_INTERVENTION_REQUIRED"}
+            result_data.update(landing_confirmed=result_data['cleanup']['landing_confirmed'],
+                disarmed=session.state.phase.name in {'DISARMED','CONTROL_RELEASED'},
+                api_control_released=result_data['cleanup']['control_released'])
+            output.write_text(json.dumps(result_data, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def main() -> int:

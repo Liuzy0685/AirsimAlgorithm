@@ -125,7 +125,7 @@ python -m pytest tests/ -q
 python scripts/launch_swarm.py --settings-json "C:\path\to\settings.json" --with-formation --confirm-simulation-clearance
 ```
 
-两机/五机配置、独立启动、ACK 与异常处理见 [A 状态服务与控制网关交付说明](docs/A_交付说明_状态服务与命令入口.md)。本次接线已提供离线验证，真实 AirSim 协同飞行仍待运行验收。将 `state_service.enabled` 设为 `false` 可运行下述旧独立导航实验；该模式不消费 B 编队命令。
+两机/五机配置、独立启动、ACK 与异常处理见 [A 状态服务与控制网关交付说明](docs/A_交付说明_状态服务与命令入口.md)。Blocks 不规则柱体地图已开展真实双机/五机测试，逐项结果、失败记录及复现命令见 [A Blocks 仿真验收](docs/A_Blocks_仿真验收.md)。将 `state_service.enabled` 设为 `false` 可运行下述旧独立导航实验；该模式不消费 B 编队命令。
 
 启用状态服务而未启动 B 时，跟随机等待有效编队命令；领航机继续自己的导航任务。需要完整编队时使用上述 `--with-formation`，或单独运行 B 服务。
 
