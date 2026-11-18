@@ -1,0 +1,249 @@
+{
+  "note": "Development configurations and flight budgets differ; manual stops and time limits are not passes. Raw logs retained locally under runs/acceptance.",
+  "trials": [
+    {
+      "flight_acceptance_passed": true,
+      "complete_frames": 651,
+      "minimum_sampled_separation_m": 2.278105550695468,
+      "minimum_piecewise_linear_separation_m": 2.277996259729613,
+      "collision_events_excluding_landed_ground": 0,
+      "formation_settled_frames": 27,
+      "sim_to_wall_time_ratio": 0.7668637778738852,
+      "elapsed_s": 134.427766599998,
+      "run": "navigation_2_final",
+      "summary_sha256": "7748f1328196cd2c8e35227a9df9ee89a758a4ef221059074140ab5945ddcad2",
+      "vehicle_results": {
+        "Drone1": {
+          "termination_reason": "mission_complete",
+          "landing_confirmed": true,
+          "disarmed": true,
+          "api_control_released": true
+        },
+        "Drone2": {
+          "termination_reason": "coordinated_stop",
+          "landing_confirmed": true,
+          "disarmed": true,
+          "api_control_released": true
+        }
+      }
+    },
+    {
+      "flight_acceptance_passed": false,
+      "complete_frames": 921,
+      "minimum_sampled_separation_m": 2.641102133313261,
+      "minimum_piecewise_linear_separation_m": 2.6411021333132583,
+      "collision_events_excluding_landed_ground": 0,
+      "formation_settled_frames": 13,
+      "sim_to_wall_time_ratio": null,
+      "elapsed_s": 189.88168550000046,
+      "run": "navigation_2_run01",
+      "summary_sha256": "80027475b7426628dcc5848ea419e93198e8fd2552b1cdb86b5bcb1c37d906f1",
+      "vehicle_results": {
+        "Drone1": {
+          "termination_reason": "coordinated_stop",
+          "landing_confirmed": true,
+          "disarmed": true,
+          "api_control_released": true
+        },
+        "Drone2": {
+          "termination_reason": "coordinated_stop",
+          "landing_confirmed": true,
+          "disarmed": true,
+          "api_control_released": true
+        }
+      }
+    },
+    {
+      "flight_acceptance_passed": false,
+      "complete_frames": 935,
+      "minimum_sampled_separation_m": 2.0065952194780174,
+      "minimum_piecewise_linear_separation_m": 2.006592338291452,
+      "collision_events_excluding_landed_ground": 0,
+      "formation_settled_frames": 14,
+      "sim_to_wall_time_ratio": null,
+      "elapsed_s": 192.16466880000007,
+      "run": "navigation_2_run02",
+      "summary_sha256": "ae66a6c6ceb51edbacaad42845f080e32808e8b9a6fb949ca59552936b5778b0",
+      "vehicle_results": {
+        "Drone1": {
+          "termination_reason": "coordinated_stop",
+          "landing_confirmed": true,
+          "disarmed": true,
+          "api_control_released": true
+        },
+        "Drone2": {
+          "termination_reason": "coordinated_stop",
+          "landing_confirmed": true,
+          "disarmed": true,
+          "api_control_released": true
+        }
+      }
+    },
+    {
+      "flight_acceptance_passed": false,
+      "complete_frames": 1049,
+      "minimum_sampled_separation_m": 3.0,
+      "minimum_piecewise_linear_separation_m": 3.0,
+      "collision_events_excluding_landed_ground": 0,
+      "formation_settled_frames": 13,
+      "sim_to_wall_time_ratio": null,
+      "elapsed_s": 305.2560644999994,
+      "run": "navigation_2_run03",
+      "summary_sha256": "33d5946bfb27e4b88c4c774f538be47801131a9f4270f229264e59252e9d2797",
+      "vehicle_results": {
+        "Drone1": {
+          "termination_reason": "time_limit",
+          "landing_confirmed": true,
+          "disarmed": true,
+          "api_control_released": true
+        },
+        "Drone2": {
+          "termination_reason": "time_limit",
+          "landing_confirmed": true,
+          "disarmed": true,
+          "api_control_released": true
+        }
+      }
+    },
+    {
+      "flight_acceptance_passed": false,
+      "complete_frames": 1046,
+      "minimum_sampled_separation_m": 2.848944013192111,
+      "minimum_piecewise_linear_separation_m": 2.848944013192111,
+      "collision_events_excluding_landed_ground": 0,
+      "formation_settled_frames": 23,
+      "sim_to_wall_time_ratio": null,
+      "elapsed_s": 215.28041259999736,
+      "run": "navigation_2_run04",
+      "summary_sha256": "48e3b782f46ea262f3e8714f188c4093a6962954724207b8b467886dc14de1db",
+      "vehicle_results": {
+        "Drone1": {
+          "termination_reason": "time_limit",
+          "landing_confirmed": true,
+          "disarmed": true,
+          "api_control_released": true
+        },
+        "Drone2": {
+          "termination_reason": "time_limit",
+          "landing_confirmed": true,
+          "disarmed": true,
+          "api_control_released": true
+        }
+      }
+    },
+    {
+      "flight_acceptance_passed": true,
+      "complete_frames": 710,
+      "minimum_sampled_separation_m": 2.279450406477697,
+      "minimum_piecewise_linear_separation_m": 2.2794471423420037,
+      "collision_events_excluding_landed_ground": 0,
+      "formation_settled_frames": 27,
+      "sim_to_wall_time_ratio": null,
+      "elapsed_s": 146.76345570000194,
+      "run": "navigation_2_run05",
+      "summary_sha256": "186219de628f1ee115e685215777dec6343a5f23af14b2242f208b82c129a584",
+      "vehicle_results": {
+        "Drone1": {
+          "termination_reason": "mission_complete",
+          "landing_confirmed": true,
+          "disarmed": true,
+          "api_control_released": true
+        },
+        "Drone2": {
+          "termination_reason": "coordinated_stop",
+          "landing_confirmed": true,
+          "disarmed": true,
+          "api_control_released": true
+        }
+      }
+    },
+    {
+      "flight_acceptance_passed": false,
+      "complete_frames": 1656,
+      "minimum_sampled_separation_m": 2.8519813034355455,
+      "minimum_piecewise_linear_separation_m": 2.8519744629236508,
+      "collision_events_excluding_landed_ground": 0,
+      "formation_settled_frames": 18,
+      "sim_to_wall_time_ratio": null,
+      "elapsed_s": 347.0062429999998,
+      "run": "navigation_5_run01",
+      "summary_sha256": "388072f1a9687aec1e831c4fe85ce195e42d33b775ae9035d9ab4496fb86c924",
+      "vehicle_results": {
+        "Drone1": {
+          "termination_reason": "time_limit",
+          "landing_confirmed": true,
+          "disarmed": true,
+          "api_control_released": true
+        },
+        "Drone2": {
+          "termination_reason": "time_limit",
+          "landing_confirmed": true,
+          "disarmed": true,
+          "api_control_released": true
+        },
+        "Drone3": {
+          "termination_reason": "time_limit",
+          "landing_confirmed": true,
+          "disarmed": true,
+          "api_control_released": true
+        },
+        "Drone4": {
+          "termination_reason": "time_limit",
+          "landing_confirmed": true,
+          "disarmed": true,
+          "api_control_released": true
+        },
+        "Drone5": {
+          "termination_reason": "time_limit",
+          "landing_confirmed": true,
+          "disarmed": true,
+          "api_control_released": true
+        }
+      }
+    },
+    {
+      "flight_acceptance_passed": true,
+      "complete_frames": 1952,
+      "minimum_sampled_separation_m": 2.2765475987942216,
+      "minimum_piecewise_linear_separation_m": 2.2765431341547986,
+      "collision_events_excluding_landed_ground": 0,
+      "formation_settled_frames": 37,
+      "sim_to_wall_time_ratio": 0.5254543664714105,
+      "elapsed_s": 411.2801748999991,
+      "run": "navigation_5_run02",
+      "summary_sha256": "570e5ff042399712c4a2721b77623fbf57d79602221f71c114bcb7ccc0ae1aeb",
+      "vehicle_results": {
+        "Drone1": {
+          "termination_reason": "mission_complete",
+          "landing_confirmed": true,
+          "disarmed": true,
+          "api_control_released": true
+        },
+        "Drone2": {
+          "termination_reason": "coordinated_stop",
+          "landing_confirmed": true,
+          "disarmed": true,
+          "api_control_released": true
+        },
+        "Drone3": {
+          "termination_reason": "coordinated_stop",
+          "landing_confirmed": true,
+          "disarmed": true,
+          "api_control_released": true
+        },
+        "Drone4": {
+          "termination_reason": "coordinated_stop",
+          "landing_confirmed": true,
+          "disarmed": true,
+          "api_control_released": true
+        },
+        "Drone5": {
+          "termination_reason": "coordinated_stop",
+          "landing_confirmed": true,
+          "disarmed": true,
+          "api_control_released": true
+        }
+      }
+    }
+  ]
+}

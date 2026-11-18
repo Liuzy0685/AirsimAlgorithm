@@ -4,6 +4,10 @@
 本轮修改不保存地图资产，不覆盖用户 Documents/AirSim/settings.json。
 验收代码分支：`feature/a-swarm-acceptance`，接续 `feature/a-swarm-integration`。
 
+本文保留早期基线的成功与失败记录。基于 B 的 `f5b48b9` 的后续障碍感知导航、
+五机绕柱与原队形恢复结果另见 [A/B 障碍感知导航与恢复](A_B_障碍感知导航与恢复.md)，
+对应独立配置与证据目录，不替换本文的旧试验结果。
+
 ## 已实测的范围
 
 实测结果见仓库 `artifacts/acceptance/2026-11-18/`。原始逐帧状态、A/B 日志、各机控制日志及失败试验保存在本地

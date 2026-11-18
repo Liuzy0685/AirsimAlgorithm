@@ -4669,6 +4669,8 @@ class AutomaticMode:
                 except Exception:
                     term = "rpc_error"
                     break
+                if self._swarm_bridge is not None and not hasattr(self,'_swarm_terminal_goal'):
+                    self._swarm_terminal_goal=tuple(_mission_goal)
                 # Peer prediction is sampled at low rate and its yield state
                 # is held between samples.  The actual command override is
                 # applied at the final dispatch boundary below.
@@ -4677,6 +4679,8 @@ class AutomaticMode:
                     formation_goal = self._swarm_bridge.goal(st)
                     if formation_goal is not None:
                         _mission_goal = formation_goal
+                        self._swarm_terminal_goal=tuple(formation_goal)
+                    _mission_goal=self._swarm_bridge.route_goal(st,self._swarm_terminal_goal)
                     if not self._swarm_bridge.expects_navigation_progress(st):
                         # Waiting for B or holding an attained slot is not a
                         # stalled navigation task and must not launch recovery.
@@ -4808,7 +4812,11 @@ class AutomaticMode:
                     )
                     try:
                         _t_rpc = time.perf_counter()
-                        if self._local_navigation_mode == "trajectory":
+                        if self._swarm_bridge is not None:
+                            self._last_velocity_future=vc.send_velocity_body_frd(0.,0.,
+                                self._altitude_hold_velocity(st.position_ned_m[2],self._params.target_z_ned,self._params.max_vertical_speed_mps),
+                                duration=self._params.command_duration_s,vehicle_name=self._vn,yaw_rad=st.yaw_rad)
+                        elif self._local_navigation_mode == "trajectory":
                             self._last_velocity_future = vc.send_velocity_body_frd_z(
                                 0.0, 0.0, self._params.target_z_ned,
                                 duration=self._params.command_duration_s,
@@ -4845,7 +4853,11 @@ class AutomaticMode:
                             break
                         try:
                             _t_rpc = time.perf_counter()
-                            if self._local_navigation_mode == "trajectory":
+                            if self._swarm_bridge is not None:
+                                self._last_velocity_future=vc.send_velocity_body_frd(0.,0.,
+                                    self._altitude_hold_velocity(st.position_ned_m[2],self._params.target_z_ned,self._params.max_vertical_speed_mps),
+                                    duration=self._params.command_duration_s,vehicle_name=self._vn,yaw_rad=st.yaw_rad)
+                            elif self._local_navigation_mode == "trajectory":
                                 self._last_velocity_future = vc.send_velocity_body_frd_z(
                                     0.0, 0.0, self._params.target_z_ned,
                                     duration=self._params.command_duration_s,
@@ -5829,7 +5841,7 @@ class AutomaticMode:
                     _goal_res = self._goal_term.update(
                         (st.position_ned_m[0], st.position_ned_m[1], st.position_ned_m[2]),
                         math.hypot(st.linear_velocity_ned_mps[0], st.linear_velocity_ned_mps[1]),
-                        _mission_goal,
+                        self._swarm_terminal_goal if self._swarm_bridge is not None else _mission_goal,
                         time.monotonic(),
                         velocity_ned_mps=st.linear_velocity_ned_mps,
                     )
@@ -6761,6 +6773,8 @@ class AutomaticMode:
                 if self._swarm_bridge is not None:
                     selected_vx, selected_vy, selected_vz, command_source = self._swarm_bridge.select(
                         selected_vx, selected_vy, selected_vz, command_source, st)
+                    if self._swarm_bridge.navigation_cfg.enabled and self._swarm_bridge.navigation_cfg.maintain_heading:
+                        _selected_yaw_rate=0.
 
                 # trajectory 模式：先做垂直避障决策（爬升翻越 vs 默认绕行），
                 # 再加高度 P 控制器（其他模式保持原有 vz）。

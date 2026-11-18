@@ -56,6 +56,10 @@ def load_config(path):
     if not 1 <= len(names) <= 5 or len(set(names)) != len(names) or any(not n.strip() for n in names):
         raise ValueError("swarm must contain 1..5 distinct vehicles")
     service = ServiceConfig(**config.get("state_service", {}))
+    from coordination.navigation import NavigationConfig
+    navigation=NavigationConfig(**config.get('navigation',{}))
+    if navigation.enabled and not service.enabled:
+        raise ValueError('obstacle-aware navigation requires the authoritative A service')
     if service.leader not in names:
         raise ValueError("state_service.leader must be a configured vehicle")
     return config, service

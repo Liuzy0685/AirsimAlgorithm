@@ -95,7 +95,7 @@ class FormationController:
 
     def plan(self, snapshot: SwarmStateSnapshot, *, received_at_monotonic_s: float,
              now_monotonic_s: float | None = None, coordination_state: str = "NORMAL",
-             snapshot_stream_id: str = "local") -> dict[str, FormationCommand]:
+             snapshot_stream_id: str = "local", target_overrides=None) -> dict[str, FormationCommand]:
         now = time.monotonic() if now_monotonic_s is None else now_monotonic_s
         if coordination_state in ("CONFLICT_DETECTED", "AVOIDING", "EMERGENCY"):
             self._recovering = True
@@ -118,16 +118,23 @@ class FormationController:
         self._last_snapshot = identity
 
         leader = snapshot.states[self.config.leader]
+        targets=self.slot_targets(leader)
+        if target_overrides is not None:
+            if set(target_overrides)!=set(self.config.followers):raise ValueError('formation target names differ')
+            for target in target_overrides.values():
+                if len(target)!=3 or not all(type(v) in (int,float) and math.isfinite(v) for v in target):
+                    raise ValueError('formation targets must be finite World NED vectors')
+            targets={name:tuple(target) for name,target in target_overrides.items()}
         issued_at = max(state.timestamp for state in snapshot.states.values())
         commands: dict[str, FormationCommand] = {}
         converged = all(
-            math.dist(snapshot.states[name].position_ned_m, self._slot(leader, index))
+            math.dist(snapshot.states[name].position_ned_m, targets[name])
             <= self.config.recovery_tolerance_m
             for index, name in enumerate(self.config.followers)
         )
         recovering = self._recovering and not converged
         for index, name in enumerate(self.config.followers):
-            target = self._slot(leader, index)
+            target = targets[name]
             if recovering:
                 position = snapshot.states[name].position_ned_m
                 error = tuple(target[i] - position[i] for i in range(3))

@@ -15,6 +15,8 @@ from coordination.runtime_config import load_config
 from coordination.wire import build_envelope, parse_swarm_snapshot
 from formation.controller import FormationController, load_formation_config
 from formation.runtime import FormationStatusGate
+from formation.navigation import FormationNavigation
+from coordination.navigation import NavigationConfig
 
 
 async def run(args):
@@ -29,14 +31,21 @@ async def run(args):
     delay = 0.5
     gate = FormationStatusGate(formation.vehicle_names, task_id=cfg.task_id,
                                max_age_s=cfg.disconnect_timeout_s)
-    while True:
+    navigator=FormationNavigation(NavigationConfig(**swarm.get('navigation',{})),task_id=cfg.task_id,
+        vehicle_names=formation.vehicle_names,safety_distance_m=swarm['coordination']['safety_distance_m'],spacing_m=formation.spacing_m,
+        max_speed_mps=formation.max_recovery_speed_mps,prediction_horizon_s=swarm['coordination']['prediction_horizon_s'])
+    last_navigation_mode=None
+    stop_file=Path(args.stop_file) if getattr(args,'stop_file',None) else None
+    def stopping():return stop_file is not None and stop_file.exists()
+    while not stopping():
         connection = None
         try:
             connection = await SwarmConnection.connect(cfg.url, role="b_formation",
                 producer_id=producer, stream_id=planner.stream_id)
             gate.reset()
+            navigator.reset()
             delay, last_ping = 0.5, 0.0
-            while True:
+            while not stopping():
                 if time.monotonic() - last_ping >= cfg.heartbeat_s:
                     await connection.send_frame(9, b"B")
                     last_ping = time.monotonic()
@@ -51,15 +60,24 @@ async def run(args):
                 elif env.message_type == "coordination.status":
                     gate.ingest(env.payload, sequence_id=env.sequence_id,
                                 received_at=time.monotonic())
+                    navigator.ingest(env.payload,received_at=time.monotonic())
                 elif env.message_type == "swarm.snapshot":
                     received = time.monotonic()
                     snap = parse_swarm_snapshot(env, received_at=received)
                     state = gate.state_for_snapshot(now=received)
                     if state is None:
                         continue
+                    if not snap.collection_complete:continue
+                    targets=navigator.targets(snap,planner.slot_targets(snap.states[formation.leader]),
+                        leader=formation.leader,now=received)
+                    if targets is None:continue
+                    if navigator.mode!=last_navigation_mode:
+                        print(f'formation_navigation mode={navigator.mode}',flush=True)
+                        last_navigation_mode=navigator.mode
                     commands = planner.plan(snap, received_at_monotonic_s=received,
-                        snapshot_stream_id=env.stream_id, coordination_state=state)
+                        snapshot_stream_id=env.stream_id, coordination_state=state,target_overrides=targets)
                     for command in commands.values():
+                        if navigator.mode=='trail':command.formation_id=f'{formation.shape}:trail'
                         await connection.send(build_envelope(message_type="formation.command",
                             producer_id=producer, stream_id=planner.stream_id,
                             sequence_id=command.lifecycle.sequence_id, payload=asdict(command)))
@@ -70,6 +88,7 @@ async def run(args):
         finally:
             if connection:
                 await connection.close()
+        if stopping():break
         await asyncio.sleep(delay)
         delay = min(5, delay * 2 if delay < 2 else 5)
 
@@ -78,6 +97,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--swarm-config", default=str(ROOT / "configs/swarm.yaml"))
     parser.add_argument("--formation-config", default=str(ROOT / "configs/formation.yaml"))
+    parser.add_argument('--stop-file',help='Cooperative stop request; does not dispatch any flight command.')
     try:
         asyncio.run(run(parser.parse_args()))
         return 0

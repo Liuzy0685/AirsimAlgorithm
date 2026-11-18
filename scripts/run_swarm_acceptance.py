@@ -102,6 +102,9 @@ async def run(args):
     start=time.monotonic()
     log=(output/'launcher.log').open('w',encoding='utf-8')
     trace=(output/'snapshots.jsonl').open('w',encoding='utf-8')
+    navigation_trace=(output/'navigation.jsonl').open('w',encoding='utf-8')
+    last_navigation={};navigation_counts={name:0 for name in names};blocked_counts={name:0 for name in names}
+    active_errors=[]
     try:
         launch=subprocess.Popen(command,cwd=ROOT,stdout=log,stderr=log,
             creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform=='win32' else 0)
@@ -155,6 +158,16 @@ async def run(args):
                             normal=[col.normal.x_val,col.normal.y_val,col.normal.z_val]))
             elif env.message_type=='coordination.status':
                 metrics.status(env.payload,now)
+                nav=env.payload.get('navigation');name=env.payload.get('vehicle_name')
+                if nav is not None and name in navigation_counts and nav['observation_id']!=last_navigation.get(name):
+                    last_navigation[name]=nav['observation_id'];navigation_counts[name]+=1
+                    blocked_counts[name]+=not nav['path_available']
+                    if name!=formation_config.leader and env.payload.get('active_command_id'):
+                        active_errors.append(nav['tracking_error_m'])
+                    item={k:v for k,v in nav.items() if k!='obstacle_points_xy_m'}
+                    item.update(t=now-start,vehicle=name,obstacle_points_count=len(nav['obstacle_points_xy_m']),
+                        obstacle_points_sha256=hashlib.sha256(json.dumps(nav['obstacle_points_xy_m']).encode()).hexdigest())
+                    navigation_trace.write(json.dumps(item)+'\n')
         if launch.poll() is None:
             (output/'stop.requested').touch()
             await asyncio.to_thread(launch.wait,120)
@@ -164,7 +177,7 @@ async def run(args):
             try: await asyncio.to_thread(launch.wait,120)
             except subprocess.TimeoutExpired: pass
         if connection: await connection.close()
-        log.close();trace.close();adapter.close()
+        log.close();trace.close();navigation_trace.close();adapter.close()
         results={}
         for name in names:
             path=output/'runtime'/f'{name}.result.json'
@@ -173,6 +186,13 @@ async def run(args):
             launcher_returncode=launch.poll() if launch else None,vehicle_results=results,
             collision_events=collisions,collision_events_excluding_landed_ground=sum(c['classification']=='collision' for c in collisions),
             shutdown_complete=launch is not None and launch.poll() is not None)
+        summary['navigation_observed_frames']=navigation_counts
+        summary['navigation_blocked_frames']=blocked_counts
+        summary['feedback_active_target_error_rmse_m']=(sum(e*e for e in active_errors)/len(active_errors))**.5 if active_errors else None
+        summary['feedback_active_target_error_max_m']=max(active_errors,default=None)
+        formation_log=output/'runtime'/'formation.log'
+        summary['formation_navigation_modes']=[line.split('mode=',1)[1].strip() for line in
+            formation_log.read_text(encoding='utf-8',errors='replace').splitlines() if line.startswith('formation_navigation mode=')] if formation_log.exists() else []
         summary['flight_acceptance_passed']=(summary['shutdown_complete'] and summary['launcher_returncode']==0
             and summary['separation_observed_ok'] is True and summary['collision_events_excluding_landed_ground']==0
             and summary['formation_settled_frames']>0

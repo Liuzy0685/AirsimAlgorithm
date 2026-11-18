@@ -180,8 +180,10 @@ def main() -> int:
             handle = (log_dir / "formation.log").open("w", encoding="utf-8")
             log_handles.append(handle)
             proc = subprocess.Popen([sys.executable, str(ROOT / "scripts/formation_service.py"),
-                "--swarm-config", str(config_path), "--formation-config", args.formation_config],
+                "--swarm-config", str(config_path), "--formation-config", args.formation_config,
+                '--stop-file',str(log_dir/'formation.stop')],
                 cwd=ROOT, creationflags=creationflags, stdout=handle, stderr=handle)
+            proc.stop_file=log_dir/'formation.stop'
             processes.append(("B-formation-service", proc))
         while processes:
             if (log_dir / "mission.complete").exists():

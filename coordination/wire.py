@@ -452,6 +452,7 @@ def build_coordination_status_payload(
     snapshot_id: Optional[int] = None,
     task_id: str = "",
     sim_timestamp_ns: int = 0,
+    navigation: Optional[dict] = None,
 ) -> dict:
     """Build a ``coordination.status`` payload (§3)."""
     _require_str(vehicle_name, "vehicle_name")
@@ -459,7 +460,7 @@ def build_coordination_status_payload(
         raise WireError(
             f"state must be one of {COORDINATION_STATES}, got {state!r}"
         )
-    return {
+    payload = {
         "vehicle_name": vehicle_name,
         "state": state,
         "reason": str(reason),
@@ -468,6 +469,10 @@ def build_coordination_status_payload(
         "task_id": str(task_id),
         "sim_timestamp_ns": int(sim_timestamp_ns),
     }
+    if navigation is not None:
+        from coordination.navigation import validate_navigation_feedback
+        payload['navigation']=validate_navigation_feedback(navigation)
+    return payload
 
 
 __all__ = [
