@@ -35,3 +35,13 @@ def test_status_transitions_are_deduplicated_per_vehicle():
     assert len(m.status_events)==2
     m.status(dict(vehicle_name='a',state='AVOIDING',reason='CPA'),4.)
     assert len(m.status_events)==3
+
+
+def test_simulation_progress_is_reported_separately_from_wall_time():
+    _,names,publisher,_,_=fixture()
+    snap=publisher.latest_snapshot
+    m=AcceptanceMetrics(names,safety_distance_m=2)
+    m.observe(snap,received_at=10.,stream_id='a')
+    for state in snap.states.values():state.timestamp+=2_000_000_000
+    m.observe(replace(snap,sequence_id=2),received_at=14.,stream_id='a')
+    assert m.summary()['sim_to_wall_time_ratio']==pytest.approx(.5)

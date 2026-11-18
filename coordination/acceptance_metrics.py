@@ -29,6 +29,8 @@ class AcceptanceMetrics:
         self._last_identity = None
         self.status_events = []
         self._last_status = {}
+        self._first_sim=self._latest_sim=None
+        self._first_wall=self._latest_wall=None
 
     def observe(self, snapshot, *, received_at, stream_id, formation_targets=None):
         identity=(stream_id,snapshot.sequence_id)
@@ -46,6 +48,9 @@ class AcceptanceMetrics:
             self._last = self._last_received = None
             return True
         self.complete_frames += 1
+        sim=max(s.timestamp for s in snapshot.states.values())
+        if self._first_sim is None:self._first_sim,self._first_wall=sim,received_at
+        self._latest_sim,self._latest_wall=sim,received_at
         positions={n:tuple(snapshot.states[n].position_ned_m) for n in self.names}
         if formation_targets:
             errors={n:math.dist(positions[n],target) for n,target in formation_targets.items()}
@@ -83,6 +88,8 @@ class AcceptanceMetrics:
                 "p95_s":values[min(len(values)-1,math.ceil(.95*len(values))-1)] if values else None,
                 "max_s":max(values) if values else None}
         minimum=min(self.min_sampled,self.min_linear)
+        sim_elapsed=(self._latest_sim-self._first_sim)/1e9 if self._first_sim is not None else None
+        wall_elapsed=self._latest_wall-self._first_wall if self._first_wall is not None else None
         return dict(frames=self.frames,complete_frames=self.complete_frames,incomplete_frames=self.incomplete_frames,
             minimum_sampled_separation_m=finite(self.min_sampled),
             minimum_piecewise_linear_separation_m=finite(self.min_linear),
@@ -93,6 +100,8 @@ class AcceptanceMetrics:
             formation_error_rmse_m=(math.sqrt(sum(v*v for row in self.formation_errors for v in row.values())/
                 sum(len(row) for row in self.formation_errors)) if self.formation_errors else None),
             maximum_formation_error_m=max((v for row in self.formation_errors for v in row.values()),default=None),
+            observed_sim_elapsed_s=sim_elapsed,observed_wall_elapsed_s=wall_elapsed,
+            sim_to_wall_time_ratio=sim_elapsed/wall_elapsed if wall_elapsed else None,
             collection_timing=timing(self.collection_durations),receive_intervals=timing(self.receive_intervals),
             status_events=self.status_events,
             limitation="Linear interpolation between measured samples is not a continuous-time safety proof; low speed includes deliberate holds and ground time.")

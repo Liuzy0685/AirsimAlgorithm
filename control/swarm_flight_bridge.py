@@ -2,6 +2,8 @@
 import math
 import time
 import numpy as np
+import logging
+from coordination.navigation import NavigationConfig,CommittedGridRouter
 
 from control.command_authority import CommandAuthority
 from control.safety_filter import SafetyFilter
@@ -48,6 +50,16 @@ class SwarmFlightBridge:
         self._waiting_for_command = False
         self.leader_goal_hold = False
         self._status_clock = time.monotonic
+        self.navigation_cfg=NavigationConfig(**config.get('navigation',{}))
+        self.router=CommittedGridRouter(self.navigation_cfg)
+        self._navigation_waypoint=None
+        self._navigation_goal=None
+        self._navigation_command_available=False
+        self._leader_waiting=False
+        self._last_lidar_id=-1
+        self._feedback_points=[]
+        self._last_route_log=None
+        self._navigation_source=None
 
     @property
     def follower(self):
@@ -68,6 +80,9 @@ class SwarmFlightBridge:
 
     def begin_cruise(self, mode):
         self.mode = mode
+        if self.navigation_cfg.enabled and self.navigation_cfg.clearance_m<mode._traj_params.hard_clearance_m:
+            raise ValueError('navigation clearance cannot be below the final hard clearance')
+        self.router.minimum_clearance_m=mode._traj_params.hard_clearance_m
         self.proxy.motion_guard = self.guard_motion
 
     def update_lidar(self, frame, points_sensor=None):
@@ -87,6 +102,80 @@ class SwarmFlightBridge:
         self.points_world=local+np.asarray(self.mode._swarm_spawn_offsets[self.name])
         self.points=points_sensor
         self.points_at=frame.received_monotonic_seconds
+        if self.navigation_cfg.enabled and frame.raw_timestamp_ns>self._last_lidar_id:
+            self._last_lidar_id=frame.raw_timestamp_ns
+            snap=self.link.snapshot()
+            if snap is not None:
+                own=np.asarray(snap.states[self.name].position_ned_m)
+                p=self.points_world
+                p=p[(np.abs(p[:,2]-own[2])<.65)&(np.linalg.norm(p[:,:2]-own[:2],axis=1)<self.navigation_cfg.max_range_m)]
+                for name,state in snap.states.items():
+                    if name!=self.name:
+                        p=p[np.linalg.norm(p-np.asarray(state.position_ned_m),axis=1)>.8]
+                self.router.observe(p[:,:2])
+                h=self.navigation_cfg.resolution_m
+                coarse=np.unique(np.rint(p[:,:2]/h)*h,axis=0)
+                if len(coarse)>512:
+                    coarse=coarse[np.argsort(np.linalg.norm(coarse-own[:2],axis=1))[:512]]
+                self._feedback_points=coarse.tolist()
+
+    def route_goal(self,own_state,requested_goal):
+        if not self.navigation_cfg.enabled:return requested_goal
+        offset=self.mode._swarm_spawn_offsets[self.name]
+        position=tuple(p+o for p,o in zip(own_state.position_ned_m,offset))
+        goal=tuple(p+o for p,o in zip(requested_goal,offset))
+        self._navigation_goal=goal
+        self._navigation_command_available=not self.follower or self.link.command() is not None
+        transient=[]
+        snap=self.link.snapshot()
+        if snap is not None:
+            radius=max(0.,self.safety.safety_distance_m+.2-self.navigation_cfg.clearance_m)
+            for name,state in snap.states.items():
+                if name!=self.name and sum(v*v for v in state.linear_velocity_ned_mps)<.12**2:
+                    x,y=state.position_ned_m[:2]
+                    transient.append((x,y))
+                    transient.extend((x+radius*math.cos(i*math.pi/16),y+radius*math.sin(i*math.pi/16)) for i in range(32))
+        waypoint=self.router.waypoint(position,goal,temporary_obstacles=transient) if self.points_world is not None else position
+        self._navigation_waypoint=waypoint
+        event=(self.router.route_version,self.router.path_available,self.router.goal_blocked,self.router.escaping)
+        if event!=self._last_route_log:
+            self._last_route_log=event
+            logging.getLogger('swarm_navigation').info('route vehicle=%s version=%d available=%s blocked_goal=%s escape=%s goal=%s waypoint=%s',
+                self.name,*event,goal,waypoint)
+        self.link.navigation_feedback=dict(observation_id=max(0,self._last_lidar_id),
+            obstacle_points_xy_m=self._feedback_points,obstacle_resolution_m=self.navigation_cfg.resolution_m,goal_ned_m=list(goal),
+            path_available=bool(self.router.path_available and self._navigation_command_available),
+            goal_blocked=self.router.goal_blocked,tracking_error_m=math.dist(position,goal),
+            route_version=self.router.route_version)
+        return tuple(p-o for p,o in zip(waypoint,offset))
+
+    def _navigation_velocity(self,own_state,vz,source,command=None):
+        # A complete, checked grid route owns local recovery in this opt-in
+        # mode. Never launch a blind forward probe when the route is blocked.
+        if source=='vertical_escape':return None
+        if not self.router.path_available or self._navigation_waypoint is None:
+            return 0.,0.,vz,'navigation_blocked'
+        if self.follower and command is None:return 0.,0.,vz,'formation_wait'
+        if not self.follower:
+            peers=self.link.peer_navigation(self.navigation_cfg.feedback_max_age_s)
+            follower_names=self.link.names-{self.name}
+            all_fresh=follower_names<=set(peers)
+            worst=max((peers[n]['tracking_error_m'] for n in follower_names if n in peers),default=0.)
+            blocked=not all_fresh or any(not peers[n]['path_available'] for n in follower_names if n in peers)
+            if blocked or worst>self.navigation_cfg.leader_wait_error_m:self._leader_waiting=True
+            elif worst<self.navigation_cfg.leader_resume_error_m:self._leader_waiting=False
+            if self.leader_goal_hold or self._leader_waiting:return 0.,0.,vz,'leader_waiting_for_formation'
+        own=tuple(p+o for p,o in zip(own_state.position_ned_m,self.mode._swarm_spawn_offsets[self.name]))
+        dx,dy=(self._navigation_waypoint[i]-own[i] for i in (0,1))
+        speed=min(self.params.forward_speed_mps,.7*math.hypot(dx,dy))
+        if command is not None and command.mode=='velocity':speed=min(speed,math.hypot(*command.desired_velocity_ned_mps[:2]))
+        length=math.hypot(dx,dy)
+        wx,wy=(speed*dx/length,speed*dy/length) if length>1e-8 else (0.,0.)
+        c,s=math.cos(own_state.yaw_rad),math.sin(own_state.yaw_rad)
+        hold_vz=max(-self.params.max_vertical_speed_mps,min(self.params.max_vertical_speed_mps,
+            self.params.target_z_ned-own_state.position_ned_m[2]))
+        self.adopted_command=command
+        return wx*c+wy*s,-wx*s+wy*c,hold_vz,'navigation_route'
 
     def tick(self):
         self.adopted_command = None
@@ -129,6 +218,15 @@ class SwarmFlightBridge:
 
     def select(self, vx, vy, vz, source, own_state):
         self.adopted_command = None
+        if self.navigation_cfg.enabled:
+            command=self.link.command() if self.follower else None
+            self._waiting_for_command=self.follower and command is None
+            if command is not None and command.lifecycle.command_id!=self._goal_command_id:
+                return 0.,0.,vz,'formation_goal_updated_during_planning'
+            selected=self._navigation_velocity(own_state,vz,source,command)
+            if selected is not None:
+                self._navigation_source=selected[3]
+                return selected
         if not self.follower:
             if self.leader_goal_hold:
                 return 0.,0.,vz,"leader_waiting_for_formation"
@@ -159,6 +257,7 @@ class SwarmFlightBridge:
         return vx,vy,vz,"formation_velocity"
 
     def expects_navigation_progress(self, own_state):
+        if self.navigation_cfg.enabled and not self.follower and self._leader_waiting:return False
         if not self.follower: return not self.leader_goal_hold
         command=self.link.command()
         if command is None: return False
@@ -169,6 +268,8 @@ class SwarmFlightBridge:
         return math.dist(world,command.target_position_ned_m)>self.cfg.formation_tolerance_m
 
     def report_dispatch(self, source, *, avoiding=False):
+        if self.navigation_cfg.enabled and source=='inter_uav_orca' and not avoiding:
+            source=self._navigation_source or source
         conflict = avoiding or source in {"inter_uav_yield", "inter_uav_orca_fallback_hold", "formation_rejected"}
         if conflict:
             self._conflict_active = True
@@ -199,6 +300,7 @@ class SwarmFlightBridge:
             command=self.adopted_command
             snap=self.link.snapshot()
             settled=(command is not None and command.mode=="position" and snap is not None
+                and not command.formation_id.endswith(':trail')
                 and math.dist(snap.states[self.name].position_ned_m,command.target_position_ned_m)<=self.cfg.formation_tolerance_m
                 and sum(v*v for v in snap.states[self.name].linear_velocity_ned_mps)<=.2**2)
             recovering=self.follower and not settled

@@ -1,0 +1,5 @@
+# Preserve evidence bytes when cloning on Windows (core.autocrlf may be true).
+*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+*.jsonl -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+*.csv -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+*.xml -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

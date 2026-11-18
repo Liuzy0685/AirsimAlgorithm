@@ -1,0 +1,19 @@
+{
+  "note": "Raw-byte comparison with pre-commit final experimental working tree. Git checkout line-ending conversion may change byte hashes.",
+  "checks": [
+    {
+      "run": "navigation_5_run02",
+      "changed_python_sources_since_start": [
+        "scripts/export_swarm_acceptance.py"
+      ],
+      "flight_core_unchanged": true,
+      "manifest_sha256": "07f060ae2929a958a52080965295c12afe2ae0a79884c1f4e312491c0075e1ac"
+    },
+    {
+      "run": "navigation_2_final",
+      "changed_python_sources_since_start": [],
+      "flight_core_unchanged": true,
+      "manifest_sha256": "bb60983d91f320b5339c9b9e25d65c724ac770be3a84940c4ef0a9765e30a32f"
+    }
+  ]
+}

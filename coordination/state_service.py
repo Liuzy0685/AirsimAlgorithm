@@ -115,6 +115,7 @@ class SwarmStateService:
         self._formation_targets = formation_targets
         self._status_sequences = {}
         self._last_status = {}
+        self._controller_status_at = {}
 
     # ------------------------------------------------------------------
     # Client lifecycle
@@ -242,9 +243,15 @@ class SwarmStateService:
                 return None
             try:
                 payload = build_coordination_status_payload(**envelope.payload)
+                if payload.get('navigation') is not None:
+                    sim_time=self.latest_sim_time_ns
+                    if (payload['task_id']!=self._task_id or sim_time is None or
+                            abs(payload['navigation']['observation_id']-sim_time)>int(self._snapshot_max_age_s*1e9)):
+                        return None
             except (WireError, TypeError, ValueError):
                 return None
             self._status_sequences[(session.producer_id, session.stream_id)] = envelope.sequence_id
+            self._controller_status_at[session.vehicle_name]=self._clock()
             self.publish_status(**payload)
         return None
 
@@ -335,15 +342,25 @@ class SwarmStateService:
             except (OSError, ConnectionError, BufferError):
                 self.unregister_client(client_id)
 
+    def heartbeat_status(self,name,max_age_s):
+        if self.latest_sim_time_ns is None:
+            return self.publish_status(vehicle_name=name,state='EMERGENCY',reason='snapshot_unavailable')
+        at=self._controller_status_at.get(name)
+        if self._require_controller and at is not None and not 0<=self._clock()-at<max_age_s:
+            return self.publish_status(vehicle_name=name,state='EMERGENCY',
+                reason='controller_status_stale',task_id=self._task_id or '')
+        return self.publish_status(**self._last_status.get(name,dict(vehicle_name=name,state='NORMAL')))
+
     def publish_status(self, *, vehicle_name: str, state: str, reason: str = "",
                        active_command_id: Optional[str] = None,
                        snapshot_id: Optional[int] = None,
-                       task_id: str = "", sim_timestamp_ns: int = 0) -> dict:
+                       task_id: str = "", sim_timestamp_ns: int = 0,
+                       navigation: Optional[dict] = None) -> dict:
         """Broadcast a ``coordination.status`` downlink to B and C."""
         payload = build_coordination_status_payload(
             vehicle_name=vehicle_name, state=state, reason=reason,
             active_command_id=active_command_id, snapshot_id=snapshot_id,
-            task_id=task_id, sim_timestamp_ns=sim_timestamp_ns,
+            task_id=task_id, sim_timestamp_ns=sim_timestamp_ns,navigation=navigation,
         )
         self._last_status[vehicle_name] = payload
         self._ack_sequence += 1
@@ -491,11 +508,7 @@ async def run_swarm_state_server(
     async def heartbeat_loop():
         while True:
             for name in service._publisher.configured_names:
-                if service.latest_sim_time_ns is None:
-                    service.publish_status(vehicle_name=name, state="EMERGENCY", reason="snapshot_unavailable")
-                else:
-                    payload = service._last_status.get(name, dict(vehicle_name=name, state="NORMAL"))
-                    service.publish_status(**payload)
+                service.heartbeat_status(name,disconnect_timeout_s)
             await asyncio.sleep(heartbeat_s)
 
     server = await asyncio.start_server(handle, host, port)

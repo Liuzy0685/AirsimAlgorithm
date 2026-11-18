@@ -1,0 +1,116 @@
+{
+  "evidence_type": "live_airsim_protocol_only_no_actuation",
+  "checks": [
+    {
+      "name": "valid_command_ack",
+      "actual": "accepted",
+      "expected": "accepted",
+      "passed": true
+    },
+    {
+      "name": "permit_for_accepted_command",
+      "actual": "601f2df6-0386-4752-93c6-5b729bee488b",
+      "expected": "601f2df6-0386-4752-93c6-5b729bee488b",
+      "passed": true
+    },
+    {
+      "name": "duplicate_id",
+      "actual": "duplicate_command_id",
+      "expected": "duplicate_command_id",
+      "passed": true
+    },
+    {
+      "name": "old_sequence",
+      "actual": "stale_sequence",
+      "expected": "stale_sequence",
+      "passed": true
+    },
+    {
+      "name": "unknown_vehicle",
+      "actual": "unknown_vehicle",
+      "expected": "unknown_vehicle",
+      "passed": true
+    },
+    {
+      "name": "wrong_task",
+      "actual": "task_id_mismatch",
+      "expected": "task_id_mismatch",
+      "passed": true
+    },
+    {
+      "name": "expired_sim_window",
+      "actual": "expired",
+      "expected": "expired",
+      "passed": true
+    },
+    {
+      "name": "paused_command_ack",
+      "actual": "accepted",
+      "expected": "accepted",
+      "passed": true
+    },
+    {
+      "name": "sim_clock_stayed_paused",
+      "actual": 1795012669634277632,
+      "expected": 1795012669634277632,
+      "passed": true
+    },
+    {
+      "name": "paused_command_unavailable_after_wall_ttl",
+      "actual": null,
+      "expected": null,
+      "passed": true
+    },
+    {
+      "name": "short_wall_ttl_command_ack",
+      "actual": "accepted",
+      "expected": "accepted",
+      "passed": true
+    },
+    {
+      "name": "sim_window_still_open_after_wall_ttl",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "wall_ttl_expires_with_fresh_state",
+      "actual": null,
+      "expected": null,
+      "passed": true
+    },
+    {
+      "name": "before_disconnect_ack",
+      "actual": "accepted",
+      "expected": "accepted",
+      "passed": true
+    },
+    {
+      "name": "B_disconnect_revokes_permit",
+      "actual": null,
+      "expected": null,
+      "passed": true
+    },
+    {
+      "name": "B_reconnect_does_not_reset_replay_history",
+      "actual": "duplicate_command_id",
+      "expected": "duplicate_command_id",
+      "passed": true
+    },
+    {
+      "name": "C_cannot_inject_command",
+      "actual": null,
+      "expected": null,
+      "passed": true
+    },
+    {
+      "name": "all_API_control_still_released",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "limitation": "No airborne failure recovery was tested. Pause also invalidates nonadvancing state timestamps; TTL-only expiry is checked separately with the simulation running.",
+  "raw_summary_sha256": "04f39aa00ba429be093195731812fdf6b023d1677b2cc3336fae38785d944f0f"
+}

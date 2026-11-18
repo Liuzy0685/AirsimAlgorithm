@@ -35,6 +35,8 @@ class ControllerLink:
         self._requests = {}
         self._peer_statuses = {}
         self._permitted_commands = {}
+        self.navigation_feedback = None
+        self._navigation_received = {}
 
     def start(self):
         self._thread = threading.Thread(target=lambda: asyncio.run(self._run()), daemon=True,
@@ -88,6 +90,7 @@ class ControllerLink:
                 self._command_sequence.clear()
                 self._permitted_commands.clear()
                 self._peer_statuses.clear()
+                self._navigation_received.clear()
             if envelope.message_type == "swarm.snapshot":
                 if envelope.sequence_id <= self._last_sequence:
                     return
@@ -134,6 +137,19 @@ class ControllerLink:
                 self._permitted_commands.clear()
             if envelope.message_type == "coordination.status":
                 self._peer_statuses[envelope.payload.get("vehicle_name")] = (envelope.payload, self.clock())
+                from coordination.navigation import validate_navigation_feedback
+                nav=validate_navigation_feedback(envelope.payload.get('navigation'))
+                name=envelope.payload.get('vehicle_name')
+                previous=self._navigation_received.get(name)
+                if nav is not None and (previous is None or nav['observation_id']>previous[0]['observation_id']):
+                    self._navigation_received[name]=(nav,self.clock())
+
+    def peer_navigation(self,max_age_s):
+        with self._lock:
+            if not self._connected or self._snapshot is None:return {}
+            sim_time=max(s.timestamp for s in self._snapshot.states.values())
+            return {name:copy.deepcopy(nav) for name,(nav,at) in self._navigation_received.items()
+                if 0<=self.clock()-at<max_age_s and abs(nav['observation_id']-sim_time)<int(max_age_s*1e9)}
 
     def permitted_command(self, command_id):
         """Finish a frame using its pinned, still-current permit; never extend it."""
@@ -185,6 +201,9 @@ class ControllerLink:
             snapshot_id=snap.sequence_id if snap else None, task_id=self.cfg.task_id,
             sim_timestamp_ns=max(s.timestamp for s in snap.states.values()) if snap else 0)
         with self._lock:
+            if (self.navigation_feedback is not None and state!='EMERGENCY' and
+                    abs(self.navigation_feedback['observation_id']-payload['sim_timestamp_ns'])<=int(self.cfg.snapshot_max_age_s*1e9)):
+                payload['navigation']=copy.deepcopy(self.navigation_feedback)
             if self._pending_status and self._pending_status[-1]["state"] == state:
                 self._pending_status[-1] = payload
             else:
@@ -230,6 +249,8 @@ class ControllerLink:
                     self._requests.clear()
                     self._peer_statuses.clear()
                     self._permitted_commands.clear()
+                    self._navigation_received.clear()
+                    self.navigation_feedback=None
                 if connection:
                     await connection.close()
             # Interruptible backoff with the protocol's 0.5/1/2/5 second cap.

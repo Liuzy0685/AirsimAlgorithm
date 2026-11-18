@@ -17,6 +17,11 @@ def export(run, output):
     env.pop('scene_objects',None)
     summary['raw_evidence_sha256']={name:hashlib.sha256((run/name).read_bytes()).hexdigest()
         for name in ('summary.json','snapshots.jsonl','environment.json')}
+    navigation=run/'navigation.jsonl'
+    if navigation.exists():
+        data=navigation.read_bytes()
+        summary['raw_evidence_sha256']['navigation.jsonl']=hashlib.sha256(data).hexdigest()
+        (output/'navigation.jsonl').write_bytes(data)
     summary['export_note']='All complete sampled positions exported; plots show cylinder centers, not obstacle outlines. No continuous-time safety or tight-formation accuracy certification.'
     (output/'summary.json').write_text(json.dumps(summary,indent=2,ensure_ascii=False),encoding='utf-8')
     rows=[json.loads(line) for line in (run/'snapshots.jsonl').read_text(encoding='utf-8').splitlines()]
