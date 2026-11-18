@@ -1,0 +1,636 @@
+[
+  {
+    "run": "acceptance",
+    "passed": false,
+    "checks": [
+      {
+        "name": "capabilities_and_flight_enabled",
+        "passed": true
+      },
+      {
+        "name": "operator_auth_required",
+        "passed": true
+      },
+      {
+        "name": "measured_map",
+        "passed": true
+      },
+      {
+        "name": "old_map_rejected",
+        "passed": true
+      },
+      {
+        "name": "live_preflight",
+        "passed": false
+      }
+    ],
+    "summary_sha256": "e6dc9ee635dc0e48816b96bdc25a107dcf4a4d85ab94cf94c6f04e4a5f0cbf5e",
+    "missions": []
+  },
+  {
+    "run": "acceptance_run02",
+    "passed": false,
+    "checks": [
+      {
+        "name": "capabilities_and_flight_enabled",
+        "passed": true
+      },
+      {
+        "name": "operator_auth_required",
+        "passed": true
+      },
+      {
+        "name": "measured_map",
+        "passed": true
+      },
+      {
+        "name": "old_map_rejected",
+        "passed": true
+      },
+      {
+        "name": "live_preflight",
+        "passed": true
+      },
+      {
+        "name": "create_task",
+        "passed": true
+      },
+      {
+        "name": "create_replay_same_task",
+        "passed": true
+      },
+      {
+        "name": "initial_shape_column",
+        "passed": false
+      }
+    ],
+    "summary_sha256": "c8aae4a9600447d011ac51cb393fd1c8c861f6185801cef4758b210baf0a3034",
+    "missions": []
+  },
+  {
+    "run": "acceptance_run03",
+    "passed": false,
+    "checks": [
+      {
+        "name": "capabilities_and_flight_enabled",
+        "passed": true
+      },
+      {
+        "name": "operator_auth_required",
+        "passed": true
+      },
+      {
+        "name": "measured_map",
+        "passed": true
+      },
+      {
+        "name": "old_map_rejected",
+        "passed": true
+      },
+      {
+        "name": "live_preflight",
+        "passed": true
+      },
+      {
+        "name": "create_task",
+        "passed": true
+      },
+      {
+        "name": "create_replay_same_task",
+        "passed": true
+      },
+      {
+        "name": "initial_shape_vee",
+        "passed": true
+      },
+      {
+        "name": "initial_shape_line",
+        "passed": true
+      },
+      {
+        "name": "start_accepted",
+        "passed": true
+      },
+      {
+        "name": "start_replay_same_receipt",
+        "passed": true
+      },
+      {
+        "name": "B_unwired_is_explicit",
+        "passed": false
+      }
+    ],
+    "summary_sha256": "3f0626197a16c3cf0bdf0627d90515d9d2138eb95b9b17ca258c2d77749f1c90",
+    "missions": [
+      {
+        "mission_id": "5f9e31c945c74fcdb29ae840149dd84a",
+        "state": "FAILED",
+        "reason": "cleanup_unverified",
+        "vehicle_results": {
+          "Drone1": {
+            "airborne": true,
+            "api_control_acquired": true,
+            "api_control_released": false,
+            "armed": true,
+            "cleanup": {
+              "control_released": false,
+              "landing_attempted": false,
+              "landing_confirmed": false,
+              "manual_intervention_required": true,
+              "phase": "MANUAL_INTERVENTION_REQUIRED"
+            },
+            "disarmed": false,
+            "flight_duration_s": 0.47854259999803617,
+            "frames_completed": 0,
+            "landing_confirmed": false,
+            "startup_floor_contact_baseline": true,
+            "success": false,
+            "takeoff_completed": true,
+            "termination_reason": "coordinated_stop"
+          },
+          "Drone2": {
+            "airborne": true,
+            "api_control_acquired": true,
+            "api_control_released": false,
+            "armed": true,
+            "cleanup": {
+              "control_released": false,
+              "landing_attempted": false,
+              "landing_confirmed": false,
+              "manual_intervention_required": true,
+              "phase": "MANUAL_INTERVENTION_REQUIRED"
+            },
+            "disarmed": false,
+            "flight_duration_s": 0.3672831000003498,
+            "frames_completed": 0,
+            "landing_confirmed": false,
+            "startup_floor_contact_baseline": true,
+            "success": false,
+            "takeoff_completed": true,
+            "termination_reason": "coordinated_stop"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "run": "acceptance_run04",
+    "passed": false,
+    "checks": [
+      {
+        "name": "capabilities_and_flight_enabled",
+        "passed": true
+      },
+      {
+        "name": "operator_auth_required",
+        "passed": true
+      },
+      {
+        "name": "measured_map",
+        "passed": true
+      },
+      {
+        "name": "old_map_rejected",
+        "passed": true
+      },
+      {
+        "name": "live_preflight",
+        "passed": true
+      },
+      {
+        "name": "create_task",
+        "passed": true
+      },
+      {
+        "name": "create_replay_same_task",
+        "passed": true
+      },
+      {
+        "name": "initial_shape_vee",
+        "passed": true
+      },
+      {
+        "name": "initial_shape_line",
+        "passed": true
+      },
+      {
+        "name": "start_accepted",
+        "passed": true
+      },
+      {
+        "name": "start_replay_same_receipt",
+        "passed": true
+      },
+      {
+        "name": "B_unwired_is_explicit",
+        "passed": true
+      },
+      {
+        "name": "complete_task_and_release",
+        "passed": true
+      },
+      {
+        "name": "second_task_after_verified_release",
+        "passed": false
+      }
+    ],
+    "summary_sha256": "0feb16f121d331f19defdd6fab6355b941f75cddfce4e600d5aa9aea76190a2e",
+    "missions": [
+      {
+        "mission_id": "4c8b8554afbf4d65bcd2b71913e238c7",
+        "state": "COMPLETED",
+        "reason": "mission_complete",
+        "vehicle_results": {
+          "Drone1": {
+            "airborne": true,
+            "api_control_acquired": true,
+            "api_control_released": true,
+            "armed": true,
+            "cleanup": {
+              "control_released": true,
+              "landing_attempted": true,
+              "landing_confirmed": true,
+              "manual_intervention_required": false,
+              "phase": "CONTROL_RELEASED"
+            },
+            "disarmed": true,
+            "flight_duration_s": 100.92922299999918,
+            "frames_completed": 2017,
+            "landing_confirmed": true,
+            "startup_floor_contact_baseline": true,
+            "success": true,
+            "takeoff_completed": true,
+            "termination_reason": "mission_complete"
+          },
+          "Drone2": {
+            "airborne": true,
+            "api_control_acquired": true,
+            "api_control_released": true,
+            "armed": true,
+            "cleanup": {
+              "control_released": true,
+              "landing_attempted": true,
+              "landing_confirmed": true,
+              "manual_intervention_required": false,
+              "phase": "CONTROL_RELEASED"
+            },
+            "disarmed": true,
+            "flight_duration_s": 100.8703607000025,
+            "frames_completed": 2015,
+            "landing_confirmed": true,
+            "startup_floor_contact_baseline": true,
+            "success": false,
+            "takeoff_completed": true,
+            "termination_reason": "coordinated_stop"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "run": "acceptance_run05",
+    "passed": false,
+    "checks": [
+      {
+        "name": "capabilities_and_flight_enabled",
+        "passed": true
+      },
+      {
+        "name": "operator_auth_required",
+        "passed": true
+      },
+      {
+        "name": "measured_map",
+        "passed": true
+      },
+      {
+        "name": "old_map_rejected",
+        "passed": true
+      },
+      {
+        "name": "live_preflight",
+        "passed": true
+      },
+      {
+        "name": "create_task",
+        "passed": true
+      },
+      {
+        "name": "create_replay_same_task",
+        "passed": true
+      },
+      {
+        "name": "initial_shape_vee",
+        "passed": true
+      },
+      {
+        "name": "initial_shape_line",
+        "passed": true
+      },
+      {
+        "name": "start_accepted",
+        "passed": true
+      },
+      {
+        "name": "start_replay_same_receipt",
+        "passed": true
+      },
+      {
+        "name": "B_unwired_is_explicit",
+        "passed": true
+      },
+      {
+        "name": "complete_task_and_release",
+        "passed": true
+      },
+      {
+        "name": "second_task_after_verified_release",
+        "passed": true
+      },
+      {
+        "name": "stop_accepted_before_cleanup",
+        "passed": true
+      },
+      {
+        "name": "stop_and_release",
+        "passed": false
+      }
+    ],
+    "summary_sha256": "deea5300988518553678702f8e3c85b03059a3280dc4f509eddb9d18d521e9d1",
+    "missions": [
+      {
+        "mission_id": "79bc99805a9c494ca4e92b3bb2d155a0",
+        "state": "COMPLETED",
+        "reason": "mission_complete",
+        "vehicle_results": {
+          "Drone1": {
+            "airborne": true,
+            "api_control_acquired": true,
+            "api_control_released": true,
+            "armed": true,
+            "cleanup": {
+              "control_released": true,
+              "landing_attempted": true,
+              "landing_confirmed": true,
+              "manual_intervention_required": false,
+              "phase": "CONTROL_RELEASED"
+            },
+            "disarmed": true,
+            "flight_duration_s": 97.94023220000236,
+            "frames_completed": 1957,
+            "landing_confirmed": true,
+            "startup_floor_contact_baseline": true,
+            "success": true,
+            "takeoff_completed": true,
+            "termination_reason": "mission_complete"
+          },
+          "Drone2": {
+            "airborne": true,
+            "api_control_acquired": true,
+            "api_control_released": true,
+            "armed": true,
+            "cleanup": {
+              "control_released": true,
+              "landing_attempted": true,
+              "landing_confirmed": true,
+              "manual_intervention_required": false,
+              "phase": "CONTROL_RELEASED"
+            },
+            "disarmed": true,
+            "flight_duration_s": 98.0255991999984,
+            "frames_completed": 1958,
+            "landing_confirmed": true,
+            "startup_floor_contact_baseline": true,
+            "success": false,
+            "takeoff_completed": true,
+            "termination_reason": "coordinated_stop"
+          }
+        }
+      },
+      {
+        "mission_id": "68312bc060424551bb74788d47ee7041",
+        "state": "FAILED",
+        "reason": "cleanup_unverified",
+        "vehicle_results": {
+          "Drone1": {
+            "airborne": true,
+            "api_control_acquired": true,
+            "api_control_released": false,
+            "armed": true,
+            "cleanup": {
+              "control_released": false,
+              "landing_attempted": false,
+              "landing_confirmed": false,
+              "manual_intervention_required": true,
+              "phase": "MANUAL_INTERVENTION_REQUIRED"
+            },
+            "disarmed": false,
+            "flight_duration_s": 0.5106228000004194,
+            "frames_completed": 1,
+            "landing_confirmed": false,
+            "startup_floor_contact_baseline": false,
+            "success": false,
+            "takeoff_completed": true,
+            "termination_reason": "coordinated_stop"
+          },
+          "Drone2": {
+            "airborne": true,
+            "api_control_acquired": true,
+            "api_control_released": true,
+            "armed": true,
+            "cleanup": {
+              "control_released": true,
+              "landing_attempted": true,
+              "landing_confirmed": true,
+              "manual_intervention_required": false,
+              "phase": "CONTROL_RELEASED"
+            },
+            "disarmed": true,
+            "flight_duration_s": 0.44766299999901094,
+            "frames_completed": 1,
+            "landing_confirmed": true,
+            "startup_floor_contact_baseline": false,
+            "success": false,
+            "takeoff_completed": true,
+            "termination_reason": "coordinated_stop"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "run": "acceptance_run06",
+    "passed": true,
+    "checks": [
+      {
+        "name": "capabilities_and_flight_enabled",
+        "passed": true
+      },
+      {
+        "name": "operator_auth_required",
+        "passed": true
+      },
+      {
+        "name": "measured_map",
+        "passed": true
+      },
+      {
+        "name": "old_map_rejected",
+        "passed": true
+      },
+      {
+        "name": "live_preflight",
+        "passed": true
+      },
+      {
+        "name": "create_task",
+        "passed": true
+      },
+      {
+        "name": "create_replay_same_task",
+        "passed": true
+      },
+      {
+        "name": "initial_shape_vee",
+        "passed": true
+      },
+      {
+        "name": "initial_shape_line",
+        "passed": true
+      },
+      {
+        "name": "start_accepted",
+        "passed": true
+      },
+      {
+        "name": "start_replay_same_receipt",
+        "passed": true
+      },
+      {
+        "name": "B_unwired_is_explicit",
+        "passed": true
+      },
+      {
+        "name": "complete_task_and_release",
+        "passed": true
+      },
+      {
+        "name": "second_task_after_verified_release",
+        "passed": true
+      },
+      {
+        "name": "stop_accepted_before_cleanup",
+        "passed": true
+      },
+      {
+        "name": "stop_and_release",
+        "passed": true
+      },
+      {
+        "name": "sampled_separation",
+        "passed": true
+      }
+    ],
+    "summary_sha256": "d84d08d64039e122c8ab18d7977fffb37172d0fe9f16743979521b5e91f6f21d",
+    "missions": [
+      {
+        "mission_id": "af59729ead18422f9ed168821f5fbdf5",
+        "state": "COMPLETED",
+        "reason": "mission_complete",
+        "vehicle_results": {
+          "Drone1": {
+            "airborne": true,
+            "api_control_acquired": true,
+            "api_control_released": true,
+            "armed": true,
+            "cleanup": {
+              "control_released": true,
+              "landing_attempted": true,
+              "landing_confirmed": true,
+              "manual_intervention_required": false,
+              "phase": "CONTROL_RELEASED"
+            },
+            "disarmed": true,
+            "flight_duration_s": 97.02121959999931,
+            "frames_completed": 1940,
+            "landing_confirmed": true,
+            "startup_floor_contact_baseline": true,
+            "success": true,
+            "takeoff_completed": true,
+            "termination_reason": "mission_complete"
+          },
+          "Drone2": {
+            "airborne": true,
+            "api_control_acquired": true,
+            "api_control_released": true,
+            "armed": true,
+            "cleanup": {
+              "control_released": true,
+              "landing_attempted": true,
+              "landing_confirmed": true,
+              "manual_intervention_required": false,
+              "phase": "CONTROL_RELEASED"
+            },
+            "disarmed": true,
+            "flight_duration_s": 97.04296800000157,
+            "frames_completed": 1938,
+            "landing_confirmed": true,
+            "startup_floor_contact_baseline": true,
+            "success": false,
+            "takeoff_completed": true,
+            "termination_reason": "coordinated_stop"
+          }
+        }
+      },
+      {
+        "mission_id": "b8cfa10f252745b49cc96075f87f9c0f",
+        "state": "STOPPED",
+        "reason": "launcher_returned_without_mission_completion",
+        "vehicle_results": {
+          "Drone1": {
+            "airborne": true,
+            "api_control_acquired": true,
+            "api_control_released": true,
+            "armed": true,
+            "cleanup": {
+              "control_released": true,
+              "landing_attempted": true,
+              "landing_confirmed": true,
+              "manual_intervention_required": false,
+              "phase": "CONTROL_RELEASED"
+            },
+            "disarmed": true,
+            "flight_duration_s": 0.466689500000939,
+            "frames_completed": 1,
+            "landing_confirmed": true,
+            "startup_floor_contact_baseline": false,
+            "success": false,
+            "takeoff_completed": true,
+            "termination_reason": "coordinated_stop"
+          },
+          "Drone2": {
+            "airborne": true,
+            "api_control_acquired": true,
+            "api_control_released": true,
+            "armed": true,
+            "cleanup": {
+              "control_released": true,
+              "landing_attempted": true,
+              "landing_confirmed": true,
+              "manual_intervention_required": false,
+              "phase": "CONTROL_RELEASED"
+            },
+            "disarmed": true,
+            "flight_duration_s": 0.39436639999985346,
+            "frames_completed": 1,
+            "landing_confirmed": true,
+            "startup_floor_contact_baseline": false,
+            "success": false,
+            "takeoff_completed": true,
+            "termination_reason": "coordinated_stop"
+          }
+        }
+      }
+    ]
+  }
+]

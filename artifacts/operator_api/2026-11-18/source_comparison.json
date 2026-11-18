@@ -1,0 +1,10 @@
+{
+  "changed": [
+    {
+      "path": "coordination/operator_manager.py",
+      "flight_sha256": "a3b247aecd33f00492c18368fb6ca4d3ad83faefeb367f9cef5de4fac0e23eec",
+      "final_sha256": "d71872615ccce0fcb3848c3d3ff1e76836de4bb45c9c9c03291642b1a719119a"
+    }
+  ],
+  "note": "After the flight, endpoint geofence validation was corrected to use the actual current takeoff position instead of the original settings origin. The final direct live read-only preflight passed; controller/stop-cleanup code is unchanged."
+}

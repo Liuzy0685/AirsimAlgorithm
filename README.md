@@ -131,6 +131,10 @@ python scripts/launch_swarm.py --settings-json "C:\path\to\settings.json" --with
 使用独立的 `swarm_2_navigation.yaml` / `swarm_5_navigation.yaml`，保留原安全门控与控制网关。
 协议、复现参数和本轮实测结果见 [A/B 障碍感知导航与恢复](docs/A_B_障碍感知导航与恢复.md)。
 
+前端任务入口由独立 `scripts/operator_api.py` 提供，支持真实地图元数据、任务校验、初始队形设置、
+启动、请求停止及执行状态查询；配置和示例见 [A 前端任务接口](docs/A_前端任务接口.md)。
+飞行中队形切换需 B 接入 [运行时编队接口](docs/B_运行时编队接口接线清单.md)，未接入时明确拒绝。
+
 启用状态服务而未启动 B 时，跟随机等待有效编队命令；领航机继续自己的导航任务。需要完整编队时使用上述 `--with-formation`，或单独运行 B 服务。
 
 `scripts/launch_swarm.py` 按 `configs/swarm.yaml` 为每架无人机启动独立的自动导航进程。双机默认将 Drone1 绑定到 `PlayerStart1`/`MissionEnd1`，Drone2 绑定到 `PlayerStart2`/`MissionEnd2`。建议在 UE 中放置空 Actor，并分别设置唯一的 Actor Tag 为这些名称；代码按 Actor Tag 或 Actor 内部名查询标记。程序读取 `PlayerStartN` 的场景位置作为各机共同坐标原点，并用它将对应的 `MissionEndN` 换算到本机导航坐标。AirSim 实际生成位置仍由 `settings.json` 的车辆 `X/Y/Z` 决定，因此请按场景中各 `PlayerStartN` 的位置设置这些数值，使生成位置与标记重合；程序会记录两者不一致的告警，但不会自动移动无人机。请确认 `settings.json` 已定义对应无人机和 LiDAR。默认以水平 2D ORCA 过滤本机局部规划器的期望速度，`priority_hold` 模式则按恒速 CPA 预测和优先级规则让行。`priority_hold` 模式下，优先级数值越高越有优先通行权；同优先级时按无人机名称确定唯一让行机。ORCA 模式中双方承担互惠避让责任，优先级不会豁免安全过滤。该实现用于仿真阶段的算法对比，不是经验证的飞行安全系统。
