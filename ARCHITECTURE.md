@@ -13,6 +13,8 @@
 未覆盖区域不能当作已验证自由空间。B 的新增配置/状态接线见
 [B 运行时编队接口清单](docs/B_运行时编队接口接线清单.md)；接入前不开放飞行中队形切换。
 
+B 的运行时接线位于 `formation/operator_link.py` 与 `scripts/formation_service.py`。生成的 swarm YAML 包含 `operator_api` 时，B 在独立 asyncio 任务中用专用令牌发送配置心跳、拉取请求并回报 `DEFERRED/APPLIED/REJECTED`；没有该字段时保持原 WebSocket 编队流程。完整且新鲜的 A 快照到达时，B 才在规划边界更新 `FormationController` 配置及 `FormationNavigation` 的名义/临时跟随间距，并清理导航缓存；等待 A 确认期间停止发新编队命令。`APPLIED` 仅表示算法采用配置，实际队形由单独的 `formation/status` 上报当前目标、误差、模式和仿真时间。A 返回配置冲突时 B 停发命令，需核对两端版本后重新启动任务。离线联调见 `tests/test_formation_operator_link.py`；真实飞行中的队形切换验收仍需在运行 AirSim RPC 的场景中执行。
+
 | 内容 | 唯一来源 | 三方使用方式 |
 | --- | --- | --- |
 | 坐标与常量 | `common/constants.py` | 位置、线速度、目标和避障速度统一为 World NED，单位米、米/秒；角度为弧度。角速度字段明确为 body frame。 |
