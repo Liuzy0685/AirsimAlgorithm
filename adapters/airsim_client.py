@@ -43,6 +43,11 @@ from typing import Any, Dict, List, Optional
 
 import yaml
 
+# Apply the msgpack>=1.0 compatibility patch BEFORE ``airsim`` is imported, so
+# ``airsim.MultirotorClient`` can construct its ``msgpackrpc`` transport.  The
+# import itself performs the (idempotent) patch.
+from adapters import msgpack_compat  # noqa: F401  (applies the patch on import)
+
 logger = logging.getLogger(__name__)
 
 

@@ -548,6 +548,39 @@ class RejoinEpisode:
     reference_frozen_position_xy: Optional[Tuple[float, float]] = None  # where it was frozen
 
 
+@dataclass
+class VerticalAvoidEpisode:
+    """Persistent vertical-escape state machine (NED: Z positive down).
+
+    The 2D trajectory planner can only steer laterally, so a low obstacle ahead
+    is normally bypassed sideways.  This episode instead climbs straight over it
+    and only descends once the obstacle is actually crossed.  States:
+
+        NORMAL             no vertical escape active.
+        CLIMBING           climbing straight up toward a bounded ceiling; the
+                           altitude-hold target is raised each tick.
+        FORWARD_CLEARANCE  obstacle top passed: hold the current altitude and fly
+                           forward a minimum distance before descending.
+
+    Every exit returns to NORMAL with an explicit logged reason
+    (``obstacle_passed``/``crossed``/``max_climb_reached``/``up_clearance_lost``/
+    ``clearance_timeout``) and forces a replan so the route is re-joined.
+    """
+
+    state: str = "NORMAL"
+    start_time: float = 0.0           # time.monotonic() when CLIMBING/FORWARD_CLEARANCE entered
+    target_z: Optional[float] = None  # temporary climb/hold target (NED, positive down)
+    reason: str = ""                  # diagnostic reason for entry
+    start_z: float = 0.0              # NED z at climb entry (for climb-progress)
+    clear_frames: int = 0             # consecutive frames with stable front clearance
+    forward_start_xy: Optional[Tuple[float, float]] = None  # XY at forward-clearance entry
+
+    @property
+    def active(self) -> bool:
+        """True while the escape owns the command (CLIMBING or FORWARD_CLEARANCE)."""
+        return self.state in ("CLIMBING", "FORWARD_CLEARANCE")
+
+
 # ── forward-progress watchdog ──
 
 
@@ -872,6 +905,7 @@ def _build_trajectory_params(cfg: Dict[str, Any]):
     narrow_passage = s.get("narrow_passage") or {}
     apf_safety = s.get("apf_safety") or {}
     family_switch = s.get("family_switch") or {}
+    side_lock = s.get("side_lock") or {}
     adaptive_horizon = s.get("adaptive_horizon") or {}
 
     def _nf(d, key, default):
@@ -906,6 +940,10 @@ def _build_trajectory_params(cfg: Dict[str, Any]):
         family_switch_min_score_improvement=_nf(family_switch, "min_score_improvement", 0.15),
         family_switch_min_hold_time_s=_nf(family_switch, "min_hold_time_s", 0.5),
         direct_opposite_switch_penalty=_f("direct_opposite_switch_penalty", 1.0),
+        side_lock_enabled=bool(side_lock.get("enabled", True)),
+        side_lock_front_clearance_m=_nf(
+            side_lock, "front_clearance_m", 2.5,
+        ),
         reverse_hold_enabled=bool(reverse_hold.get("enabled", True)),
         reverse_release_front_clearance_m=_nf(
             reverse_hold, "release_front_clearance_m", 4.0,
@@ -1127,12 +1165,34 @@ class AutomaticMode:
         flight_config_path: Optional[str] = None,
         params: Optional[AutomaticModeParams] = None,
         cli_overrides: Optional[Dict[str, float]] = None,
+        swarm_config_path: Optional[str] = None,
     ) -> None:
         self._session = session
         self._client = session.client
         self._adapter = session.adapter
         self._vn = session.vehicle_name
         self._cli_overrides = dict(cli_overrides or {})
+        self._swarm_bridge = vars(session).get("swarm_bridge")
+        self._authoritative_tick_snapshot = None
+        self._swarm_peer_readers = {}
+        self._swarm_peer_states = {}
+        self._swarm_spawn_offsets = {}
+        self._swarm_scene_start_actors = {}
+        self._swarm_last_poll_time = -float("inf")
+        self._swarm_prediction_horizon_s = 3.0
+        self._swarm_safety_distance_m = 2.0
+        self._swarm_peer_poll_interval_s = 0.2
+        self._swarm_log_interval_s = 0.5
+        self._swarm_max_timestamp_skew_s = 0.5
+        self._swarm_yield_enabled = False
+        self._swarm_algorithm = "priority_hold"
+        self._swarm_passing_bias_mps = 0.1
+        self._swarm_yield_priorities = {}
+        self._swarm_yield_release_margin_m = 0.75
+        self._swarm_yield_release_delay_s = 0.5
+        self._swarm_yield_active = False
+        self._swarm_yield_peer = None
+        self._swarm_yield_clear_since = None
 
         _PROJECT_ROOT = Path(__file__).resolve().parent.parent
         self._perception_config_path = (
@@ -1150,6 +1210,185 @@ class AutomaticMode:
                 self._flight_config_path, cli_overrides
             )
         logger.info("Flight config loaded from %s", self._flight_config_path)
+
+        if swarm_config_path:
+            try:
+                with open(swarm_config_path, "r", encoding="utf-8") as _swarm_stream:
+                    _swarm_cfg = yaml.safe_load(_swarm_stream) or {}
+                _swarm_members = _swarm_cfg.get("drones", [])
+                _swarm_names = [str(_member["vehicle_name"]) for _member in _swarm_members]
+                if len(_swarm_names) < 2 or self._vn not in _swarm_names:
+                    raise ValueError(
+                        f"swarm config must list this drone ({self._vn}) and at least one peer"
+                    )
+                _coord_cfg = _swarm_cfg.get("coordination", {}) or {}
+                self._swarm_yield_priorities = {
+                    str(_member["vehicle_name"]): float(
+                        _member.get("yield_priority", 0)
+                    )
+                    for _member in _swarm_members
+                }
+                if not all(
+                    math.isfinite(priority)
+                    for priority in self._swarm_yield_priorities.values()
+                ):
+                    raise ValueError("yield_priority values must be finite numbers")
+                self._swarm_yield_enabled = bool(
+                    _coord_cfg.get("yield_enabled", False)
+                )
+                self._swarm_algorithm = str(
+                    _coord_cfg.get("algorithm", "priority_hold")
+                ).strip().lower()
+                self._swarm_passing_bias_mps = float(_coord_cfg.get("passing_bias_mps", 0.1))
+                if not math.isfinite(self._swarm_passing_bias_mps) or not 0 <= self._swarm_passing_bias_mps <= max(0.1, self._params.forward_speed_mps):
+                    raise ValueError("passing_bias_mps must be finite, nonnegative and no greater than max horizontal speed")
+                if self._swarm_algorithm not in {"priority_hold", "orca"}:
+                    raise ValueError(
+                        "coordination.algorithm must be 'priority_hold' or 'orca'"
+                    )
+                if self._swarm_algorithm == "orca" and not self._swarm_yield_enabled:
+                    raise ValueError("coordination.algorithm=orca requires yield_enabled=true")
+                if (
+                    self._swarm_yield_enabled
+                    and not _coord_cfg.get("enabled", True)
+                ):
+                    raise ValueError(
+                        "yield_enabled requires coordination.enabled=true"
+                    )
+                self._swarm_yield_release_margin_m = float(
+                    _coord_cfg.get("yield_release_margin_m", 0.75)
+                )
+                self._swarm_yield_release_delay_s = float(
+                    _coord_cfg.get("yield_release_delay_s", 0.5)
+                )
+                if (
+                    not math.isfinite(self._swarm_yield_release_margin_m)
+                    or self._swarm_yield_release_margin_m < 0
+                    or not math.isfinite(self._swarm_yield_release_delay_s)
+                    or self._swarm_yield_release_delay_s <= 0
+                ):
+                    raise ValueError("invalid inter-UAV yield release settings")
+                if _coord_cfg.get("enabled", True):
+                    from coordination.collision_predictor import (
+                        load_scene_marker_offsets,
+                        load_spawn_offsets,
+                    )
+                    from sensors.state_reader import StateReader
+
+                    self._swarm_spawn_offsets = load_spawn_offsets(
+                        session.settings_json, _swarm_names,
+                    )
+                    self._swarm_scene_start_actors = {
+                        str(member["vehicle_name"]): str(member["start_actor"])
+                        for member in _swarm_members
+                        if member.get("start_actor")
+                    }
+                    if self._swarm_scene_start_actors:
+                        if len(self._swarm_scene_start_actors) != len(_swarm_names):
+                            raise ValueError(
+                                "every drone must define start_actor when any swarm "
+                                "member uses scene-marker coordinates"
+                            )
+                        settings_offsets = self._swarm_spawn_offsets
+                        self._swarm_spawn_offsets = dict(load_scene_marker_offsets(
+                            self._adapter.get_raw_client(),
+                            self._swarm_scene_start_actors,
+                        ))
+                        for _name in _swarm_names:
+                            _setting = settings_offsets[_name]
+                            _marker = self._swarm_spawn_offsets[_name]
+                            _delta = math.hypot(
+                                _setting[0] - _marker[0],
+                                _setting[1] - _marker[1],
+                            )
+                            logger.info(
+                                "swarm_start_marker  drone=%s  actor=%s  "
+                                "marker_ned=(%.2f,%.2f,%.2f)  "
+                                "settings_spawn_ned=(%.2f,%.2f,%.2f)  "
+                                "horizontal_delta_m=%.2f",
+                                _name, self._swarm_scene_start_actors[_name],
+                                *_marker, *_setting, _delta,
+                            )
+                            if _delta > 1.0:
+                                logger.warning(
+                                    "swarm_spawn_marker_mismatch  drone=%s  "
+                                    "settings_offset=(%.2f,%.2f,%.2f)  "
+                                    "PlayerStart=(%.2f,%.2f,%.2f)  delta_m=%.2f  "
+                                    "coordination_uses=PlayerStart",
+                                    _name, *_setting, *_marker, _delta,
+                                )
+                                raise ValueError(
+                                    f"PlayerStart marker/tag "
+                                    f"{self._swarm_scene_start_actors[_name]!r} "
+                                    f"for vehicle {_name!r} is {_delta:.2f} m from "
+                                    "its settings.json spawn offset; align the marker "
+                                    "with the configured vehicle X/Y before flight"
+                                )
+                    self._swarm_peer_readers = {
+                        _name: StateReader(self._adapter, vehicle_name=_name)
+                        for _name in _swarm_names if _name != self._vn
+                    }
+                    if self._swarm_bridge is not None:
+                        from coordination.controller_link import SnapshotPeerReader
+                        self._swarm_peer_readers = {
+                            name: SnapshotPeerReader(self, name) for name in _swarm_names if name != self._vn
+                        }
+                    self._swarm_prediction_horizon_s = float(
+                        _coord_cfg.get("prediction_horizon_s", 3.0)
+                    )
+                    self._swarm_safety_distance_m = float(
+                        _coord_cfg.get("safety_distance_m", 2.0)
+                    )
+                    self._swarm_peer_poll_interval_s = float(
+                        _coord_cfg.get("peer_poll_interval_s", 0.2)
+                    )
+                    self._swarm_log_interval_s = float(
+                        _coord_cfg.get("diagnostic_log_interval_s", 0.5)
+                    )
+                    self._swarm_max_timestamp_skew_s = float(
+                        _coord_cfg.get("max_state_timestamp_skew_s", 0.5)
+                    )
+                    if (
+                        not math.isfinite(self._swarm_prediction_horizon_s)
+                        or self._swarm_prediction_horizon_s < (
+                            1e-6 if self._swarm_algorithm == "orca" else 0.0
+                        )
+                        or not math.isfinite(self._swarm_safety_distance_m)
+                        or self._swarm_safety_distance_m <= 0
+                        or not math.isfinite(self._swarm_peer_poll_interval_s)
+                        or self._swarm_peer_poll_interval_s <= 0
+                        or not math.isfinite(self._swarm_log_interval_s)
+                        or self._swarm_log_interval_s <= 0
+                        or not math.isfinite(self._swarm_max_timestamp_skew_s)
+                        or self._swarm_max_timestamp_skew_s < 0
+                    ):
+                        raise ValueError("invalid coordination thresholds in swarm config")
+                    logger.info(
+                        "inter_uav_coordination_enabled=true  peers=%s  "
+                        "coordinate_source=%s  prediction_horizon_s=%.2f  "
+                        "safety_distance_m=%.2f  poll_interval_s=%.2f  "
+                        "algorithm=%s  yield_enabled=%s  yield_priority=%s  "
+                        "release_margin_m=%.2f  release_delay_s=%.2f",
+                        sorted(self._swarm_peer_readers),
+                        "PlayerStart actors" if self._swarm_scene_start_actors else "settings.json",
+                        self._swarm_prediction_horizon_s,
+                        self._swarm_safety_distance_m,
+                        self._swarm_peer_poll_interval_s,
+                        self._swarm_algorithm,
+                        str(self._swarm_yield_enabled).lower(),
+                        self._swarm_yield_priorities.get(self._vn, 0),
+                        self._swarm_yield_release_margin_m,
+                        self._swarm_yield_release_delay_s,
+                    )
+                else:
+                    logger.info("inter_uav_coordination_enabled=false  reason=config_disabled")
+            except Exception as _swarm_exc:
+                # Swarm mode is explicitly requested by the launcher. Failing
+                # open here would silently remove the requested peer-yield
+                # protection, so reject an invalid swarm configuration.
+                raise ValueError(
+                    f"invalid swarm coordination config: {_swarm_exc}"
+                ) from _swarm_exc
 
         self._running = False
         self._last_velocity_future = None
@@ -1464,6 +1703,45 @@ class AutomaticMode:
         self._traj_params = _build_trajectory_params(_traj_cfg)
         self._goal_term_params = _build_goal_termination_params(_traj_cfg)
         self._occ_grid_params = _build_occupancy_grid_params(_traj_cfg)
+
+        # Vertical avoidance (climb over a low obstacle) — trajectory mode only.
+        # Default policy stays "go around"; climbing fires only when the sides
+        # are narrow and the obstacle is clearly low enough to climb over.
+        from planners.vertical_avoidance import (
+            VerticalAvoidanceSelector, VerticalAvoidanceParams,
+        )
+        _va_cfg = (_traj_cfg.get("vertical_avoidance", {}) or {})
+        self._va_params = VerticalAvoidanceParams(
+            enabled=bool(_va_cfg.get("enabled", True)),
+            front_blocked_m=float(_va_cfg.get("front_blocked_m", 2.5)),
+            front_clear_m=float(_va_cfg.get("front_clear_m", 4.0)),
+            low_obstacle_front_up_m=float(
+                _va_cfg.get("low_obstacle_front_up_m", 3.0)
+            ),
+            up_clearance_m=float(_va_cfg.get("up_clearance_m", 2.5)),
+            max_climb_m=float(_va_cfg.get("max_climb_m", 2.0)),
+            climb_step_m=float(_va_cfg.get("climb_step_m", 0.6)),
+            narrow_side_m=float(_va_cfg.get("narrow_side_m", 2.0)),
+            ceiling_margin_m=float(_va_cfg.get("ceiling_margin_m", 0.3)),
+            hysteresis_s=float(_va_cfg.get("hysteresis_s", 0.5)),
+            minimum_escape_height_m=float(
+                _va_cfg.get("minimum_escape_height_m", 0.8)
+            ),
+            clear_frames_required=int(
+                _va_cfg.get("clear_frames_required", 5)
+            ),
+            forward_clearance_distance_m=float(
+                _va_cfg.get("forward_clearance_distance_m", 1.5)
+            ),
+            forward_clearance_speed_mps=float(
+                _va_cfg.get("forward_clearance_speed_mps", 0.25)
+            ),
+            forward_clearance_max_duration_s=float(
+                _va_cfg.get("forward_clearance_max_duration_s", 8.0)
+            ),
+        )
+        self._va_selector = VerticalAvoidanceSelector(self._va_params)
+        self._va_episode = VerticalAvoidEpisode()
 
         self._occ_grid = OccupancyGridMap(self._occ_grid_params)
         self._distance_field = DistanceField()
@@ -2574,8 +2852,25 @@ class AutomaticMode:
             for i in range(len(xy) - 1)
         )
 
-    def _discover_mission_goal_actor(self):
-        """Return ``(goal_ned_xyz, actor_name)`` for a MissionEnd actor, else None.
+    def _discover_scene_marker(self, actor_name: Optional[str]):
+        """Return ``(position_ned_xyz, key)`` for a marker found by name or tag."""
+        if not actor_name:
+            return None
+        try:
+            client = self._adapter.get_raw_client()
+            pose = client.simGetObjectPose(str(actor_name))
+            pos = pose.position
+            xyz = (float(pos.x_val), float(pos.y_val), float(pos.z_val))
+            if not all(math.isfinite(value) for value in xyz):
+                logger.error("scene_marker_not_found  name_or_tag=%s", actor_name)
+                return None
+            return xyz, str(actor_name)
+        except Exception as exc:  # noqa: BLE001
+            logger.error("scene_marker_pose_failed  actor=%s  err=%s", actor_name, exc)
+            return None
+
+    def _discover_mission_goal_actor(self, actor_name: Optional[str] = None):
+        """Return ``(goal_ned_xyz, actor_name)`` for a MissionEnd marker, else None.
 
         Phase C1 item #1: the real MissionEnd actor placed in the AirSim world
         must win over any test-only fixed goal.  We probe
@@ -2602,6 +2897,22 @@ class AutomaticMode:
             s = name.lower().replace("_", "").replace(" ", "")
             return "missionend" in s
 
+        if actor_name:
+            # AirSim resolves simGetObjectPose by both actor name and Actor Tag.
+            # Tags are more stable across UE runs than generated internal names.
+            try:
+                pose = client.simGetObjectPose(str(actor_name))
+                pos = pose.position
+                goal = (float(pos.x_val), float(pos.y_val), float(pos.z_val))
+                if all(math.isfinite(value) for value in goal):
+                    return goal, str(actor_name)
+            except Exception as exc:  # noqa: BLE001
+                logger.warning(
+                    "mission_goal_actor_pose_failed  name_or_tag=%s  err=%s",
+                    actor_name, exc,
+                )
+            logger.error("mission_goal_actor_not_found  name_or_tag=%s", actor_name)
+            return None
         candidates = [n for n in names if isinstance(n, str) and _is_mission_end(n)]
         if not candidates:
             return None
@@ -3026,6 +3337,8 @@ class AutomaticMode:
             self._hover_due_no_feasible += 1
         elif command_source == "recovery":
             pass  # recovery is a maneuver, not a hover
+        elif command_source == "vertical_escape":
+            pass  # vertical escape is a maneuver, not a hover
         else:
             self._hover_dispatch_count += 1
             self._hover_due_other += 1
@@ -3154,19 +3467,36 @@ class AutomaticMode:
     def _recovery_directional_guard(
         self, vx: float, vy: float, rays: Dict[str, float]
     ) -> Tuple[float, float]:
-        """Prevent recovery from commanding into a measured obstacle face."""
+        """Prevent recovery from commanding into a measured obstacle face.
+
+        Each velocity component is blocked if any sector in its facing
+        half-space (the cardinal sector plus its two adjacent diagonals) lies
+        inside ``hard_clearance_m``.  Checking only the 4 cardinal sectors
+        left a blind spot: a diagonal ``frontLeft``/``frontRight``/etc. face
+        could be commanded straight into while ``front`` and ``left`` both
+        reported clear.
+        """
         hard = self._traj_params.hard_clearance_m
-        front = float(rays.get("front", float("inf")) or float("inf"))
-        back = float(rays.get("back", float("inf")) or float("inf"))
-        left = float(rays.get("left", float("inf")) or float("inf"))
-        right = float(rays.get("right", float("inf")) or float("inf"))
-        if front < hard and vx > 0.0:
+
+        def _ray(name: str) -> float:
+            return float(rays.get(name, float("inf")) or float("inf"))
+
+        front = _ray("front")
+        back = _ray("back")
+        left = _ray("left")
+        right = _ray("right")
+        front_left = _ray("frontLeft")
+        front_right = _ray("frontRight")
+        back_left = _ray("backLeft")
+        back_right = _ray("backRight")
+
+        if vx > 0.0 and min(front, front_left, front_right) < hard:
             vx = 0.0
-        if back < hard and vx < 0.0:
+        if vx < 0.0 and min(back, back_left, back_right) < hard:
             vx = 0.0
-        if left < hard and vy < 0.0:
+        if vy < 0.0 and min(left, front_left, back_left) < hard:
             vy = 0.0
-        if right < hard and vy > 0.0:
+        if vy > 0.0 and min(right, front_right, back_right) < hard:
             vy = 0.0
         return vx, vy
 
@@ -3215,6 +3545,437 @@ class AutomaticMode:
         error = float(target_z) - float(current_z)
         limit = max(0.0, float(max_speed))
         return max(-limit, min(limit, error * float(gain)))
+
+    def _update_inter_uav_coordination(self, own_state) -> bool:
+        """Predict peer conflicts and update the deterministic yield state.
+
+        The lower-priority drone holds horizontal position when a conflict is
+        predicted.  The command override is applied at dispatch, after local
+        route selection.  Peer-state failures do not release an active hold.
+        """
+        if not self._swarm_peer_readers:
+            return False
+        if self._swarm_bridge is not None:
+            self._authoritative_tick_snapshot = self._swarm_bridge.link.snapshot()
+            if self._authoritative_tick_snapshot is None:
+                self._swarm_peer_states.clear()
+                return True
+        now = time.monotonic()
+        if now - self._swarm_last_poll_time < self._swarm_peer_poll_interval_s:
+            return self._swarm_yield_active
+        self._swarm_last_poll_time = now
+
+        from coordination.collision_predictor import (
+            predict_pairwise_conflict,
+            to_common_ned,
+        )
+
+        try:
+            own_position = to_common_ned(
+                own_state.position_ned_m,
+                self._swarm_spawn_offsets[self._vn],
+            )
+        except Exception as exc:
+            self._log_throttled(
+                "inter_uav_own_transform_error", 5.0,
+                "inter_uav_prediction_skipped  drone=%s  reason=own_transform_error:%s",
+                self._vn, exc,
+            )
+            return self._swarm_yield_active
+
+        valid_predictions = {}
+        yielding_candidates = []
+        for peer_name, peer_reader in self._swarm_peer_readers.items():
+            try:
+                peer_state = peer_reader.read()
+                timestamp_skew_s = abs(
+                    int(own_state.timestamp) - int(peer_state.timestamp)
+                ) / 1_000_000_000.0
+                if timestamp_skew_s > self._swarm_max_timestamp_skew_s:
+                    self._log_throttled(
+                        f"inter_uav_skew_{peer_name}", 2.0,
+                        "inter_uav_prediction_skipped  drone=%s  peer=%s  "
+                        "reason=timestamp_skew  skew_s=%.3f  max_skew_s=%.3f",
+                        self._vn, peer_name, timestamp_skew_s,
+                        self._swarm_max_timestamp_skew_s,
+                    )
+                    continue
+
+                peer_position = to_common_ned(
+                    peer_state.position_ned_m,
+                    self._swarm_spawn_offsets[peer_name],
+                )
+                self._swarm_peer_states[peer_name] = {
+                    "position_xy": (peer_position[0], peer_position[1]),
+                    "velocity_xy": (
+                        float(peer_state.linear_velocity_ned_mps[0]),
+                        float(peer_state.linear_velocity_ned_mps[1]),
+                    ),
+                    "timestamp": int(peer_state.timestamp),
+                    "received_monotonic": now,
+                }
+                self._log_throttled(
+                    f"inter_uav_frame_{peer_name}", 2.0,
+                    "inter_uav_common_ned  drone=%s  peer=%s  "
+                    "self_local=(%.2f,%.2f,%.2f)  self_home=(%.2f,%.2f,%.2f)  "
+                    "self_common=(%.2f,%.2f,%.2f)  "
+                    "peer_local=(%.2f,%.2f,%.2f)  peer_home=(%.2f,%.2f,%.2f)  "
+                    "peer_common=(%.2f,%.2f,%.2f)",
+                    self._vn, peer_name,
+                    *own_state.position_ned_m,
+                    *self._swarm_spawn_offsets[self._vn],
+                    *own_position,
+                    *peer_state.position_ned_m,
+                    *self._swarm_spawn_offsets[peer_name],
+                    *peer_position,
+                )
+                prediction = predict_pairwise_conflict(
+                    own_position,
+                    own_state.linear_velocity_ned_mps,
+                    peer_position,
+                    peer_state.linear_velocity_ned_mps,
+                    safety_distance_m=self._swarm_safety_distance_m,
+                    horizon_s=self._swarm_prediction_horizon_s,
+                )
+                valid_predictions[peer_name] = prediction
+                own_priority = self._swarm_yield_priorities.get(self._vn, 0.0)
+                peer_priority = self._swarm_yield_priorities.get(peer_name, 0.0)
+                # Higher numeric priority keeps its route.  Equal priorities
+                # use a name tie-break so both agents make the same decision.
+                own_should_yield = (
+                    own_priority < peer_priority
+                    or (own_priority == peer_priority and self._vn > peer_name)
+                )
+                if (
+                    self._swarm_yield_enabled
+                    and own_should_yield
+                    and prediction.conflict
+                ):
+                    yielding_candidates.append((
+                        prediction.closest_distance_m,
+                        prediction.time_to_closest_s,
+                        peer_name,
+                    ))
+                action = (
+                    "orca_filter"
+                    if self._swarm_algorithm == "orca" and prediction.conflict
+                    else "yield_candidate"
+                    if self._swarm_yield_enabled
+                    and own_should_yield
+                    and prediction.conflict
+                    else "keep_priority" if prediction.conflict
+                    else "monitor"
+                )
+                self._log_throttled(
+                    f"inter_uav_cpa_{peer_name}", self._swarm_log_interval_s,
+                    "inter_uav_prediction  drone=%s  peer=%s  "
+                    "separation_now_m=%.2f  tcpa_s=%.2f  d_cpa_m=%.2f  "
+                    "risk=%s  action=%s  threshold_m=%.2f  horizon_s=%.2f  "
+                    "timestamp_skew_s=%.3f",
+                    self._vn, peer_name,
+                    prediction.current_distance_m,
+                    prediction.time_to_closest_s,
+                    prediction.closest_distance_m,
+                    str(prediction.conflict).lower(),
+                    action,
+                    self._swarm_safety_distance_m,
+                    self._swarm_prediction_horizon_s,
+                    timestamp_skew_s,
+                )
+            except Exception as exc:
+                self._log_throttled(
+                    f"inter_uav_peer_read_error_{peer_name}", 5.0,
+                    "inter_uav_prediction_skipped  drone=%s  peer=%s  "
+                    "reason=peer_state_error:%s",
+                    self._vn, peer_name, exc,
+                )
+
+        if not self._swarm_yield_enabled:
+            return False
+
+        # ORCA continuously filters the selected command at dispatch. Keep the
+        # CPA diagnostics and peer snapshots, but do not also run the hold
+        # state machine unless priority_hold was explicitly selected.
+        if self._swarm_algorithm == "orca":
+            return False
+
+        if yielding_candidates:
+            _, _, selected_peer = min(yielding_candidates)
+            if not self._swarm_yield_active or self._swarm_yield_peer != selected_peer:
+                logger.warning(
+                    "inter_uav_yield_enter  drone=%s  peer=%s  action=horizontal_hold",
+                    self._vn, selected_peer,
+                )
+            self._swarm_yield_active = True
+            self._swarm_yield_peer = selected_peer
+            self._swarm_yield_clear_since = None
+            return True
+
+        if not self._swarm_yield_active or self._swarm_yield_peer is None:
+            return False
+
+        # Require fresh data for the peer that caused the hold.  If its state
+        # is stale or unavailable, keep holding until a fresh clear prediction
+        # arrives instead of resuming into an unknown trajectory.
+        peer_prediction = valid_predictions.get(self._swarm_yield_peer)
+        if peer_prediction is None:
+            self._swarm_yield_clear_since = None
+            return True
+
+        release_distance = (
+            self._swarm_safety_distance_m + self._swarm_yield_release_margin_m
+        )
+        is_clear = (
+            peer_prediction.current_distance_m >= release_distance
+            and peer_prediction.closest_distance_m >= release_distance
+        )
+        if not is_clear:
+            self._swarm_yield_clear_since = None
+            return True
+
+        if self._swarm_yield_clear_since is None:
+            self._swarm_yield_clear_since = now
+            return True
+        if now - self._swarm_yield_clear_since < self._swarm_yield_release_delay_s:
+            return True
+
+        released_peer = self._swarm_yield_peer
+        self._swarm_yield_active = False
+        self._swarm_yield_peer = None
+        self._swarm_yield_clear_since = None
+        logger.info(
+            "inter_uav_yield_exit  drone=%s  peer=%s  reason=separation_clear",
+            self._vn, released_peer,
+        )
+        # A deliberate hold must not be misclassified as a navigation stall
+        # when the planner resumes after the peer has passed.
+        self._recovery.reset()
+        self._recovery_sm.reset()
+        return False
+
+    def _apply_inter_uav_orca(
+        self, own_state, preferred_vx_body: float, preferred_vy_body: float,
+        yaw_rad: float, duration_s: float, points_sensor,
+    ) -> tuple[float, float, str]:
+        """Filter a body-frame horizontal command through 2D ORCA.
+
+        The LiDAR planner runs first. If ORCA proposes a command through a
+        nearby static obstacle, request a horizontal stop. Priority alone is
+        never a reason to send a velocity that failed the coordination filter.
+        """
+        if self._swarm_algorithm != "orca" or not self._swarm_peer_readers:
+            return preferred_vx_body, preferred_vy_body, "unchanged"
+
+        from coordination.orca_2d import compute_orca_velocity
+        now = time.monotonic()
+        neighbors = []
+        for peer_name in self._swarm_peer_readers:
+            peer = self._swarm_peer_states.get(peer_name)
+            if peer is None:
+                neighbors = []
+                break
+            age = now - peer["received_monotonic"]
+            timestamp_skew = abs(int(own_state.timestamp) - peer["timestamp"]) / 1e9
+            if age > max(0.5, self._swarm_peer_poll_interval_s * 3.0) or timestamp_skew > self._swarm_max_timestamp_skew_s:
+                neighbors = []
+                break
+            neighbors.append((peer["position_xy"], peer["velocity_xy"]))
+
+        if not neighbors:
+            self._log_throttled(
+                "inter_uav_orca_stale_peer", 2.0,
+                "inter_uav_orca_fallback  drone=%s  reason=stale_or_missing_peer",
+                self._vn,
+            )
+            return 0.0, 0.0, "safety_hold_stale_peer"
+
+        cosine, sine = math.cos(yaw_rad), math.sin(yaw_rad)
+        preferred_world = (
+            preferred_vx_body * cosine - preferred_vy_body * sine,
+            preferred_vx_body * sine + preferred_vy_body * cosine,
+        )
+        try:
+            from coordination.collision_predictor import to_common_ned
+            own_position = to_common_ned(
+                own_state.position_ned_m,
+                self._swarm_spawn_offsets[self._vn],
+            )
+            safe_world = compute_orca_velocity(
+                position=own_position[:2],
+                velocity=own_state.linear_velocity_ned_mps[:2],
+                preferred_velocity=preferred_world,
+                neighbors=neighbors,
+                safety_distance_m=self._swarm_safety_distance_m,
+                horizon_s=self._swarm_prediction_horizon_s,
+                time_step_s=max(0.05, duration_s),
+                max_speed_mps=max(0.1, self._params.forward_speed_mps),
+                passing_bias_mps=self._swarm_passing_bias_mps,
+            )
+        except Exception as exc:
+            safe_world = None
+            self._log_throttled(
+                "inter_uav_orca_error", 2.0,
+                "inter_uav_orca_fallback  drone=%s  reason=solver_error:%s",
+                self._vn, exc,
+            )
+        if safe_world is None:
+            return 0.0, 0.0, "safety_hold_infeasible"
+
+        safe_body = (
+            safe_world[0] * cosine + safe_world[1] * sine,
+            -safe_world[0] * sine + safe_world[1] * cosine,
+        )
+        clearance = self._swept_command_clearance(
+            points_sensor, safe_body[0], safe_body[1], duration_s,
+            self._occ_grid_params.horizontal_band_half_height_m,
+        )
+        hard_clearance = self._traj_params.hard_clearance_m
+        if math.isfinite(clearance) and clearance < hard_clearance:
+            self._log_throttled(
+                "inter_uav_orca_static_fallback", 1.0,
+                "inter_uav_orca_fallback  drone=%s  reason=lidar_clearance  "
+                "clearance_m=%.2f  required_m=%.2f",
+                self._vn, clearance, hard_clearance,
+            )
+            return 0.0, 0.0, "safety_hold_lidar"
+
+        return safe_body[0], safe_body[1], "orca"
+
+    def _update_vertical_avoidance(self, rays: Dict[str, Any], position_ned) -> None:
+        """Advance the vertical-escape state machine (pure state update).
+
+        Reads the 16-sector ``rays`` and the current NED position, then drives
+        ``self._va_episode`` through NORMAL → CLIMBING → FORWARD_CLEARANCE →
+        NORMAL (or a logged FAILED).  It never dispatches: the command dispatch,
+        the altitude-safety limit and the recovery suppression all read
+        ``self._va_episode`` elsewhere in the loop.
+        """
+        p = self._va_params
+        if not p.enabled:
+            if self._va_episode.active:
+                self._va_episode = VerticalAvoidEpisode()
+            return
+
+        from planners.vertical_avoidance import safe_ray, upward_clearance
+
+        now = time.monotonic()
+        current_z = float(position_ned[2])
+        current_xy = (float(position_ned[0]), float(position_ned[1]))
+        target_z = self._params.target_z_ned
+        climb_cap = target_z - p.max_climb_m
+        ep = self._va_episode
+
+        front = safe_ray(rays.get("front"))
+        up_clear = upward_clearance(rays)
+        climbed = max(0.0, ep.start_z - current_z) if ep.state != "NORMAL" else 0.0
+
+        def _exit(reason: str) -> None:
+            self._log_throttled(
+                "vertical_avoid", 1.0,
+                "vertical_avoid_exit  reason=%s  state=%s  elapsed=%.2f  "
+                "climbed=%.2f  front=%.2f  up_clear=%.2f  z=%.2f",
+                reason, ep.state, now - ep.start_time,
+                climbed, front, up_clear, current_z,
+            )
+            self._va_episode = VerticalAvoidEpisode()
+            # Drop the XY history that accumulated during the climb so the
+            # stuck detector cannot immediately re-fire once the escape ends.
+            self._recovery.reset()
+            # The 2D planner memory predates the climb; force a fresh local
+            # plan from the post-escape position so it does not re-steer the
+            # drone back toward the obstacle face.
+            self._traj_force_replan = True
+
+        if ep.state == "CLIMBING":
+            # Headroom lost → cannot climb any more, hand back to lateral/
+            # recovery instead of hovering under a ceiling.
+            if up_clear < p.up_clearance_m:
+                _exit("up_clearance_lost")
+                return
+            # Max climb reached without clearing the obstacle → bounded failure.
+            if current_z <= climb_cap + p.ceiling_margin_m:
+                _exit("max_climb_reached")
+                return
+            # Stable-clear gate: require both a minimum climbed height AND a run
+            # of consecutive clear frames.  A single leaf-gap clear frame resets
+            # the counter, so the escape survives LiDAR flicker.
+            if front >= p.front_clear_m and climbed >= p.minimum_escape_height_m:
+                ep.clear_frames += 1
+            else:
+                ep.clear_frames = 0
+            if ep.clear_frames >= p.clear_frames_required:
+                ep.state = "FORWARD_CLEARANCE"
+                ep.start_time = now
+                ep.forward_start_xy = current_xy
+                ep.clear_frames = 0
+                self._log_throttled(
+                    "vertical_avoid", 1.0,
+                    "vertical_avoid_forward_clearance  climbed=%.2f  front=%.2f  "
+                    "up_clear=%.2f  z=%.2f",
+                    climbed, front, up_clear, current_z,
+                )
+                return
+            # Keep climbing: refresh the incremental target up to the ceiling.
+            ep.target_z = max(climb_cap, current_z - p.climb_step_m)
+            self._log_throttled(
+                "vertical_avoid", 1.0,
+                "vertical_avoid_active  state=climbing  climbed=%.2f  "
+                "target_z=%.2f  front=%.2f  up_clear=%.2f  clear_frames=%d  z=%.2f",
+                climbed, ep.target_z, front, up_clear, ep.clear_frames, current_z,
+            )
+            return
+
+        if ep.state == "FORWARD_CLEARANCE":
+            fwd = 0.0
+            if ep.forward_start_xy is not None:
+                fwd = math.hypot(
+                    current_xy[0] - ep.forward_start_xy[0],
+                    current_xy[1] - ep.forward_start_xy[1],
+                )
+            elapsed = now - ep.start_time
+            if (
+                fwd >= p.forward_clearance_distance_m
+                or elapsed >= p.forward_clearance_max_duration_s
+            ):
+                _exit(
+                    "crossed"
+                    if fwd >= p.forward_clearance_distance_m
+                    else "clearance_timeout"
+                )
+                return
+            # Hold the cleared altitude while flying forward over the obstacle.
+            ep.target_z = current_z
+            self._log_throttled(
+                "vertical_avoid", 1.0,
+                "vertical_avoid_active  state=forward_clearance  fwd=%.2f  "
+                "target_z=%.2f  front=%.2f  z=%.2f",
+                fwd, ep.target_z, front, current_z,
+            )
+            return
+
+        # NORMAL — evaluate entry (the selector keeps the default "go around"
+        # policy; it returns "climb" only when sides are narrow and the obstacle
+        # is low with open headroom).
+        decision = self._va_selector.select(rays, current_z, target_z)
+        if decision.action == "climb":
+            self._va_episode = VerticalAvoidEpisode(
+                state="CLIMBING",
+                start_time=now,
+                target_z=decision.target_z,
+                reason=decision.reason,
+                start_z=current_z,
+            )
+            # Clear the XY stuck window at entry so a vertical climb (XY ≈ 0)
+            # is never mistaken for being stuck.
+            self._recovery.reset()
+            self._log_throttled(
+                "vertical_avoid", 1.0,
+                "vertical_avoid_enter  reason=%s  target_z=%.2f  "
+                "front=%.2f  frontUp=%.2f  up_clear=%.2f  min_side=%.2f  z=%.2f",
+                decision.reason, decision.target_z,
+                decision.front_m, decision.front_up_m,
+                decision.up_clearance_m, decision.min_side_m, current_z,
+            )
 
     def _sleep_to_next_period(self, next_tick: float):
         """Advance the deadline scheduler and sleep to the next period boundary.
@@ -3569,9 +4330,34 @@ class AutomaticMode:
             # actor exists do we fall back to the heading-relative fixed goal.
             # Phase C1-R: actor X/Y → navigation endpoint; actor Z is metadata;
             # navigation goal Z = altitude-hold target (cruise altitude).
-            _actor_goal = self._discover_mission_goal_actor()
+            _mission_start_actor_name = (
+                self._cli_overrides.get("mission_start_actor")
+                if self._cli_overrides else None
+            )
+            _mission_end_actor_name = (
+                self._cli_overrides.get("mission_end_actor")
+                if self._cli_overrides else None
+            )
+            _start_marker = self._discover_scene_marker(_mission_start_actor_name)
+            if _mission_start_actor_name and _start_marker is None:
+                raise RuntimeError(
+                    f"configured mission start actor not found: {_mission_start_actor_name}"
+                )
+            _actor_goal = self._discover_mission_goal_actor(_mission_end_actor_name)
+            if _mission_end_actor_name and _actor_goal is None:
+                raise RuntimeError(
+                    f"configured mission end actor not found: {_mission_end_actor_name}"
+                )
             _actor_xyz = _actor_goal[0] if _actor_goal is not None else None
             _mission_goal_actor = _actor_goal[1] if _actor_goal is not None else None
+            if _actor_xyz is not None and _start_marker is not None:
+                # AirSim scene markers are in the shared world NED frame while
+                # each multirotor state is relative to that vehicle's home.
+                # PlayerStartN defines the local origin for its MissionEndN.
+                _actor_xyz = tuple(
+                    goal_axis - start_axis
+                    for goal_axis, start_axis in zip(_actor_xyz, _start_marker[0])
+                )
             _navigation_target_z = float(self._params.target_z_ned)
             _goal_xy_override = None
             if (
@@ -3601,6 +4387,7 @@ class AutomaticMode:
                 "cbmba_mission_goal  "
                 "mission_goal_source=%s  "
                 "actor=%s  "
+                "start_actor=%s  "
                 "mission_actor_xyz=%s  "
                 "navigation_goal_xy=(%.2f,%.2f)  "
                 "navigation_target_z=%.2f  "
@@ -3611,6 +4398,7 @@ class AutomaticMode:
                 "heading=%.4f",
                 _mission_goal_source,
                 _mission_goal_actor or "none",
+                _start_marker[1] if _start_marker else "none",
                 "(%s,%s,%s)" % tuple(f"{v:.2f}" for v in _mission_actor_xyz) if _mission_actor_xyz else "none",
                 _mission_goal[0], _mission_goal[1],
                 _navigation_target_z,
@@ -3786,8 +4574,12 @@ class AutomaticMode:
             _sched_next_tick = time.monotonic()
 
             self._running = True
+            if self._swarm_bridge is not None:
+                self._swarm_bridge.begin_cruise(self)
             while self._running:
                 fn += 1
+                if self._swarm_bridge is not None:
+                    self._swarm_bridge.tick()
                 # Phase C1-R sec 6/14: per-frame CBMBA duplicate guard + stage
                 # timing baselines (perf_counter for intra-loop profiling).
                 self._cbmba_searches_this_frame = 0
@@ -3862,6 +4654,14 @@ class AutomaticMode:
                 except Exception:
                     term = "rpc_error"
                     break
+                # Peer prediction is sampled at low rate and its yield state
+                # is held between samples.  The actual command override is
+                # applied at the final dispatch boundary below.
+                self._swarm_yield_active = self._update_inter_uav_coordination(st)
+                if self._swarm_bridge is not None:
+                    formation_goal = self._swarm_bridge.goal(st)
+                    if formation_goal is not None:
+                        _mission_goal = formation_goal
                 _stg_sensor_ms = _rpc_lidar_ms + _rpc_state_ms + _rpc_collision_ms
 
                 if col.has_collided:
@@ -3890,6 +4690,14 @@ class AutomaticMode:
                     _altitude_limit = max(
                         _altitude_limit,
                         self._recovery_sm.params.vertical_climb_delta_m + 0.20,
+                    )
+                if self._va_episode.active:
+                    # Permit the bounded climb-over excursion; the episode
+                    # target is clamped to max_climb_m below the cruise
+                    # altitude, so this ceiling is never reachable in practice.
+                    _altitude_limit = max(
+                        _altitude_limit,
+                        self._va_params.max_climb_m + 0.20,
                     )
                 if (
                     self._local_navigation_mode == "trajectory"
@@ -4109,6 +4917,17 @@ class AutomaticMode:
                 if rays is None:
                     term = "perception:none"
                     break
+                if self._swarm_bridge is not None:
+                    self._swarm_bridge.points = fr.filtered_points_sensor
+                    self._swarm_bridge.points_at = lf.received_monotonic_seconds
+
+                # Vertical-escape decision runs here, BEFORE the recovery state
+                # machine below, so the recovery tick sees this frame's episode
+                # state and can be suppressed while the drone is climbing or
+                # crossing an obstacle.  (Also keeps the altitude-safety relax
+                # at the top of the loop in sync with the current episode.)
+                if self._local_navigation_mode == "trajectory":
+                    self._update_vertical_avoidance(rays, st.position_ned_m)
 
                 dec = choose_reactive_command(
                     rays.get("front", float("inf")),
@@ -4272,19 +5091,28 @@ class AutomaticMode:
                 _guidance_dir_for_recovery = None
                 if _guidance_result is not None and _guidance_result.valid:
                     _guidance_dir_for_recovery = _guidance_result.direction_body_xy
-                recovery_result = self._recovery_sm.tick(
-                    time.monotonic(), recovery_decision, rays,
-                    current_position=(
-                        st.position_ned_m[0],
-                        st.position_ned_m[1],
-                        st.position_ned_m[2],
-                    ),
-                    guidance_dir=_guidance_dir_for_recovery,
-                    bypass_side=(
-                        _traj_escape_side if _traj_escape_side
-                        else (self._bypass.side if self._bypass.active else None)
-                    ),
-                )
+                if self._va_episode.active:
+                    # Vertical escape owns the command this frame: an in-flight
+                    # recovery XY probe must not cancel the climb.  Exit recovery
+                    # (if active) instead of ticking it, so no fresh entry can
+                    # happen while the drone is climbing / crossing the obstacle.
+                    recovery_result = self._recovery_sm.force_exit(
+                        "vertical_escape", time.monotonic()
+                    )
+                else:
+                    recovery_result = self._recovery_sm.tick(
+                        time.monotonic(), recovery_decision, rays,
+                        current_position=(
+                            st.position_ned_m[0],
+                            st.position_ned_m[1],
+                            st.position_ned_m[2],
+                        ),
+                        guidance_dir=_guidance_dir_for_recovery,
+                        bypass_side=(
+                            _traj_escape_side if _traj_escape_side
+                            else (self._bypass.side if self._bypass.active else None)
+                        ),
+                    )
                 if recovery_result.event == "enter":
                     logger.info(
                         "recovery_enter  reason=%s  action=(%.3f,%.3f,%.3f)  "
@@ -5002,7 +5830,7 @@ class AutomaticMode:
                             "true" if _goal_res.within_altitude else "false",
                             "true" if _goal_res.speed_low else "false",
                         )
-                    if _goal_res.reached:
+                    if _goal_res.reached and not (self._swarm_bridge is not None and self._swarm_bridge.follower):
                         term = "mission_complete"
                         break
 
@@ -5905,19 +6733,93 @@ class AutomaticMode:
                 # position hold），命令被忽略导致无人机不动。改用纯速度控制
                 # (moveByVelocityBodyFrameAsync) + 手动高度 P 控制器。
                 _use_altitude_hold = False
+                _swarm_actively_avoiding = False
+                if self._swarm_bridge is not None:
+                    selected_vx, selected_vy, selected_vz, command_source = self._swarm_bridge.select(
+                        selected_vx, selected_vy, selected_vz, command_source, st)
 
-                # trajectory 模式加高度 P 控制器（其他模式保持原有 vz）
-                if self._local_navigation_mode == "trajectory" and abs(selected_vz) < 0.01:
-                    selected_vz = self._altitude_hold_velocity(
-                        st.position_ned_m[2], self._params.target_z_ned,
-                        self._params.max_vertical_speed_mps,
-                    )
+                # trajectory 模式：先做垂直避障决策（爬升翻越 vs 默认绕行），
+                # 再加高度 P 控制器（其他模式保持原有 vz）。
+                if self._local_navigation_mode == "trajectory":
+                    if self._va_episode.active:
+                        # Vertical escape owns the command (priority: emergency >
+                        # vertical_escape > recovery > tracker > global planner).
+                        # CLIMBING: straight up.  FORWARD_CLEARANCE: slow forward
+                        # at the held altitude, then descend back to the route.
+                        command_source = "vertical_escape"
+                        selected_vy = 0.0
+                        if self._va_episode.state == "FORWARD_CLEARANCE":
+                            selected_vx = self._va_params.forward_clearance_speed_mps
+                        else:
+                            selected_vx = 0.0
+                        selected_vz = self._altitude_hold_velocity(
+                            st.position_ned_m[2],
+                            self._va_episode.target_z,
+                            self._params.max_vertical_speed_mps,
+                        )
+                    elif abs(selected_vz) < 0.01:
+                        selected_vz = self._altitude_hold_velocity(
+                            st.position_ned_m[2],
+                            self._params.target_z_ned,
+                            self._params.max_vertical_speed_mps,
+                        )
                 # Altitude P-control must not reintroduce vz after a severe
                 # control-loop stall has requested a hover.
                 if self._loop_current_overrun_ms > self._control_loop_overrun_stop_ms:
                     selected_vx = selected_vy = selected_vz = 0.0
                     command_source = "control_loop_hover"
                     _selected_yaw_rate = 0.0
+                elif self._swarm_yield_active:
+                    # The designated yielding drone stops horizontal progress
+                    # after all local route/recovery decisions.  Keep a
+                    # bounded vertical obstacle escape if one is active;
+                    # otherwise maintain the assigned cruise altitude.
+                    selected_vx = selected_vy = 0.0
+                    if command_source != "vertical_escape":
+                        selected_vz = self._altitude_hold_velocity(
+                            st.position_ned_m[2],
+                            self._params.target_z_ned,
+                            self._params.max_vertical_speed_mps,
+                        )
+                    _selected_yaw_rate = 0.0
+                    command_source = "inter_uav_yield"
+                    self._log_throttled(
+                        "inter_uav_yield_command", 0.5,
+                        "inter_uav_yield_command  drone=%s  peer=%s  "
+                        "horizontal_velocity=(0,0)  vertical_velocity=%.2f  "
+                        "reason=predicted_conflict",
+                        self._vn, self._swarm_yield_peer, selected_vz,
+                    )
+                elif (
+                    self._swarm_algorithm == "orca"
+                    and self._loop_current_overrun_ms <= self._control_loop_overrun_stop_ms
+                    and command_source != "control_loop_hover"
+                ):
+                    _orca_preferred_vx, _orca_preferred_vy = selected_vx, selected_vy
+                    _orca_was_vertical_escape = command_source == "vertical_escape"
+                    selected_vx, selected_vy, _orca_result = self._apply_inter_uav_orca(
+                        st, selected_vx, selected_vy, st.yaw_rad,
+                        _selected_command_duration, fr.filtered_points_sensor,
+                    )
+                    if _orca_result == "orca":
+                        _swarm_actively_avoiding = math.hypot(
+                            selected_vx - _orca_preferred_vx, selected_vy - _orca_preferred_vy) > 1e-3
+                        command_source = "inter_uav_orca"
+                    elif _orca_result.startswith("safety_hold"):
+                        command_source = "inter_uav_orca_fallback_hold"
+                        if not _orca_was_vertical_escape:
+                            selected_vz = self._altitude_hold_velocity(
+                                st.position_ned_m[2], self._params.target_z_ned,
+                                self._params.max_vertical_speed_mps,
+                            )
+                        _selected_yaw_rate = 0.0
+                    self._log_throttled(
+                        "inter_uav_orca_command", 0.5,
+                        "inter_uav_orca_command  drone=%s  result=%s  "
+                        "body_velocity=(%.2f,%.2f)  preferred=(%.2f,%.2f)",
+                        self._vn, _orca_result, selected_vx, selected_vy,
+                        _orca_preferred_vx, _orca_preferred_vy,
+                    )
                 self._record_dispatch_source(command_source)
                 _alt_err = abs(st.position_ned_m[2] - self._params.target_z_ned)
                 self._max_altitude_error_m = max(self._max_altitude_error_m, _alt_err)
@@ -5963,7 +6865,12 @@ class AutomaticMode:
                         )
                     _rpc_velocity_command_ms = (time.perf_counter() - _t_rpc) * 1000.0
                     _rpc_velocity_submit_ms = _rpc_velocity_command_ms
+                    if self._swarm_bridge is not None:
+                        self._swarm_bridge.report_dispatch(command_source, avoiding=_swarm_actively_avoiding)
                 except Exception:
+                    if self._swarm_bridge is not None:
+                        self._swarm_bridge._unverified_emergency = True
+                        self._swarm_bridge.link.report("EMERGENCY", "velocity_send_error")
                     term = "velocity_send_error"
                     break
 
@@ -6130,6 +7037,16 @@ class AutomaticMode:
 
             rk.update(termination_reason=term, frames_completed=fn,
                        flight_duration_s=time.monotonic() - t0)
+
+            # Surface an escape that never completed: if the flight ended while
+            # still climbing / crossing, that is a real-map finding to investigate.
+            if self._va_episode.active:
+                logger.warning(
+                    "vertical_avoid_auto_exit  term=%s  state=%s  reason=%s  "
+                    "target_z=%s  start_z=%.2f",
+                    term, self._va_episode.state, self._va_episode.reason,
+                    self._va_episode.target_z, self._va_episode.start_z,
+                )
 
             # ── trajectory flight summary + navigation benchmark (sec 1/31) ──
             if self._local_navigation_mode == "trajectory" and self._traj_metrics is not None:

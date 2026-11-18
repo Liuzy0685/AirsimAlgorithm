@@ -36,3 +36,18 @@ coordination:
   max_state_timestamp_skew_s: 0.5
   yield_release_margin_m: 0.75
   yield_release_delay_s: 0.5
+
+# A authoritative state channel. Set enabled:false only for the legacy
+# independent-navigation experiment (B formation will then be unavailable).
+state_service:
+  enabled: true
+  host: 127.0.0.1
+  port: 8765
+  leader: Drone1
+  task_id: swarm-mission
+  snapshot_max_age_s: 0.6
+  heartbeat_s: 1.0
+  disconnect_timeout_s: 2.0
+  startup_timeout_s: 15.0
+  lease_ttl_s: 2.0
+  lifecycle_lease_s: 90.0

@@ -1,6 +1,6 @@
 # 多无人机协作接口与分工
 
-本文件是 A（协同避障）、B（编队）、C（前端遥测）共同使用的接口约定。当前仓库中的公共代码覆盖阶段一、二；跨进程状态发布、编队命令接入、真实遥测发布和统一控制网关尚未接线。任何一方不得把尚未接线的模型当作已运行的服务。
+本文件是 A（协同避障）、B（编队）、C（前端遥测）共同使用的接口约定。A 状态服务、B 命令 ACK、控制进程订阅、编队目标与控制网关已经接入 `launch_swarm.py` / `flight_mode.py` / `automatic_mode.py`。启用 `state_service.enabled` 时，状态服务必须在运行时通过真实坐标验证和完整快照检查，控制进程才会起飞。离线测试不替代两机、五机 AirSim 飞行验收。完整运行步骤见 [`docs/A_交付说明_状态服务与命令入口.md`](docs/A_交付说明_状态服务与命令入口.md)。
 
 跨进程消息、命令生命周期、控制权、字段语义、重连、配置和测试责任的详细约定见 [`docs/多机通信与控制协议.md`](docs/多机通信与控制协议.md)。协议版本由 `common/constants.py::PROTOCOL_VERSION` 定义；当前为 v1 草案。
 
@@ -12,7 +12,7 @@
 | 无人机状态 | `models/vehicle_state.py`，由 `common/models.py` 原类 re-export | 使用同一个 `VehicleState` 类；AirSim 原始 `timestamp` 为纳秒，`received_monotonic_seconds` 为本机单调时钟秒。 |
 | 编队命令 | `common/models.py::FormationCommand`、`CommandLifecycle` | B 输出目标位置或期望速度（World NED），A 消费；跨进程发送时须携带命令 ID、序号、有效期、来源和任务 ID。 |
 | 避障命令 | `common/models.py::AvoidanceCommand` | A 输出期望速度与来源；当前尚未接入最终速度仲裁。 |
-| 遥测消息 | `common/models.py::TelemetryMessage` | A/C 约定的数据结构；C 只读。当前没有发布/订阅通道。 |
+| 遥测消息 | `common/models.py::TelemetryMessage` | C 从 A 的 WebSocket 订阅快照；转换到前端 TelemetryFrame 的服务仍由 C 负责。 |
 | 状态快照 | `coordination/state_provider.py::SwarmStateSnapshot` | 包含 1～5 机各自采集时间、有效状态、错误、采集耗时和时差。算法需要全部邻机时必须检查 `collection_complete`。 |
 | 坐标转换 | `coordination/coordinate_transform.py::CoordinateTransformer` | 先用实际 AirSim 位姿执行 `validate()`；验证失败禁止使用新转换结果。位置为 `R @ p + t`，速度为 `R @ v`。 |
 | 状态读取 | `coordination/state_provider.py::StateProvider` | `get_snapshot()` 执行一轮顺序读取；其他查询只读最近一轮快照，不发起隐式 RPC。过期、失效或时间差过大的结果不可作为实时避碰输入。 |
@@ -31,9 +31,9 @@
 2. 输出 `FormationCommand`，明确 `vehicle_name`、`mode`、目标/速度、`formation_id` 和 `CommandLifecycle`；不得直接调用 AirSim 飞行控制 API。
 3. 与 A 约定命令传递方式和失联/超时策略，并测试单机、双机、五机及避障优先级接管后的编队恢复。
 
-当前 B 离线实现位于 `formation/controller.py`，配置在 `configs/formation.yaml`。`FormationController.plan()` 接受 A 的完整 `SwarmStateSnapshot`、B 本机记录的快照接收单调时间和 `coordination.status`，生成带 `CommandLifecycle` 的跟随机 `FormationCommand`；单机无跟随机时返回空集。支持纵队、横队和 V 字队形，槽位按领航机 World NED 航向旋转。冲突/避障/紧急状态停止发布；只在 `CONFLICT_CLEARED` 后生成限速回归速度，收敛后恢复位置目标。快照不完整、过期、仿真时间差超限或领航机无效时不发布。B 不给领航机发运动命令，领航目标仍由 A 的导航任务决定。
+B 的纯算法位于 `formation/controller.py`，配置在 `configs/formation.yaml`。`FormationController.plan()` 接受完整 `SwarmStateSnapshot`、B 本机记录的接收时间与协调状态，输出带生命周期的跟随机命令。支持纵队、横队和 V 字队形，槽位随领航机航向旋转；冲突/避障/紧急状态停止发布，冲突解除后限速回归，收敛后恢复位置目标。领航机继续由 A 的导航任务控制。
 
-此模块目前是可调用的离线规划器；A 的权威状态服务、`coordination.status` 传输、`formation.command` 接收/ACK 与统一控制网关仍待接线。B 进程应在接收快照时记录本机单调时间，断线后停止调用/发布，并让 A 对命令做身份、序号、过期和安全检查。离线测试：`python -m pytest tests/test_formation_controller.py -q`。
+网络运行入口为 `scripts/formation_service.py`：订阅 A 快照并发布命令、读取 ACK；不直接调用 AirSim。B 的原有纯算法与测试保持不变，A 负责接收端期限、控制许可与最终安全检查。离线算法测试：`python -m pytest tests/test_formation_controller.py -q`。
 
 ### C：前端与遥测（`frontend/` 及遥测服务）
 
@@ -43,6 +43,22 @@
 
 ## 集成顺序与边界
 
-先完成真实 AirSim 坐标与性能验收，再按 v1 协议实现跨进程状态/命令传输，之后接入 B 的 `FormationCommand` 和 C 的 `TelemetryMessage`。当前只有 Python 内存中的共用数据类型和读取接口；三架或五架无人机各进程间尚无公共状态服务。现有 ORCA、APF、priority_hold 与飞行控制行为保持原样。
+状态服务独占权威多机采集；各机控制进程从它订阅邻机快照，本机高频传感器仍供本地控制使用。B 的位置槽位接入现有轨迹/APF 的目标输入，速度请求在既有安全/恢复优先级之后、ORCA 之前作为期望输入，最终速度再次经过网关的状态、CPA、三维 LiDAR 和期限检查。`command.ack` 表示入口接收；控制状态报告实际采用或失败。派发前通过 `command.request` / `command.permit` 取得 A 接收端剩余 TTL，并扣除控制进程本机测得的整个 RTT，禁止跨进程转发重置 TTL。`state_service.enabled:false` 保留独立导航实验，不能使用 B 编队。
 
 离线验收：`python -m pytest tests/test_common_models.py tests/test_vehicle_state_import_compat.py tests/test_coordinate_transform.py tests/test_state_provider.py tests/test_swarm_snapshot.py tests/test_coordinate_transform_integration.py -q`。公共模型、阶段一和阶段二在开发机通过 53 项测试；AirSim 实测仍待完成。
+
+## A 已交付模块（本分支新增，均带离线单测）
+
+| 模块 | 作用 | 单测 |
+| --- | --- | --- |
+| `coordination/wire.py` | 协议封装/快照序列化/命令解析/ack/状态编码 | `tests/test_wire.py` |
+| `coordination/command_ingress.py` | `formation.command` 身份/生命周期/去重/旧序号/超时 | `tests/test_command_ingress.py` |
+| `coordination/state_publisher.py` | 权威 `swarm.snapshot` 发布；验证失败不发布 | `tests/test_state_publisher.py` |
+| `coordination/ws.py` | 最小 RFC 6455 WebSocket 握手/帧编解码（stdlib） | `tests/test_ws.py` |
+| `coordination/state_service.py` | `ws://127.0.0.1:8765/ws/swarm` 状态/命令服务、断连/重连 | `tests/test_state_service.py` |
+| `control/command_authority.py` | 单机唯一控制者租约 | `tests/test_command_authority.py` |
+| `control/safety_filter.py` | 编队目标安全检查（限速/机间间距/邻机完整） | `tests/test_safety_filter.py` |
+| `control/velocity_arbitrator.py` | 速度源优先级仲裁 | `tests/test_velocity_arbitrator.py` |
+| `control/vehicle_command_gateway.py` | 唯一飞行控制入口（权限+安全+派发） | `tests/test_vehicle_command_gateway.py` |
+
+新增接线模块为 `coordination/runtime_config.py`、`coordination/client.py`、`coordination/controller_link.py`、`control/swarm_flight_bridge.py`；入口为 `scripts/swarm_state_service.py` 和 `scripts/formation_service.py`。`tests/test_swarm_wiring.py` 覆盖两/五机、真实回环 WebSocket、ACK、断连、重放、过期和最终 RPC 边界。统一网关作用于启用状态服务的自动飞行进程（含该进程起降）；其他旧手动/独立调试脚本仍须使用同一车辆 OS 锁，尚未全部迁移。详细说明与真实验收清单见 [`docs/A_交付说明_状态服务与命令入口.md`](docs/A_交付说明_状态服务与命令入口.md)。

@@ -12,6 +12,7 @@ if str(_PROJECT_ROOT) not in sys.path: sys.path.insert(0, str(_PROJECT_ROOT))
 from flight_modes.automatic_mode import (
     AutomaticMode, AutomaticModeParams, choose_reactive_command, ReactiveDecision,
 )
+from planners.local_trajectory_planner import TrajectoryPlannerParams
 
 _CFG = {"emergency_distance_m": 0.8, "front_threshold_m": 2.5,
         "forward_speed_mps": 0.2, "side_speed_mps": 0.15}
@@ -727,3 +728,73 @@ class TestCbmbaPathDiagnostics:
                 for pt in path
             )
         assert max_dev == 0.0
+
+
+class TestRecoveryDirectionalGuard:
+    """The recovery guard must also block diagonal obstacle faces, not only
+    the four cardinal sectors."""
+
+    @staticmethod
+    def _guard(hard=1.0):
+        mode = AutomaticMode.__new__(AutomaticMode)
+        mode._traj_params = TrajectoryPlannerParams(hard_clearance_m=hard)
+        return mode._recovery_directional_guard
+
+    _OPEN = {
+        "front": 10.0, "back": 10.0, "left": 10.0, "right": 10.0,
+        "frontLeft": 10.0, "frontRight": 10.0,
+        "backLeft": 10.0, "backRight": 10.0,
+    }
+
+    def test_open_keeps_command(self):
+        guard = self._guard()
+        assert guard(1.0, -0.5, self._OPEN) == (1.0, -0.5)
+
+    def test_front_cardinal_blocks_forward(self):
+        guard = self._guard()
+        rays = dict(self._OPEN, front=0.8)
+        assert guard(1.0, 0.0, rays) == (0.0, 0.0)
+
+    def test_front_left_diagonal_blocks_forward_left_command(self):
+        guard = self._guard()
+        rays = dict(self._OPEN, frontLeft=0.8)
+        # front + left are clear, but the frontLeft face is close → the
+        # forward-left diagonal command is fully blocked.
+        vx, vy = guard(1.0, -0.5, rays)
+        assert vx == 0.0
+        assert vy == 0.0
+
+    def test_front_right_diagonal_blocks_forward_right_command(self):
+        guard = self._guard()
+        rays = dict(self._OPEN, frontRight=0.8)
+        vx, vy = guard(1.0, 0.5, rays)
+        assert vx == 0.0
+        assert vy == 0.0
+
+    def test_back_right_diagonal_blocks_backward_right_command(self):
+        guard = self._guard()
+        rays = dict(self._OPEN, backRight=0.8)
+        vx, vy = guard(-1.0, 0.5, rays)
+        assert vx == 0.0
+        assert vy == 0.0
+
+    def test_back_left_diagonal_blocks_backward_left_command(self):
+        guard = self._guard()
+        rays = dict(self._OPEN, backLeft=0.8)
+        vx, vy = guard(-1.0, -0.5, rays)
+        assert vx == 0.0
+        assert vy == 0.0
+
+    def test_diagonal_does_not_block_opposite_command(self):
+        """A frontLeft face must not block a backward/right command."""
+        guard = self._guard()
+        rays = dict(self._OPEN, frontLeft=0.8)
+        assert guard(-1.0, 0.5, rays) == (-1.0, 0.5)
+
+    def test_missing_diagonal_sectors_treated_as_infinity(self):
+        """Missing diagonal keys must not raise or spuriously block."""
+        guard = self._guard()
+        rays = {
+            "front": 10.0, "back": 10.0, "left": 10.0, "right": 10.0,
+        }
+        assert guard(1.0, -0.5, rays) == (1.0, -0.5)

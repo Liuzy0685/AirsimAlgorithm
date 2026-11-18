@@ -97,6 +97,12 @@ def _parse_args() -> argparse.Namespace:
                    help="Disable the gamepad collision-guard (debug/testing only).")
     p.add_argument("--settings-json", default=None,
                    help="Path to AirSim settings.json for FOV validation (required for auto).")
+    p.add_argument("--vehicle-name", default="Drone1",
+                   help="AirSim 无人机名称（对应 vehicle_name，默认 Drone1）。")
+    p.add_argument("--lidar-name", default="LidarSensor1",
+                   help="LiDAR sensor name on the selected vehicle.")
+    p.add_argument("--swarm-config", default=None,
+                   help="Enable inter-UAV prediction and configured priority yielding.")
     p.add_argument("--confirm-simulation-clearance", action="store_true",
                    help="Required for auto mode.")
     p.add_argument("--perception-config",
@@ -113,6 +119,10 @@ def _parse_args() -> argparse.Namespace:
                    help="Explicit world-NED goal X; overrides MissionEnd actor.")
     p.add_argument("--goal-y", type=float, default=None,
                    help="Explicit world-NED goal Y; overrides MissionEnd actor.")
+    p.add_argument("--mission-start-actor", default=None,
+                   help="Named AirSim scene marker for this vehicle's local origin, e.g. PlayerStart1.")
+    p.add_argument("--mission-end-actor", default=None,
+                   help="Named AirSim scene marker for this vehicle's goal, e.g. MissionEnd1.")
     p.add_argument("--planner-mode", choices=["reactive", "apf_shadow", "apf"],
                    default="reactive",
                    help="Planner mode for auto flight: reactive, APF shadow logging, or APF control.")
@@ -150,12 +160,12 @@ def _parse_args() -> argparse.Namespace:
     return p.parse_args()
 
 
-def _acquire_lock_or_die(mode_label: str):
+def _acquire_lock_or_die(mode_label: str, vehicle_name: str):
     from flight_modes.shared_flight_session import SharedFlightSession
-    fh = SharedFlightSession.acquire_lock(mode_label)
+    fh = SharedFlightSession.acquire_lock(mode_label, vehicle_name)
     if fh is None:
-        print("\n  ERROR: Another flight mode instance is already running.\n"
-              "  Only one flight mode can control Drone1 at a time.\n")
+        print("\n  ERROR: Another flight mode instance is already controlling "
+              f"无人机 {vehicle_name!r}.\n")
         sys.exit(5)
     return fh
 
@@ -167,7 +177,7 @@ def _run_manual(args: argparse.Namespace) -> int:
     from flight_modes.manual_mode import ManualMode, ManualControlType
     from flight_modes.shared_flight_session import SharedFlightSession
 
-    lock_fh = _acquire_lock_or_die("manual")
+    lock_fh = _acquire_lock_or_die("manual", args.vehicle_name)
     mode_label = f"manual-{args.manual_control}"
     logger.info("Starting %s mode.", mode_label)
 
@@ -180,6 +190,8 @@ def _run_manual(args: argparse.Namespace) -> int:
         settings_json=args.settings_json or "",
         mode=mode_label,
         target_z_ned=args.target_z or -1.0,
+        vehicle_name_override=args.vehicle_name,
+        lidar_name_override=args.lidar_name,
     )
     session._lock_fh = lock_fh
     session._owns_lock = True
@@ -217,7 +229,7 @@ def _run_manual_gamepad(args: argparse.Namespace) -> int:
     from flight_modes.manual_gamepad_mode import ManualGamepadMode
     from flight_modes.shared_flight_session import SharedFlightSession
 
-    lock_fh = _acquire_lock_or_die("manual-gamepad")
+    lock_fh = _acquire_lock_or_die("manual-gamepad", args.vehicle_name)
     logger.info("Starting manual-gamepad mode.")
 
     config = load_manual_gamepad_config(args.manual_gamepad_config)
@@ -229,6 +241,8 @@ def _run_manual_gamepad(args: argparse.Namespace) -> int:
         settings_json=args.settings_json or "",
         mode="manual-gamepad",
         target_z_ned=args.target_z or -1.0,
+        vehicle_name_override=args.vehicle_name,
+        lidar_name_override=args.lidar_name,
     )
     session._lock_fh = lock_fh
     session._owns_lock = True
@@ -263,7 +277,7 @@ def _run_auto(args: argparse.Namespace) -> int:
         print("\n  ERROR: --goal-x and --goal-y must be provided together.\n")
         return 2
 
-    lock_fh = _acquire_lock_or_die("auto")
+    lock_fh = _acquire_lock_or_die("auto", args.vehicle_name)
     logger.info("Starting auto mode (LiDAR avoidance).")
 
     # Build CLI overrides (only non-None values win over YAML)
@@ -275,6 +289,10 @@ def _run_auto(args: argparse.Namespace) -> int:
     if args.goal_x is not None:
         cli_overrides["goal_x"] = float(args.goal_x)
         cli_overrides["goal_y"] = float(args.goal_y)
+    if args.mission_start_actor is not None:
+        cli_overrides["mission_start_actor"] = args.mission_start_actor
+    if args.mission_end_actor is not None:
+        cli_overrides["mission_end_actor"] = args.mission_end_actor
     cli_overrides["planner_mode"] = args.planner_mode
     cli_overrides["guided_apf_control"] = args.guided_apf_control
     cli_overrides["local_navigation_mode"] = args.local_navigation_mode
@@ -310,12 +328,25 @@ def _run_auto(args: argparse.Namespace) -> int:
         settings_json=args.settings_json,
         mode="auto",
         target_z_ned=params.target_z_ned,
+        vehicle_name_override=args.vehicle_name,
+        lidar_name_override=args.lidar_name,
     )
     session._lock_fh = lock_fh
     session._owns_lock = True
 
+    bridge = None
     try:
         session.initialize()
+
+        if args.swarm_config:
+            from coordination.runtime_config import load_config
+            config, service_cfg = load_config(args.swarm_config)
+            if service_cfg.enabled:
+                if not config.get("coordination", {}).get("enabled", True):
+                    raise ValueError("state service requires coordination.enabled")
+                from control.swarm_flight_bridge import SwarmFlightBridge
+                bridge = SwarmFlightBridge(session, config, service_cfg, params)
+                bridge.start()
 
         auto = AutomaticMode(
             session,
@@ -323,8 +354,12 @@ def _run_auto(args: argparse.Namespace) -> int:
             flight_config_path=args.flight_config,
             params=params,
             cli_overrides=cli_overrides if cli_overrides else None,
+            swarm_config_path=args.swarm_config,
         )
         result = auto.run()
+        if bridge is not None and result.termination_reason not in ("mission_complete", "time_limit"):
+            bridge._unverified_emergency = True
+            bridge.link.report("EMERGENCY", result.termination_reason or "automatic_mode_failed")
         print(f"\n  Result: {result}")
         return 0 if result.success else 1
     except KeyboardInterrupt:
@@ -333,7 +368,11 @@ def _run_auto(args: argparse.Namespace) -> int:
         logger.error("Auto mode error: %s", e)
         return 1
     finally:
+        if bridge is not None:
+            bridge.prepare_cleanup()
         session.cleanup()
+        if bridge is not None:
+            bridge.close()
 
 
 def main() -> int:
@@ -346,4 +385,7 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    import signal
+    if hasattr(signal, "SIGBREAK"):
+        signal.signal(signal.SIGBREAK, signal.default_int_handler)
     sys.exit(main())
