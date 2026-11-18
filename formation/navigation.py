@@ -22,6 +22,7 @@ class FormationNavigation:
         # A stopped leader at 3 m and a 0.35 m/s follower are already close to
         # the 3 s CPA envelope (2+0.35*3=3.05 m). Leave additional trail room
         # for stop-and-go and corners, while retaining nominal shape spacing.
+        self.nominal_spacing_m=spacing_m
         self.spacing=max(spacing_m,self.separation+.3,
             safety_distance_m+2*max_speed_mps*prediction_horizon_s+.5)
         self.history=[];self.trailing=False;self.clear_since=None;self.join_holds={}
