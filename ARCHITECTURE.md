@@ -35,6 +35,8 @@ B 的纯算法位于 `formation/controller.py`，配置在 `configs/formation.ya
 
 网络运行入口为 `scripts/formation_service.py`：订阅 A 快照并发布命令、读取 ACK；不直接调用 AirSim。B 的原有纯算法与测试保持不变，A 负责接收端期限、控制许可与最终安全检查。离线算法测试：`python -m pytest tests/test_formation_controller.py -q`。
 
+B 的状态门控位于 `formation/runtime.py`：启动或重连后先收到全部配置车辆的近期 `coordination.status`，才从完整快照发布编队命令；状态过期、任务不匹配或紧急/避障状态时停止发布。`CONFLICT_CLEARED` 会保留到下一轮有效快照生成恢复命令，避免被后续 `NORMAL` 帧覆盖；新一轮冲突或状态超时会撤销旧的解除事件。对应离线测试为 `tests/test_formation_runtime.py`。
+
 ### C：前端与遥测（`frontend/` 及遥测服务）
 
 1. 从 `common.models` 导入 `TelemetryMessage`、`VehicleState`，从快照读取有效状态并显示各机采集时间、失效原因和状态完整性。
