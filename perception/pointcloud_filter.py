@@ -214,31 +214,13 @@ def filter_pointcloud(
             + voxel_indices[:, 2].astype(np.int64)
         )
 
-        # For each unique voxel key, keep the point with the smallest distance.
-        _, unique_idx, counts = np.unique(
-            keys, return_index=True, return_counts=True
-        )
-
-        # Sort unique_idx to find the nearest point per voxel.
-        # np.unique already returns the first occurrence; we need the argmin
-        # per group.  Use a loop-free approach with argsort.
-        order = np.argsort(keys, kind="mergesort")
+        # Sort once by voxel, then range, then original index. The first row
+        # per voxel is exactly the old stable argmin, including equal-distance
+        # ties. Avoid thousands of Python/np.argmin calls per scan.
+        order = np.lexsort((np.arange(len(keys)), dist, keys))
         sorted_keys = keys[order]
-        sorted_dist = dist[order]
-
-        # Boundaries between groups.
-        change = np.diff(sorted_keys) != 0
-        group_starts = np.concatenate(([0], np.flatnonzero(change) + 1))
-        group_ends = np.concatenate((group_starts[1:], [len(sorted_keys)]))
-
-        keep_indices = np.zeros(len(group_starts), dtype=np.intp)
-        for i in range(len(group_starts)):
-            gs = group_starts[i]
-            ge = group_ends[i]
-            # Nearest point = min distance within group
-            local_idx = gs + np.argmin(sorted_dist[gs:ge])
-            keep_indices[i] = order[local_idx]
-
+        first = np.concatenate(([True], sorted_keys[1:] != sorted_keys[:-1]))
+        keep_indices = order[first]
         keep_indices.sort()
         voxel_reduction = arr.shape[0] - len(keep_indices)
         arr = arr[keep_indices]

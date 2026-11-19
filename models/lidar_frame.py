@@ -49,6 +49,10 @@ class LidarFrame:
     point_count: int = 0
     vehicle_name: str = ""
     lidar_name: str = ""
+    # Charge RPC latency from request start, not filter/publish completion.
+    # This is transport timing, not a guarantee of physical scan generation time.
+    # None denotes a legacy/test frame without transport timing metadata.
+    request_started_monotonic_seconds: Optional[float] = None
 
     def __repr__(self) -> str:
         status = "valid" if self.frame_valid else f"INVALID ({self.invalid_reason})"

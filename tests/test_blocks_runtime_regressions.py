@@ -124,7 +124,8 @@ def test_gateway_uses_measured_sensor_mount_pose(yaw,point,allowed):
     own=bridge.link._snapshot.states['Drone2']
     own.yaw_rad=yaw
     frame=NS(sensor_pose=dict(position=dict(x=10.+.2*math.cos(yaw),y=.2*math.sin(yaw),z=-1.),
-        orientation=dict(x=0.,y=0.,z=math.sin(yaw/2),w=math.cos(yaw/2))),received_monotonic_seconds=time.monotonic())
+        orientation=dict(x=0.,y=0.,z=math.sin(yaw/2),w=math.cos(yaw/2))),received_monotonic_seconds=time.monotonic(),
+        raw_timestamp_ns=own.timestamp)
     bridge.update_lidar(frame,np.array([[point,0.,0.]]))
     if allowed:
         bridge.proxy.moveByVelocityAsync(0.,0.,0.,.15,vehicle_name='Drone2')
@@ -162,7 +163,8 @@ def test_final_gate_keeps_raw_return_inside_navigation_self_exclusion_box():
     bridge,raw,_=bridge_fixture()
     frame=NS(sensor_pose=dict(position=dict(x=10.2,y=0.,z=-1.),
         orientation=dict(x=0.,y=0.,z=0.,w=1.)),received_monotonic_seconds=time.monotonic(),
-        point_cloud_sensor=np.array([[.2,0.,0.],[20.,20.,0.]]))
+        point_cloud_sensor=np.array([[.2,0.,0.],[20.,20.,0.]]),
+        raw_timestamp_ns=max(s.timestamp for s in bridge.link.snapshot().states.values()))
     bridge.update_lidar(frame)
     with pytest.raises(VelocityCommandRejected,match='lidar_clearance'):
         bridge.proxy.moveByVelocityAsync(.1,0.,0.,.15,vehicle_name='Drone2')
