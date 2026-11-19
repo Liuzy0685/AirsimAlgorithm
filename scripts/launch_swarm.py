@@ -150,8 +150,16 @@ def main() -> int:
     if args.with_formation and not service_cfg.enabled:
         print("ERROR: --with-formation requires state_service.enabled", file=sys.stderr)
         return 2
+    if args.with_formation and config.get('navigation', {}).get('independent_goals', False):
+        print('ERROR: independent-goal missions must not start B formation control.', file=sys.stderr)
+        return 2
     creationflags = subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0
     try:
+        if service_cfg.enabled:
+            from control.takeoff_preflight import verify_fleet_takeoff
+            import json
+            preflight=verify_fleet_takeoff(members,args.settings_json)
+            (log_dir/'takeoff_preflight.json').write_text(json.dumps(preflight,indent=2),encoding='utf-8')
         if service_cfg.enabled:
             ready_file = log_dir / "state_service.ready"
             handle = (log_dir / "state_service.log").open("w", encoding="utf-8")

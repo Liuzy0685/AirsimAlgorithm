@@ -22,6 +22,8 @@ class ServiceConfig:
     conflict_clear_frames: int = 3
     conflict_clear_duration_s: float = 0.5
     formation_tolerance_m: float = 0.25
+    formation_settle_duration_s: float = 2.0
+    formation_settle_frames: int = 3
 
     def __post_init__(self):
         if self.host not in ("127.0.0.1", "::1"):
@@ -29,7 +31,7 @@ class ServiceConfig:
         if type(self.port) is not int or not 1 <= self.port <= 65535:
             raise ValueError("state service port must be 1..65535")
         for key in ("snapshot_max_age_s", "heartbeat_s", "disconnect_timeout_s",
-                    "startup_timeout_s", "lease_ttl_s", "lifecycle_lease_s", "conflict_clear_duration_s", "formation_tolerance_m"):
+                    "startup_timeout_s", "lease_ttl_s", "lifecycle_lease_s", "conflict_clear_duration_s", "formation_tolerance_m", "formation_settle_duration_s"):
             value = getattr(self, key)
             if type(value) not in (int, float) or not math.isfinite(value) or value <= 0:
                 raise ValueError(f"{key} must be finite and positive")
@@ -41,6 +43,9 @@ class ServiceConfig:
             raise ValueError("allow_legacy_readiness must be boolean")
         if type(self.conflict_clear_frames) is not int or self.conflict_clear_frames < 1:
             raise ValueError("conflict_clear_frames must be a positive integer")
+        if (type(self.formation_settle_frames) is not int or self.formation_settle_frames < 3
+                or not 1. <= self.formation_settle_duration_s <= 10.):
+            raise ValueError('formation settlement needs at least 3 frames and 1..10 seconds')
 
     @property
     def url(self):

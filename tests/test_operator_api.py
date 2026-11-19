@@ -210,6 +210,10 @@ def test_stop_immediately_after_takeoff_collects_perception_before_cleanup(tmp_p
     stack,mocks=_setup_patches()
     with stack:
         _cfg_mocks(mocks)
+        from test_gateway_freshness import scan
+        frame=scan(2_000_000_000)
+        frame.sensor_pose['position']=dict(x=0.,y=0.,z=-1.)
+        mocks[0].return_value.read.return_value=frame
         mode=AutomaticMode(session,params=AutomaticModeParams(max_flight_duration_s=2.))
         with patch.object(session,'takeoff_and_climb'):
             result=mode.run()
