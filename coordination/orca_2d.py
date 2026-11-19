@@ -49,6 +49,7 @@ def _orca_line(
     radius: float,
     horizon_s: float,
     time_step_s: float,
+    responsibility: float = 0.5,
 ) -> tuple[Vector2, Vector2]:
     """Return an ORCA line as (point, direction), following RVO2 conventions."""
     relative_position = _sub(peer_position, position)
@@ -85,7 +86,7 @@ def _orca_line(
         direction = (unit_w[1], -unit_w[0])
         u = _scale(unit_w, radius * inverse_step - math.sqrt(_length_sq(w)))
 
-    return _add(velocity, _scale(u, 0.5)), direction
+    return _add(velocity, _scale(u, responsibility)), direction
 
 
 def compute_orca_velocity(
@@ -99,11 +100,14 @@ def compute_orca_velocity(
     time_step_s: float,
     max_speed_mps: float,
     passing_bias_mps: float = 0.0,
+    responsibility: float = 0.5,
 ) -> Optional[Vector2]:
     """Choose the feasible velocity closest to preferred, or ``None``.
 
-    Each neighbor is ``(position_xy, velocity_xy)``. Equal reciprocal
-    responsibility is assumed. Coordinates and velocities are horizontal 2D.
+    Each neighbor is ``(position_xy, velocity_xy)``. Default responsibility
+    is reciprocal (0.5). Use 1.0 when the dispatch gate must remain safe
+    against the neighbor's measured velocity without assuming its next action.
+    Coordinates and velocities are horizontal 2D.
     Optional clockwise preference bias breaks symmetric encounters. It only
     changes the optimization objective; all ORCA constraints remain mandatory.
     """
@@ -113,13 +117,15 @@ def compute_orca_velocity(
     p = tuple(float(x) for x in position)
     v = tuple(float(x) for x in velocity)
     preferred = tuple(float(x) for x in preferred_velocity)
-    params = (safety_distance_m, horizon_s, time_step_s, max_speed_mps, passing_bias_mps)
+    params = (safety_distance_m, horizon_s, time_step_s, max_speed_mps, passing_bias_mps, responsibility)
     if not all(math.isfinite(x) for x in (*p, *v, *preferred, *params)):
         raise ValueError("ORCA inputs must be finite")
     if safety_distance_m <= 0 or horizon_s <= 0 or time_step_s <= 0 or max_speed_mps <= 0:
         raise ValueError("ORCA distances, times and speed must be positive")
     if passing_bias_mps < 0 or passing_bias_mps > max_speed_mps:
         raise ValueError("passing_bias_mps must be between zero and max_speed_mps")
+    if isinstance(responsibility, bool) or not 0.5 <= responsibility <= 1.0:
+        raise ValueError("responsibility must be between 0.5 and 1.0")
 
     lines = []
     predicted_encounter = False
@@ -130,7 +136,7 @@ def compute_orca_velocity(
         qv = tuple(float(x) for x in peer_velocity)
         if not all(math.isfinite(x) for x in (*q, *qv)):
             raise ValueError("ORCA neighbor inputs must be finite")
-        lines.append(_orca_line(p, v, q, qv, safety_distance_m, horizon_s, time_step_s))
+        lines.append(_orca_line(p, v, q, qv, safety_distance_m, horizon_s, time_step_s, responsibility))
         relative_position = _sub(q, p)
         closing = _sub(preferred, qv)
         closing_sq = _length_sq(closing)
@@ -182,3 +188,54 @@ def compute_orca_velocity(
     if not valid:
         return None
     return min(valid, key=lambda candidate: _length_sq(_sub(candidate, preferred)))
+
+
+def compute_gateway_velocity(*, minimum_distance_m=None, **kwargs) -> Optional[Vector2]:
+    """Full-responsibility candidate certified against measured peer velocities.
+
+    A single convex ORCA half-plane can exclude the other side of a velocity
+    obstacle. If its full-responsibility solution is infeasible, try a bounded
+    polar set in the original (nonconvex) CPA-safe region. This fallback does
+    not claim to satisfy reciprocal ORCA half-planes or guarantee convergence.
+    Every returned velocity respects speed and finite-horizon measured-peer CPA.
+    """
+    kwargs = dict(kwargs)
+    kwargs['neighbors'] = list(kwargs['neighbors'])
+    kwargs['responsibility'] = 1.0
+    result = compute_orca_velocity(**kwargs)
+    p = tuple(kwargs['position'])
+    preferred = tuple(kwargs['preferred_velocity'])
+    speed = kwargs['max_speed_mps']
+    radius = kwargs['safety_distance_m'] if minimum_distance_m is None else minimum_distance_m
+    if not math.isfinite(radius) or not 0 < radius <= kwargs['safety_distance_m']:
+        raise ValueError('invalid CPA certification distance')
+    horizon = kwargs['horizon_s']
+
+    def safe(candidate):
+        if _length_sq(candidate) > speed*speed + 1e-10:
+            return False
+        for q, qv in kwargs['neighbors']:
+            relative = _sub(q, p)
+            closing = _sub(candidate, qv)
+            v2 = _length_sq(closing)
+            t = min(horizon, max(0., _dot(relative, closing)/v2)) if v2 > 1e-12 else 0.
+            if _length_sq(_sub(relative, _scale(closing, t))) < radius*radius - 1e-10:
+                return False
+        return True
+
+    if result is not None and safe(result):
+        return result
+    length = math.hypot(*preferred)
+    objective = preferred
+    if length > 1e-9:
+        bias = min(kwargs.get('passing_bias_mps', 0.), length*.2)
+        objective = (preferred[0]-preferred[1]/length*bias, preferred[1]+preferred[0]/length*bias)
+    candidates = [(0.,0.), tuple(kwargs['velocity'])]
+    if length > 1e-12:
+        candidates.append(_scale(preferred, min(1.,speed/length)))
+    for fraction in (.25,.5,.75,1.):
+        for index in range(72):
+            angle = index*2*math.pi/72
+            candidates.append((speed*fraction*math.cos(angle), speed*fraction*math.sin(angle)))
+    valid = [v for v in candidates if safe(v)]
+    return min(valid, key=lambda v:_length_sq(_sub(v, objective))) if valid else None

@@ -116,6 +116,17 @@ class SafetyFilter:
         if not all(math.isfinite(c) for c in (vx, vy, vz)):
             return SafetyDecision(False, "non_finite", (0.0, 0.0, 0.0))
 
+        # Validate independently of the publisher: NaN comparisons must never
+        # turn a corrupt peer position into an allowed CPA decision.
+        try:
+            states = [own_state, *neighbors]
+            for state in states:
+                for vector in (state.position_ned_m, state.linear_velocity_ned_mps):
+                    if len(vector) != 3 or any(isinstance(c, bool) or not math.isfinite(float(c)) for c in vector):
+                        raise ValueError('invalid state vector')
+        except (AttributeError, TypeError, ValueError, OverflowError):
+            return SafetyDecision(False, "invalid_vehicle_state", (0.0, 0.0, 0.0))
+
         # Speed limits — clamp (documented, never silently exceed).
         h = math.hypot(vx, vy)
         if h > self.max_horizontal_speed_mps:

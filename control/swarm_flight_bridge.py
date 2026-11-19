@@ -54,6 +54,13 @@ class SwarmFlightBridge:
         self.leader_goal_hold = False
         self._status_clock = time.monotonic
         self.navigation_cfg=NavigationConfig(**config.get('navigation',{}))
+        self._independent_members = config['drones']
+        if self.navigation_cfg.independent_goals:
+            for member in self._independent_members:
+                if (member.get('goal_actor') or member.get('start_actor')
+                        or any(type(member.get(k)) not in (int, float) or not math.isfinite(member[k])
+                               for k in ('goal_x','goal_y','target_z'))):
+                    raise ValueError('independent goals require finite settings-relative XYZ targets')
         self.router=CommittedGridRouter(self.navigation_cfg)
         self._navigation_waypoint=None
         self._navigation_goal=None
@@ -63,10 +70,52 @@ class SwarmFlightBridge:
         self._feedback_points=[]
         self._last_route_log=None
         self._navigation_source=None
+        self._gateway_refine_enabled = config['coordination'].get('algorithm') == 'orca'
+        self._passing_bias = config['coordination'].get('passing_bias_mps', .1)
+        self._gateway_refined = False
+        self._settle_since = self._settle_last = self._settle_identity = None
+        self._settle_frames = 0
 
     @property
     def follower(self):
-        return self.name != self.cfg.leader
+        return not self.navigation_cfg.independent_goals and self.name != self.cfg.leader
+
+    def mission_settled(self):
+        settled = self._mission_geometry_settled()
+        snap = self.link.snapshot()
+        now = self._status_clock()
+        if not settled or snap is None:
+            self._settle_since = self._settle_last = self._settle_identity = None
+            self._settle_frames = 0
+            return False
+        identity = (self.link._state_stream, snap.sequence_id)
+        if (self._settle_last is not None and now-self._settle_last >= self.cfg.snapshot_max_age_s
+                or self._settle_identity is not None and
+                (identity[0] != self._settle_identity[0] or identity[1] < self._settle_identity[1])):
+            self._settle_since = None
+            self._settle_frames = 0
+        if identity != self._settle_identity:
+            if self._settle_since is None:self._settle_since = now
+            self._settle_frames += 1
+            self._settle_identity, self._settle_last = identity, now
+        return (self._settle_since is not None and self._settle_frames >= self.cfg.formation_settle_frames
+                and now-self._settle_since >= self.cfg.formation_settle_duration_s)
+
+    def _mission_geometry_settled(self):
+        if not self.navigation_cfg.independent_goals:
+            return self.link.followers_settled()
+        snap = self.link.snapshot()
+        if snap is None or self.mode is None:
+            return False
+        for member in self._independent_members:
+            name = member['vehicle_name']
+            offset = self.mode._swarm_spawn_offsets[name]
+            target = tuple(member[k] + offset[i] for i, k in enumerate(('goal_x','goal_y','target_z')))
+            state = snap.states[name]
+            if (math.dist(state.position_ned_m, target) > self.cfg.formation_tolerance_m
+                    or math.sqrt(sum(v*v for v in state.linear_velocity_ned_mps)) > .2):
+                return False
+        return True
 
     def start(self):
         self.link.start()
@@ -163,6 +212,9 @@ class SwarmFlightBridge:
         self._navigation_goal=goal
         self._navigation_command_available=not self.follower or self.link.command() is not None
         transient=[]
+        planning_goal=goal
+        staging_peer=None
+        stand_off=self.safety.safety_distance_m+.2+2*self.navigation_cfg.resolution_m
         snap=self.link.snapshot()
         if snap is not None:
             radius=max(0.,self.safety.safety_distance_m+.2-self.navigation_cfg.clearance_m)
@@ -171,7 +223,53 @@ class SwarmFlightBridge:
                     x,y=state.position_ned_m[:2]
                     transient.append((x,y))
                     transient.extend((x+radius*math.cos(i*math.pi/16),y+radius*math.sin(i*math.pi/16)) for i in range(32))
-        waypoint=self.router.waypoint(position,goal,temporary_obstacles=transient) if self.points_world is not None else position
+                    # In a goal swap, both peers initially occupy the other's
+                    # endpoint. A blocked endpoint must not suppress every
+                    # approach command. Route only to an outside staging point;
+                    # preserve the real mission goal and every final safety gate.
+                    if math.hypot(goal[0]-x,goal[1]-y)<self.safety.safety_distance_m+.2:
+                        distance=math.hypot(position[0]-goal[0],position[1]-goal[1])
+                        fraction=min(1.,stand_off/max(distance,1e-12))
+                        planning_goal=(goal[0]+(position[0]-goal[0])*fraction,
+                                       goal[1]+(position[1]-goal[1])*fraction,goal[2])
+                        staging_peer=name
+        from coordination.navigation import segment_clear
+        points=self.router.obstacles(position)
+        if transient:points=np.vstack((points,np.asarray(transient,float)))
+        margin=self.navigation_cfg.clearance_m+self.navigation_cfg.resolution_m/math.sqrt(2.)
+        cached=getattr(self,'_staging_goal',None)
+        previous_goal=getattr(self,'_staging_mission_goal',None)
+        if (cached is not None and previous_goal is not None and math.dist(previous_goal,goal)<.5
+                and math.dist(position,cached)>.4 and segment_clear(cached,cached,points,margin)):
+            # Commit to the selected passing side until reached. Releasing it
+            # as soon as the peer moves makes five vehicles merge back into
+            # the same center line before they have passed one another.
+            planning_goal=cached
+            staging_peer=getattr(self,'_staging_peer',staging_peer)
+        if staging_peer is not None:
+            if (cached is not None and staging_peer==getattr(self,'_staging_peer',None)
+                    and previous_goal is not None and math.dist(previous_goal,goal)<.5
+                    and segment_clear(cached,cached,points,margin)):
+                planning_goal=cached
+            else:
+                angle=math.atan2(position[1]-goal[1],position[0]-goal[0])
+                # The direct stand-off can itself be occupied by a third
+                # parked vehicle in a five-way swap. Choose a checked lateral
+                # endpoint rather than relaxing any obstacle/separation margin.
+                for turn in (0.,math.pi/2,-math.pi/2,math.pi/4,-math.pi/4,math.pi):
+                    candidate=(goal[0]+stand_off*math.cos(angle+turn),
+                               goal[1]+stand_off*math.sin(angle+turn),goal[2])
+                    if segment_clear(candidate,candidate,points,margin):
+                        planning_goal=candidate
+                        break
+            self._staging_goal=planning_goal
+            self._staging_mission_goal=goal
+        else:self._staging_goal=None
+        if staging_peer!=getattr(self,'_staging_peer',None):
+            logging.getLogger('swarm_navigation').info('peer_endpoint_staging vehicle=%s peer=%s mission_goal=%s planning_goal=%s',
+                self.name,staging_peer,goal,planning_goal)
+        self._staging_peer=staging_peer
+        waypoint=self.router.waypoint(position,planning_goal,temporary_obstacles=transient) if self.points_world is not None else position
         self._navigation_waypoint=waypoint
         event=(self.router.route_version,self.router.path_available,self.router.goal_blocked,self.router.escaping)
         if event!=self._last_route_log:
@@ -192,7 +290,7 @@ class SwarmFlightBridge:
         if not self.router.path_available or self._navigation_waypoint is None:
             return 0.,0.,vz,'navigation_blocked'
         if self.follower and command is None:return 0.,0.,vz,'formation_wait'
-        if not self.follower:
+        if not self.follower and not self.navigation_cfg.independent_goals:
             peers=self.link.peer_navigation(self.navigation_cfg.feedback_max_age_s)
             follower_names=self.link.names-{self.name}
             all_fresh=follower_names<=set(peers)
@@ -304,6 +402,9 @@ class SwarmFlightBridge:
         return math.dist(world,command.target_position_ned_m)>self.cfg.formation_tolerance_m
 
     def report_dispatch(self, source, *, avoiding=False):
+        if self._gateway_refined:
+            avoiding=True
+            source='gateway_peer_velocity_refinement'
         if self.navigation_cfg.enabled and source=='inter_uav_orca' and not avoiding:
             source=self._navigation_source or source
         conflict = avoiding or source in {"inter_uav_yield", "inter_uav_orca_fallback_hold", "formation_rejected"}
@@ -349,6 +450,7 @@ class SwarmFlightBridge:
         raise VelocityCommandRejected(reason)
 
     def guard_motion(self, api, args, kwargs):
+        self._gateway_refined = False
         if api != "moveByVelocityAsync":
             self.fail(f"unverified_cruise_api:{api}")
         if not self.session._owns_lock:
@@ -360,8 +462,37 @@ class SwarmFlightBridge:
         def value(i, key):
             return values[i] if len(values) > i else kwargs[key]
         velocity = tuple(float(value(i, key)) for i, key in enumerate(("vx", "vy", "vz")))
+        if (not all(math.isfinite(v) for v in velocity)
+                or math.hypot(*velocity[:2])>self.params.forward_speed_mps+1e-8
+                or abs(velocity[2])>self.params.max_vertical_speed_mps+1e-8):
+            self.fail('velocity_exceeds_gateway_limits')
         decision = self.safety.check_velocity(velocity, own_state=snap.states[self.name],
             neighbors=[s for n, s in snap.states.items() if n != self.name])
+        if (not decision.allowed and self._gateway_refine_enabled
+                and decision.reason.startswith('inter_vehicle_conflict')):
+            from coordination.orca_2d import compute_gateway_velocity
+            own=snap.states[self.name]
+            refined=compute_gateway_velocity(position=own.position_ned_m[:2],
+                velocity=own.linear_velocity_ned_mps[:2],preferred_velocity=velocity[:2],
+                neighbors=[(s.position_ned_m[:2],s.linear_velocity_ned_mps[:2])
+                           for n,s in sorted(snap.states.items()) if n!=self.name],
+                safety_distance_m=self.safety.safety_distance_m+2*self.params.forward_speed_mps*self.params.command_duration_s+.05,
+                minimum_distance_m=self.safety.safety_distance_m+.01,
+                horizon_s=self.safety.prediction_horizon_s,time_step_s=self.params.command_duration_s,
+                max_speed_mps=self.params.forward_speed_mps,passing_bias_mps=min(self._passing_bias,self.params.forward_speed_mps))
+            if refined is not None:
+                proposed=(*refined,velocity[2])
+                checked=self.safety.check_velocity(proposed,own_state=own,
+                    neighbors=[s for n,s in snap.states.items() if n!=self.name])
+                if checked.allowed:
+                    logging.getLogger('swarm_gateway').info('gateway_velocity_refined vehicle=%s snapshot=%s original=%s refined=%s',
+                        self.name,snap.sequence_id,velocity,proposed)
+                    velocity,decision=proposed,checked
+                    self._gateway_refined=True
+                    kwargs=dict(kwargs)
+                    for i,key in enumerate(('vx','vy','vz')):
+                        if len(values)>i:values[i]=velocity[i]
+                        else:kwargs[key]=velocity[i]
         if not decision.allowed:
             self.fail(decision.reason)
         if any(abs(a-b) > 1e-8 for a, b in zip(velocity, decision.desired_velocity_ned_mps)):
@@ -406,6 +537,20 @@ class SwarmFlightBridge:
         clearance=measured_command_clearance(points,measured_body,body_v,duration,age)
         if clearance < self.mode._traj_params.hard_clearance_m:
             self.fail("final_velocity_lidar_clearance")
+        # Cloud transforms/clearance can be slow. Their completion must not
+        # extend a state, LiDAR or B permit deadline checked at entry.
+        if self.link.snapshot() is None:
+            self.fail('authoritative_snapshot_unavailable')
+        remaining = min(self.cfg.snapshot_max_age_s - (time.monotonic()-snap.timestamp),
+                        self.cfg.snapshot_max_age_s - (time.monotonic()-self.points_at))
+        if self.adopted_command is not None:
+            permitted = self.link.permitted_command(self.adopted_command.lifecycle.command_id)
+            if permitted is None:
+                raise FormationPermitExpired('formation_expired_before_dispatch')
+            remaining = min(remaining, permitted[1])
+        duration = min(duration, remaining)
+        if duration <= 0 or not self.session._owns_lock:
+            self.fail('dispatch_deadline_elapsed')
         if len(values) > 3:
             values[3] = duration
         else:

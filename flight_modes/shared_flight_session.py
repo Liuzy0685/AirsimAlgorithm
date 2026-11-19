@@ -170,10 +170,14 @@ class SharedFlightSession:
             raise SessionError("takeoff_and_climb() already called.")
         if self._state.phase != SessionPhase.INITIALIZED:
             raise SessionError(f"Cannot takeoff in phase {self._state.phase.name}.")
+        vn = self._adapter.vehicle_name
+        # A previous unverified cleanup may leave API control enabled even
+        # after its process/OS lock is gone. Never silently adopt that flight.
+        if self._client.isApiControlEnabled(vehicle_name=vn) is True:
+            raise SessionError('vehicle_api_already_enabled: resolve the previous flight before takeoff')
         self._takeoff_called = True
         if target_z is not None:
             self.target_z_ned = target_z
-        vn = self._adapter.vehicle_name
 
         try:
             self._client.enableApiControl(True, vehicle_name=vn)
@@ -253,33 +257,41 @@ class SharedFlightSession:
         vn = self._adapter.vehicle_name
         ph = self._state.phase
         logger.info("landing_requested  current_phase=%s", ph.name)
+        def verified(result):
+            if not result:
+                self._state.phase = SessionPhase.MANUAL_INTERVENTION_REQUIRED
+            return result
 
         # ── INITIALIZED / CONTROL_ACQUIRED: never airborne ──
         if ph == SessionPhase.INITIALIZED:
             logger.info("Phase=INITIALIZED — no control calls to undo.")
             return True
         if ph == SessionPhase.CONTROL_ACQUIRED:
-            return self._release_control(vn)
+            return verified(self._release_control(vn))
 
         # ── ARM_REQUESTED: arm state uncertain ──
         if ph == SessionPhase.ARM_REQUESTED:
-            return self._cleanup_arm_requested(vn)
+            return verified(self._cleanup_arm_requested(vn))
 
         # ── ARMED / TAKEOFF_STARTED / AIRBORNE / LANDING_REQUESTED / LANDING ──
         # → full landing sequence
         if ph in (SessionPhase.ARMED, SessionPhase.TAKEOFF_STARTED,
                    SessionPhase.AIRBORNE, SessionPhase.LANDING_REQUESTED,
                    SessionPhase.LANDING):
-            return self._execute_landing(vn, landing_timeout_s, poll_timeout_s)
+            try:
+                return verified(self._execute_landing(vn, landing_timeout_s, poll_timeout_s))
+            except Exception:
+                self._state.phase = SessionPhase.MANUAL_INTERVENTION_REQUIRED
+                raise
 
         # ── LANDED: disarm → release ──
         if ph == SessionPhase.LANDED:
-            if not self._disarm(vn): return False
-            return self._release_control(vn)
+            if not self._disarm(vn): return verified(False)
+            return verified(self._release_control(vn))
 
         # ── DISARMED: release ──
         if ph == SessionPhase.DISARMED:
-            return self._release_control(vn)
+            return verified(self._release_control(vn))
 
         # ── CONTROL_RELEASED / MANUAL_INTERVENTION_REQUIRED ──
         logger.info("Phase=%s — no further cleanup actions.", ph.name)
@@ -292,6 +304,7 @@ class SharedFlightSession:
         try:
             self.land_and_disarm()
         except Exception as e:
+            self._state.phase = SessionPhase.MANUAL_INTERVENTION_REQUIRED
             logger.warning("Cleanup error: %s", e)
         if self._adapter is not None:
             try: self._adapter.close()

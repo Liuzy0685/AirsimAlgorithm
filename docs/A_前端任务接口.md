@@ -101,6 +101,9 @@ $env:AIRSIM_PYTHONCLIENT_PATH='D:\30817\Adrone\airsim\AirSim-main\PythonClient'
 
 ## 任务与执行结果
 
+当前版本补充了 A 独立计算的 `formation_convergence`（实际误差、相对速度、新快照和持续时间）。
+`APPLIED` 与物理收敛仍分开，字段和专项验收见 [A 机间避让专项验收](A_机间避让专项验收_2026-11-19.md)。
+
 阶段：`READY → STARTING → TAKING_OFF → RUNNING → LANDING → COMPLETED`；
 主动停止经过 `STOPPING → STOPPED`，异常为 `FAILED`，API 重启中断且缺少清理证据为 `INTERRUPTED`。
 传感器 `landed_state` 在起飞早期就可能是 Flying，因此 TAKING_OFF/RUNNING 是粗粒度展示；

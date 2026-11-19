@@ -124,10 +124,12 @@ def test_grid_runtime_avoids_diagnostic_workers_but_legacy_option_remains():
     bridge.navigation_cfg=NavigationConfig(enabled=True)
     mode=AutomaticMode(session,cli_overrides={'local_navigation_mode':'trajectory'})
     assert mode._swarm_lightweight and not mode._cbmba_enabled
+    assert not mode._va_params.enabled
     assert mode._global_planner_worker is mode._local_traj_worker is mode._mapping_worker is None
     bridge.navigation_cfg=NavigationConfig(enabled=True,run_legacy_diagnostics=True)
     legacy=AutomaticMode(session,cli_overrides={'local_navigation_mode':'trajectory'})
     assert not legacy._swarm_lightweight and legacy._global_planner_worker is not None
+    assert not legacy._va_params.enabled
 
 
 def test_authoritative_reader_removes_spawn_without_any_rpc():
@@ -169,6 +171,9 @@ def test_lightweight_control_loop_uses_snapshot_and_never_requests_legacy_work()
     stack,mocks=_setup_patches()
     with stack:
         _cfg_mocks(mocks)
+        frame=scan(2_000_000_000)
+        frame.sensor_pose['position']=dict(x=0.,y=0.,z=-1.)
+        mocks[0].return_value.read.return_value=frame
         bridge.begin_cruise.side_effect=lambda _:counts.append(mocks[1].return_value.read.call_count)
         mode=AutomaticMode(session,params=AutomaticModeParams(max_flight_duration_s=.15),
             cli_overrides=dict(local_navigation_mode='trajectory',goal_x=15.,goal_y=0.),

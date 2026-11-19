@@ -1,0 +1,98 @@
+{
+  "evidence_type": "measured_airsim_eight_operational_cases",
+  "cases": [
+    {
+      "case": "head_on",
+      "passed": true,
+      "minimum_sampled_separation_m": 2.200336551853813,
+      "minimum_piecewise_linear_separation_m": 2.2000551211929613,
+      "complete_frames": 322,
+      "collision_events_excluding_landed_ground": 0,
+      "cleanup_verified": true,
+      "test_ground_extension": true,
+      "report": "head_on/summary.json"
+    },
+    {
+      "case": "crossing",
+      "passed": true,
+      "minimum_sampled_separation_m": 2.2138006954112095,
+      "minimum_piecewise_linear_separation_m": 2.2137213590522347,
+      "complete_frames": 305,
+      "collision_events_excluding_landed_ground": 0,
+      "cleanup_verified": true,
+      "test_ground_extension": true,
+      "report": "crossing/summary.json"
+    },
+    {
+      "case": "overtaking",
+      "passed": true,
+      "minimum_sampled_separation_m": 2.169865534611571,
+      "minimum_piecewise_linear_separation_m": 2.1698605181933988,
+      "complete_frames": 378,
+      "collision_events_excluding_landed_ground": 0,
+      "cleanup_verified": true,
+      "test_ground_extension": true,
+      "report": "overtaking/summary.json"
+    },
+    {
+      "case": "b_disconnect",
+      "passed": true,
+      "minimum_sampled_separation_m": 3.0,
+      "minimum_piecewise_linear_separation_m": 3.0,
+      "complete_frames": 163,
+      "collision_events_excluding_landed_ground": 0,
+      "cleanup_verified": true,
+      "test_ground_extension": false,
+      "report": "b_disconnect/summary.json"
+    },
+    {
+      "case": "controller_stop",
+      "passed": true,
+      "minimum_sampled_separation_m": 3.0,
+      "minimum_piecewise_linear_separation_m": 3.0,
+      "complete_frames": 269,
+      "collision_events_excluding_landed_ground": 0,
+      "cleanup_verified": true,
+      "test_ground_extension": false,
+      "report": "controller_stop/summary.json"
+    },
+    {
+      "case": "formation_five",
+      "passed": true,
+      "minimum_sampled_separation_m": 2.2418082769569034,
+      "minimum_piecewise_linear_separation_m": 2.2417724397857515,
+      "complete_frames": 1797,
+      "collision_events_excluding_landed_ground": 0,
+      "cleanup_verified": true,
+      "test_ground_extension": false,
+      "report": "formation_five/summary.json"
+    },
+    {
+      "case": "narrow_corridor",
+      "passed": true,
+      "minimum_sampled_separation_m": 2.26355353644434,
+      "minimum_piecewise_linear_separation_m": 2.26343096130668,
+      "complete_frames": 702,
+      "collision_events_excluding_landed_ground": 0,
+      "cleanup_verified": true,
+      "test_ground_extension": false,
+      "report": "narrow_corridor/summary.json"
+    },
+    {
+      "case": "formation_switch",
+      "passed": true,
+      "physical_settlements": 2,
+      "minimum_sampled_separation_m": 2.9234527733324436,
+      "cleanup_verified": true,
+      "test_ground_extension": false,
+      "collision_events_excluding_landed_ground": null,
+      "report": "formation_switch/report.json"
+    }
+  ],
+  "independent_five_way_stress_passed": false,
+  "limitations": [
+    "Sampled evidence, not a continuous-time guarantee",
+    "HTTP driver replaces C browser UI",
+    "Independent five-way goal swap remains a retained failed counterexample"
+  ]
+}

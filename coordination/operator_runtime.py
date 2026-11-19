@@ -30,6 +30,8 @@ class OperatorProfile:
         self.settings = read_json(self.settings_path)
         self.swarm, self.service = load_config(swarm_config)
         self.swarm = copy.deepcopy(self.swarm)
+        require(not self.swarm.get('navigation', {}).get('independent_goals', False),
+                'unsupported_profile', 'Operator formation tasks cannot use independent-goal profiles')
         self.formation = load_formation_config(formation_config)
         self.map = OperatorMap(read_json(map_manifest))
         self.blocks_project = Path(blocks_project).resolve() if blocks_project else None

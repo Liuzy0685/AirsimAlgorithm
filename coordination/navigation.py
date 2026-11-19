@@ -14,6 +14,7 @@ import numpy as np
 class NavigationConfig:
     enabled: bool = False
     run_legacy_diagnostics: bool = False
+    independent_goals: bool = False
     resolution_m: float = .4
     clearance_m: float = 1.3
     obstacle_ttl_s: float = 8.
@@ -30,7 +31,7 @@ class NavigationConfig:
     feedback_max_age_s: float = 1.5
 
     def __post_init__(self):
-        if any(type(getattr(self,k)) is not bool for k in ('enabled','adaptive_slots','maintain_heading','trail_fallback','run_legacy_diagnostics')):
+        if any(type(getattr(self,k)) is not bool for k in ('enabled','adaptive_slots','maintain_heading','trail_fallback','run_legacy_diagnostics','independent_goals')):
             raise ValueError('navigation enable flags must be boolean')
         for k in ('resolution_m','clearance_m','obstacle_ttl_s','replan_interval_s',
                   'waypoint_distance_m','max_range_m','max_slot_shift_m',
@@ -42,6 +43,7 @@ class NavigationConfig:
                 or self.clearance_m>5. or self.max_slot_shift_m>8. or self.waypoint_distance_m>5.
                 or self.obstacle_ttl_s>60. or self.replan_interval_s<.2 or self.feedback_max_age_s>2.
                 or (self.adaptive_slots and not self.enabled)
+                or (self.independent_goals and (not self.enabled or self.adaptive_slots))
                 or self.leader_resume_error_m>=self.leader_wait_error_m
                 or type(self.max_expansions) is not int or not 100<=self.max_expansions<=50000):
             raise ValueError('invalid navigation bounds')

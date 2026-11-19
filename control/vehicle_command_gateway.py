@@ -212,6 +212,11 @@ class GatewayFlightClient:
                     self.lifecycle_guard(name, args, kwargs)
                 if self.motion_guard is not None and (name.startswith("move") or name == "hoverAsync"):
                     args, kwargs = self.motion_guard(name, args, kwargs)
+                # A safety/clearance callback may outlive or revoke a lease.
+                # Recheck ownership at the actual RPC boundary for all writes.
+                denied = self.gateway._authorized(self.vehicle_name, self.controller_id)
+                if denied:
+                    raise PermissionError(denied.reason)
                 return getattr(self._raw, name)(*args, **kwargs)
             return checked
         if name.startswith(("get", "simGet", "simList", "simPlot", "simPrint")) or name in {

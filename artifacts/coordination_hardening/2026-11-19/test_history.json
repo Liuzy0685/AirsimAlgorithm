@@ -1,0 +1,18 @@
+{
+  "initial_full": {
+    "tests": 1555,
+    "passed": 1554,
+    "failures": 1,
+    "raw_report_sha256": "779e6a13ef0b3d67e962596fcdbfd69ba09ef4cebaffe5e93ab7f91ddb5b9f78",
+    "reason": "An old stop-after-takeoff fixture supplied only a MagicMock cloud. It now supplies a real valid raw frame; its original perception-before-cleanup assertions are retained."
+  },
+  "current_preflight_read_only_passed": true,
+  "final_full": {
+    "tests": "1555",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0",
+    "time": "254.669",
+    "report_sha256": "e1bdb8c3ff31b5c53f00d8e98695de5a1910c72217359a86192b02f78d416f59"
+  }
+}

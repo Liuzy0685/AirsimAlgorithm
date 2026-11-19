@@ -28,6 +28,7 @@ class MissionManager:
         self.processes = {}
         self.b_seen = {}
         self.b_status_stamps = {}
+        self._convergence = {}
         self.closed = threading.Event()
         path = self.directory / 'state.json'
         self.data = read_json(path) if path.exists() else dict(missions={}, operations={}, receipts={}, sequence=0, events=[])
@@ -58,6 +59,11 @@ class MissionManager:
         feedback=result.get('formation_runtime')
         result['formation_runtime_stale'] = (feedback is None or feedback['revision']!=mission.get('applied_revision')
             or not 0 <= int(time.time()*1000)-feedback['received_at_unix_ms'] < 2000)
+        from coordination.formation_convergence import FormationConvergence
+        convergence = self._convergence.setdefault(mission['mission_id'], FormationConvergence(
+            tolerance_m=self.profile.formation.recovery_tolerance_m))
+        result['formation_convergence'] = convergence.observe(mission, result['runtime'],
+            now=self.clock(), now_ms=int(time.time()*1000), max_age_s=self.profile.service.snapshot_max_age_s)
         return result
 
     def get(self, mid):

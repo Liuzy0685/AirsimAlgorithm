@@ -1,0 +1,724 @@
+{
+  "evidence_type": "development_history_including_failures",
+  "trials": [
+    {
+      "run": "switch_run01",
+      "passed": false,
+      "cleanup_verified": true,
+      "physical_settlements": 0,
+      "raw_report_sha256": "7f6c019e353bd8b96fc652b689323dff6afaea69985aa5712f8ff6163ae59511",
+      "note": "V configuration applied, but no continuous physical-settlement evidence before task completion; retained as failure."
+    },
+    {
+      "run": "suite_run02",
+      "cases": [
+        {
+          "case": "formation_switch",
+          "passed": true,
+          "report": "formation_switch\\flight\\report.json",
+          "returncode": 0
+        }
+      ],
+      "failure": {
+        "case": "head_on",
+        "owned_ue_pid": 4252,
+        "reason": "[Errno 2] No such file or directory: 'D:\\\\30817\\\\Adrone\\\\AirsimAlgorithm-feature-wang\\\\tmp\\\\a_swarm_acceptance\\\\runs\\\\coordination_hardening\\\\suite_run02\\\\head_on\\\\flight\\\\summary.json'"
+      },
+      "suite_report_sha256": "d280024bc0619159d136a04c911520515a2ed4eb51a6266141cdf8c7945727c9",
+      "artifacts": {},
+      "note": "Runtime line->vee->line passed; next encounter refused before flight because spawn lacked valid ground."
+    },
+    {
+      "run": "suite_run03",
+      "cases": [
+        {
+          "case": "head_on",
+          "passed": false,
+          "report": "head_on\\flight\\summary.json",
+          "returncode": 2
+        }
+      ],
+      "failure": {
+        "case": "crossing",
+        "owned_ue_pid": 26240,
+        "reason": "Spawn did not become stationary on valid ground"
+      },
+      "suite_report_sha256": "d85f9de7ca36fa77978c3504d4ff2b1875ff90c2d2d8ae1da3ae5a15aac77dc1",
+      "artifacts": {
+        "head_on": {
+          "raw_summary_sha256": "8d6cbfd92e52c55eaec2ae9a14ea24b697a5d707d0d2d7576775a04e7e1c27da",
+          "minimum_sampled_separation_m": 8.0,
+          "collision_events_excluding_landed_ground": 0,
+          "vehicle_results": {
+            "Drone1": {
+              "termination_reason": "coordinated_stop",
+              "cleanup": {
+                "phase": "CONTROL_RELEASED",
+                "landing_attempted": true,
+                "landing_confirmed": true,
+                "control_released": true,
+                "manual_intervention_required": false
+              }
+            },
+            "Drone2": {
+              "termination_reason": "coordinated_stop",
+              "cleanup": {
+                "phase": "CONTROL_RELEASED",
+                "landing_attempted": true,
+                "landing_confirmed": true,
+                "control_released": true,
+                "manual_intervention_required": false
+              }
+            }
+          }
+        }
+      },
+      "note": "Head-on target swap stalled at occupied endpoints; cooperative stop verified. Crossing setup refused for invalid ground."
+    },
+    {
+      "run": "suite_run04",
+      "cases": [
+        {
+          "case": "head_on",
+          "passed": true,
+          "report": "head_on\\flight\\summary.json",
+          "returncode": 0
+        },
+        {
+          "case": "crossing",
+          "passed": true,
+          "report": "crossing\\flight\\summary.json",
+          "returncode": 0
+        },
+        {
+          "case": "overtaking",
+          "passed": true,
+          "report": "overtaking\\flight\\summary.json",
+          "returncode": 0
+        },
+        {
+          "case": "five_way",
+          "passed": false,
+          "report": "five_way\\flight\\summary.json",
+          "returncode": 2
+        },
+        {
+          "case": "b_disconnect",
+          "passed": true,
+          "report": "b_disconnect\\flight\\summary.json",
+          "returncode": 0
+        },
+        {
+          "case": "controller_stop",
+          "passed": true,
+          "report": "controller_stop\\flight\\summary.json",
+          "returncode": 0
+        }
+      ],
+      "failure": null,
+      "suite_report_sha256": "54aa492521dcecfc477aa95232f022627b167de52e8ab9ab940fe9e92bf0e88e",
+      "artifacts": {
+        "b_disconnect": {
+          "raw_summary_sha256": "c582610a0720e454f90131fa6498174d7b83fd03801579471aef6411084f31f8",
+          "minimum_sampled_separation_m": 3.0,
+          "collision_events_excluding_landed_ground": 0,
+          "vehicle_results": {
+            "Drone1": {
+              "termination_reason": "coordinated_stop",
+              "cleanup": {
+                "phase": "CONTROL_RELEASED",
+                "landing_attempted": true,
+                "landing_confirmed": true,
+                "control_released": true,
+                "manual_intervention_required": false
+              }
+            },
+            "Drone2": {
+              "termination_reason": "coordinated_stop",
+              "cleanup": {
+                "phase": "CONTROL_RELEASED",
+                "landing_attempted": true,
+                "landing_confirmed": true,
+                "control_released": true,
+                "manual_intervention_required": false
+              }
+            }
+          }
+        },
+        "controller_stop": {
+          "raw_summary_sha256": "e5829acfa622c4a9543cddbd3d5973c37081235b43acf383fa39f5efede3d9b9",
+          "minimum_sampled_separation_m": 3.0,
+          "collision_events_excluding_landed_ground": 0,
+          "vehicle_results": {
+            "Drone1": {
+              "termination_reason": "coordinated_stop",
+              "cleanup": {
+                "phase": "CONTROL_RELEASED",
+                "landing_attempted": true,
+                "landing_confirmed": true,
+                "control_released": true,
+                "manual_intervention_required": false
+              }
+            },
+            "Drone2": {
+              "termination_reason": "coordinated_stop",
+              "cleanup": {
+                "phase": "CONTROL_RELEASED",
+                "landing_attempted": true,
+                "landing_confirmed": true,
+                "control_released": true,
+                "manual_intervention_required": false
+              }
+            }
+          }
+        },
+        "crossing": {
+          "raw_summary_sha256": "ed24bf36062fa45ec8070f5f3a4614f578dde6d74cfba5e922caefe3d7c52787",
+          "minimum_sampled_separation_m": 2.228498857738565,
+          "collision_events_excluding_landed_ground": 0,
+          "vehicle_results": {
+            "Drone1": {
+              "termination_reason": "mission_complete",
+              "cleanup": {
+                "phase": "CONTROL_RELEASED",
+                "landing_attempted": true,
+                "landing_confirmed": true,
+                "control_released": true,
+                "manual_intervention_required": false
+              }
+            },
+            "Drone2": {
+              "termination_reason": "coordinated_stop",
+              "cleanup": {
+                "phase": "CONTROL_RELEASED",
+                "landing_attempted": true,
+                "landing_confirmed": true,
+                "control_released": true,
+                "manual_intervention_required": false
+              }
+            }
+          }
+        },
+        "five_way": {
+          "raw_summary_sha256": "1f68078b8acb0a5ad3b363e7b666dfd3c63b52919db8e5eeae8c77be8f03121f",
+          "minimum_sampled_separation_m": 3.0,
+          "collision_events_excluding_landed_ground": 0,
+          "vehicle_results": {
+            "Drone1": {
+              "termination_reason": "coordinated_stop",
+              "cleanup": {
+                "phase": "CONTROL_RELEASED",
+                "landing_attempted": true,
+                "landing_confirmed": true,
+                "control_released": true,
+                "manual_intervention_required": false
+              }
+            },
+            "Drone2": {
+              "termination_reason": "coordinated_stop",
+              "cleanup": {
+                "phase": "CONTROL_RELEASED",
+                "landing_attempted": true,
+                "landing_confirmed": true,
+                "control_released": true,
+                "manual_intervention_required": false
+              }
+            },
+            "Drone3": {
+              "termination_reason": "coordinated_stop",
+              "cleanup": {
+                "phase": "CONTROL_RELEASED",
+                "landing_attempted": true,
+                "landing_confirmed": true,
+                "control_released": true,
+                "manual_intervention_required": false
+              }
+            },
+            "Drone4": {
+              "termination_reason": "coordinated_stop",
+              "cleanup": {
+                "phase": "CONTROL_RELEASED",
+                "landing_attempted": true,
+                "landing_confirmed": true,
+                "control_released": true,
+                "manual_intervention_required": false
+              }
+            },
+            "Drone5": {
+              "termination_reason": "coordinated_stop",
+              "cleanup": {
+                "phase": "CONTROL_RELEASED",
+                "landing_attempted": true,
+                "landing_confirmed": true,
+                "control_released": true,
+                "manual_intervention_required": false
+              }
+            }
+          }
+        },
+        "head_on": {
+          "raw_summary_sha256": "c0621cd5f7827feb4536bcc0ab1c0cdc074e6ca419dbc5402fe5963ec4051e28",
+          "minimum_sampled_separation_m": 2.19993543800967,
+          "collision_events_excluding_landed_ground": 0,
+          "vehicle_results": {
+            "Drone1": {
+              "termination_reason": "mission_complete",
+              "cleanup": {
+                "phase": "CONTROL_RELEASED",
+                "landing_attempted": true,
+                "landing_confirmed": true,
+                "control_released": true,
+                "manual_intervention_required": false
+              }
+            },
+            "Drone2": {
+              "termination_reason": "coordinated_stop",
+              "cleanup": {
+                "phase": "CONTROL_RELEASED",
+                "landing_attempted": true,
+                "landing_confirmed": true,
+                "control_released": true,
+                "manual_intervention_required": false
+              }
+            }
+          }
+        },
+        "overtaking": {
+          "raw_summary_sha256": "cdbe7f856ab998ba5c180e573c93a2f59d563863d327865ca5e71fab31fbcd3d",
+          "minimum_sampled_separation_m": 2.187357094713603,
+          "collision_events_excluding_landed_ground": 0,
+          "vehicle_results": {
+            "Drone1": {
+              "termination_reason": "coordinated_stop",
+              "cleanup": {
+                "phase": "CONTROL_RELEASED",
+                "landing_attempted": true,
+                "landing_confirmed": true,
+                "control_released": true,
+                "manual_intervention_required": false
+              }
+            },
+            "Drone2": {
+              "termination_reason": "mission_complete",
+              "cleanup": {
+                "phase": "CONTROL_RELEASED",
+                "landing_attempted": true,
+                "landing_confirmed": true,
+                "control_released": true,
+                "manual_intervention_required": false
+              }
+            }
+          }
+        }
+      },
+      "note": "Head-on/crossing/overtaking and both cooperative faults passed. Five-way straight staging point was occupied by another parked peer; stopped and retained."
+    },
+    {
+      "run": "suite_run05",
+      "cases": [
+        {
+          "case": "five_way",
+          "passed": false,
+          "report": "five_way\\flight\\summary.json",
+          "returncode": 2
+        }
+      ],
+      "failure": {
+        "case": "five_way",
+        "owned_ue_pid": 28156,
+        "reason": "Unverified cleanup; suite stopped without resetting this simulator"
+      },
+      "suite_report_sha256": "cb289181b8115254122cbde886353710bb457efb88e298ed89e3757e36a1182f",
+      "artifacts": {
+        "five_way": {
+          "raw_summary_sha256": "889ade54a465279c353a0da26f2def46854dc451663100029ecaed5244f21f6b",
+          "minimum_sampled_separation_m": 2.1710256517967106,
+          "collision_events_excluding_landed_ground": 0,
+          "vehicle_results": {
+            "Drone1": {
+              "termination_reason": "coordinated_stop",
+              "cleanup": {
+                "phase": "CONTROL_RELEASED",
+                "landing_attempted": true,
+                "landing_confirmed": true,
+                "control_released": true,
+                "manual_intervention_required": false
+              }
+            },
+            "Drone2": {
+              "termination_reason": "altitude_error",
+              "cleanup": {
+                "phase": "MANUAL_INTERVENTION_REQUIRED",
+                "landing_attempted": false,
+                "landing_confirmed": false,
+                "control_released": false,
+                "manual_intervention_required": true
+              }
+            },
+            "Drone3": {
+              "termination_reason": "coordinated_stop",
+              "cleanup": {
+                "phase": "LANDING",
+                "landing_attempted": true,
+                "landing_confirmed": false,
+                "control_released": false,
+                "manual_intervention_required": false
+              }
+            },
+            "Drone4": {
+              "termination_reason": "coordinated_stop",
+              "cleanup": {
+                "phase": "CONTROL_RELEASED",
+                "landing_attempted": true,
+                "landing_confirmed": true,
+                "control_released": true,
+                "manual_intervention_required": false
+              }
+            },
+            "Drone5": {
+              "termination_reason": "coordinated_stop",
+              "cleanup": {
+                "phase": "CONTROL_RELEASED",
+                "landing_attempted": true,
+                "landing_confirmed": true,
+                "control_released": true,
+                "manual_intervention_required": false
+              }
+            }
+          }
+        }
+      },
+      "note": "Five-way moved, but legacy vertical escape exceeded cruise altitude bound; unverified cleanup retained. Owned instance ended only after controllers exited, never counted as landing."
+    },
+    {
+      "run": "suite_run06",
+      "cases": [],
+      "failure": {
+        "case": "five_way",
+        "owned_ue_pid": 1220,
+        "reason": "Cannot inspect test floor mesh"
+      },
+      "suite_report_sha256": "766d11685eed0a04b3f736210ca3965cc532cb1730faa9e75b85239152daddb0",
+      "artifacts": {},
+      "note": "Ground-fixture setup refused due to mesh-name case mismatch, before any controller/API acquisition."
+    },
+    {
+      "run": "suite_run07",
+      "cases": [
+        {
+          "case": "five_way",
+          "passed": false,
+          "report": "five_way\\flight\\summary.json",
+          "returncode": 2
+        }
+      ],
+      "failure": {
+        "case": "five_way",
+        "owned_ue_pid": 852,
+        "reason": "Unverified cleanup; suite stopped without resetting this simulator"
+      },
+      "suite_report_sha256": "c30147aee77afaae7f9bf5d1bd693b7b10401f98426463dd67b60bad5bd824b0",
+      "artifacts": {
+        "five_way": {
+          "raw_summary_sha256": "9551dd8c13625aedfc6a812e4688aaff640fc01af1be228c3b3b37f3312e1929",
+          "minimum_sampled_separation_m": 2.1306899552817917,
+          "collision_events_excluding_landed_ground": 3,
+          "vehicle_results": {
+            "Drone1": {
+              "termination_reason": "coordinated_stop",
+              "cleanup": {
+                "phase": "LANDING",
+                "landing_attempted": true,
+                "landing_confirmed": false,
+                "control_released": false,
+                "manual_intervention_required": false
+              }
+            },
+            "Drone2": {
+              "termination_reason": "coordinated_stop",
+              "cleanup": {
+                "phase": "LANDING",
+                "landing_attempted": true,
+                "landing_confirmed": false,
+                "control_released": false,
+                "manual_intervention_required": false
+              }
+            },
+            "Drone3": {
+              "termination_reason": "velocity_send_error",
+              "cleanup": {
+                "phase": "MANUAL_INTERVENTION_REQUIRED",
+                "landing_attempted": false,
+                "landing_confirmed": false,
+                "control_released": false,
+                "manual_intervention_required": true
+              }
+            },
+            "Drone4": {
+              "termination_reason": "coordinated_stop",
+              "cleanup": {
+                "phase": "LANDING",
+                "landing_attempted": true,
+                "landing_confirmed": false,
+                "control_released": false,
+                "manual_intervention_required": false
+              }
+            },
+            "Drone5": {
+              "termination_reason": "coordinated_stop",
+              "cleanup": {
+                "phase": "LANDING",
+                "landing_attempted": true,
+                "landing_confirmed": false,
+                "control_released": false,
+                "manual_intervention_required": false
+              }
+            }
+          }
+        }
+      },
+      "note": "Five-way future CPA protection rejected motion; unregistered fixture contact was recorded as collision and cleanup unverified. Original records retained."
+    },
+    {
+      "run": "suite_run08",
+      "cases": [
+        {
+          "case": "five_way",
+          "passed": false,
+          "report": "five_way\\flight\\summary.json",
+          "returncode": 2
+        }
+      ],
+      "failure": {
+        "case": "five_way",
+        "owned_ue_pid": 24304,
+        "reason": "Unverified cleanup; suite stopped without resetting this simulator"
+      },
+      "suite_report_sha256": "776b84ec65bc94176e9a869147a5ffb7307f98211e90ae6d10a30ad523e5067f",
+      "artifacts": {
+        "five_way": {
+          "raw_summary_sha256": "f28fdd3e1c49d630d52012d4c50f49f0457480bb99c62ef0a15f52809c5641a8",
+          "minimum_sampled_separation_m": 2.140101999736701,
+          "collision_events_excluding_landed_ground": 3,
+          "vehicle_results": {
+            "Drone1": {
+              "termination_reason": "coordinated_stop",
+              "cleanup": {
+                "phase": "LANDING",
+                "landing_attempted": true,
+                "landing_confirmed": false,
+                "control_released": false,
+                "manual_intervention_required": false
+              }
+            },
+            "Drone2": {
+              "termination_reason": "coordinated_stop",
+              "cleanup": {
+                "phase": "LANDING",
+                "landing_attempted": true,
+                "landing_confirmed": false,
+                "control_released": false,
+                "manual_intervention_required": false
+              }
+            },
+            "Drone3": {
+              "termination_reason": "velocity_send_error",
+              "cleanup": {
+                "phase": "MANUAL_INTERVENTION_REQUIRED",
+                "landing_attempted": false,
+                "landing_confirmed": false,
+                "control_released": false,
+                "manual_intervention_required": true
+              }
+            },
+            "Drone4": {
+              "termination_reason": "coordinated_stop",
+              "cleanup": {
+                "phase": "LANDING",
+                "landing_attempted": true,
+                "landing_confirmed": false,
+                "control_released": false,
+                "manual_intervention_required": false
+              }
+            },
+            "Drone5": {
+              "termination_reason": "coordinated_stop",
+              "cleanup": {
+                "phase": "LANDING",
+                "landing_attempted": true,
+                "landing_confirmed": false,
+                "control_released": false,
+                "manual_intervention_required": false
+              }
+            }
+          }
+        }
+      },
+      "note": "Latest-state refinement still had no feasible velocity in a dense independent swap; unknown fixture ground name prevented verified cleanup."
+    },
+    {
+      "run": "suite_run09",
+      "cases": [
+        {
+          "case": "five_way",
+          "passed": false,
+          "report": "five_way\\flight\\summary.json",
+          "returncode": 2
+        }
+      ],
+      "failure": {
+        "case": "five_way",
+        "owned_ue_pid": 26436,
+        "reason": "Unverified cleanup; suite stopped without resetting this simulator"
+      },
+      "suite_report_sha256": "75b6835ee4374b3fb64e29620b0af6215a45a7b81067c54c69bcedb8429aac04",
+      "artifacts": {
+        "five_way": {
+          "raw_summary_sha256": "cf624e369656946ad8b9d0cbe0ddf89d912f9766d24cac253c811145aeba60a6",
+          "minimum_sampled_separation_m": 2.1418658177107845,
+          "collision_events_excluding_landed_ground": 3,
+          "vehicle_results": {
+            "Drone1": {
+              "termination_reason": "coordinated_stop",
+              "cleanup": {
+                "phase": "CONTROL_RELEASED",
+                "landing_attempted": true,
+                "landing_confirmed": true,
+                "control_released": true,
+                "manual_intervention_required": false
+              }
+            },
+            "Drone2": {
+              "termination_reason": "coordinated_stop",
+              "cleanup": {
+                "phase": "LANDING",
+                "landing_attempted": true,
+                "landing_confirmed": false,
+                "control_released": false,
+                "manual_intervention_required": false
+              }
+            },
+            "Drone3": {
+              "termination_reason": "velocity_send_error",
+              "cleanup": {
+                "phase": "MANUAL_INTERVENTION_REQUIRED",
+                "landing_attempted": false,
+                "landing_confirmed": false,
+                "control_released": false,
+                "manual_intervention_required": true
+              }
+            },
+            "Drone4": {
+              "termination_reason": "coordinated_stop",
+              "cleanup": {
+                "phase": "LANDING",
+                "landing_attempted": true,
+                "landing_confirmed": false,
+                "control_released": false,
+                "manual_intervention_required": false
+              }
+            },
+            "Drone5": {
+              "termination_reason": "coordinated_stop",
+              "cleanup": {
+                "phase": "LANDING",
+                "landing_attempted": true,
+                "landing_confirmed": false,
+                "control_released": false,
+                "manual_intervention_required": false
+              }
+            }
+          }
+        }
+      },
+      "note": "Dense five-way independent goal swap again triggered CPA protection; some fixture baselines preceded physical reset. Kept as counterexample; no safety threshold relaxed."
+    },
+    {
+      "run": "suite_run10",
+      "cases": [
+        {
+          "case": "formation_switch",
+          "passed": true,
+          "report": "formation_switch\\flight\\report.json",
+          "returncode": 0
+        },
+        {
+          "case": "head_on",
+          "passed": true,
+          "report": "head_on\\flight\\summary.json",
+          "returncode": 0
+        },
+        {
+          "case": "crossing",
+          "passed": true,
+          "report": "crossing\\flight\\summary.json",
+          "returncode": 0
+        },
+        {
+          "case": "overtaking",
+          "passed": true,
+          "report": "overtaking\\flight\\summary.json",
+          "returncode": 0
+        },
+        {
+          "case": "b_disconnect",
+          "passed": true,
+          "report": "b_disconnect\\flight\\summary.json",
+          "returncode": 0
+        },
+        {
+          "case": "controller_stop",
+          "passed": true,
+          "report": "controller_stop\\flight\\summary.json",
+          "returncode": 0
+        }
+      ],
+      "failure": {
+        "case": "narrow_corridor",
+        "owned_ue_pid": 3352,
+        "reason": "Test floor physical ground probe did not settle"
+      },
+      "suite_report_sha256": "973cb5c4c532046574881cc092748de1dc614ffb464a3f9469e994458edf0195"
+    },
+    {
+      "run": "suite_run11",
+      "cases": [
+        {
+          "case": "formation_five",
+          "passed": true,
+          "report": "formation_five\\flight\\summary.json",
+          "returncode": 0
+        },
+        {
+          "case": "narrow_corridor",
+          "passed": false,
+          "report": "narrow_corridor\\flight\\summary.json",
+          "returncode": 2
+        }
+      ],
+      "failure": {
+        "case": "narrow_corridor",
+        "owned_ue_pid": 18360,
+        "reason": "Unverified cleanup; suite stopped without resetting this simulator"
+      },
+      "suite_report_sha256": "7b07e0b9b1f8156c7d976f4f45fbe5a6c5048be5fd794b92dba9d86f98172fb7"
+    },
+    {
+      "run": "suite_run12",
+      "cases": [
+        {
+          "case": "narrow_corridor",
+          "passed": true,
+          "report": "narrow_corridor\\flight\\summary.json",
+          "returncode": 0
+        }
+      ],
+      "failure": null,
+      "suite_report_sha256": "c47a01012fc978c5fcee9ae53fae6288f9ff79d89351771cba2f189aa72e9ee9"
+    }
+  ],
+  "baseline": "2e665d1",
+  "main_at_start": "26ed6b5",
+  "B_host_fix_effective": "Confirmed by user on 2026-11-19; not a new local flight claim",
+  "original_B_failure_logs_modified": false
+}

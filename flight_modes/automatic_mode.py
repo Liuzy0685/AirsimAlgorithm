@@ -1728,7 +1728,11 @@ class AutomaticMode:
         )
         _va_cfg = (_traj_cfg.get("vertical_avoidance", {}) or {})
         self._va_params = VerticalAvoidanceParams(
-            enabled=bool(_va_cfg.get("enabled", True)),
+            # The observed-grid swarm planner owns fixed-altitude routing.
+            # Legacy single-UAV climbing can mistake peers for low obstacles
+            # and later trip the unchanged cruise-altitude safety bound.
+            enabled=bool(_va_cfg.get("enabled", True)) and not (
+                self._swarm_bridge is not None and self._swarm_bridge.navigation_cfg.enabled is True),
             front_blocked_m=float(_va_cfg.get("front_blocked_m", 2.5)),
             front_clear_m=float(_va_cfg.get("front_clear_m", 4.0)),
             low_obstacle_front_up_m=float(
@@ -3572,12 +3576,14 @@ class AutomaticMode:
         if not self._swarm_peer_readers:
             return False
         if self._swarm_bridge is not None:
-            self._authoritative_tick_snapshot = self._swarm_bridge.link.snapshot()
+            if not getattr(self, '_swarm_lightweight', False):
+                self._authoritative_tick_snapshot = self._swarm_bridge.link.snapshot()
             if self._authoritative_tick_snapshot is None:
                 self._swarm_peer_states.clear()
                 return True
         now = time.monotonic()
-        if now - self._swarm_last_poll_time < self._swarm_peer_poll_interval_s:
+        if (self._swarm_bridge is None and
+                now - self._swarm_last_poll_time < self._swarm_peer_poll_interval_s):
             return self._swarm_yield_active
         self._swarm_last_poll_time = now
 
@@ -3782,7 +3788,7 @@ class AutomaticMode:
         if self._swarm_algorithm != "orca" or not self._swarm_peer_readers:
             return preferred_vx_body, preferred_vy_body, "unchanged"
 
-        from coordination.orca_2d import compute_orca_velocity
+        from coordination.orca_2d import compute_orca_velocity, compute_gateway_velocity
         now = time.monotonic()
         neighbors = []
         for peer_name in self._swarm_peer_readers:
@@ -3792,7 +3798,8 @@ class AutomaticMode:
                 break
             age = now - peer["received_monotonic"]
             timestamp_skew = abs(int(own_state.timestamp) - peer["timestamp"]) / 1e9
-            if age > max(0.5, self._swarm_peer_poll_interval_s * 3.0) or timestamp_skew > self._swarm_max_timestamp_skew_s:
+            if (not math.isfinite(age) or not 0 <= age <= max(0.5, self._swarm_peer_poll_interval_s * 3.0)
+                    or timestamp_skew > self._swarm_max_timestamp_skew_s):
                 neighbors = []
                 break
             neighbors.append((peer["position_xy"], peer["velocity_xy"]))
@@ -3816,16 +3823,24 @@ class AutomaticMode:
                 own_state.position_ned_m,
                 self._swarm_spawn_offsets[self._vn],
             )
-            safe_world = compute_orca_velocity(
+            gateway_mode = getattr(self, '_swarm_bridge', None) is not None
+            solver = compute_gateway_velocity if gateway_mode else compute_orca_velocity
+            safe_world = solver(
                 position=own_position[:2],
                 velocity=own_state.linear_velocity_ned_mps[:2],
                 preferred_velocity=preferred_world,
                 neighbors=neighbors,
-                safety_distance_m=self._swarm_safety_distance_m,
+                safety_distance_m=self._swarm_safety_distance_m +
+                    (2*self._params.forward_speed_mps*duration_s + 0.05 if gateway_mode else 0.0),
                 horizon_s=self._swarm_prediction_horizon_s,
                 time_step_s=max(0.05, duration_s),
                 max_speed_mps=max(0.1, self._params.forward_speed_mps),
                 passing_bias_mps=self._swarm_passing_bias_mps,
+                # The final CPA gate assumes the peer keeps its measured
+                # velocity, rather than crediting an unobserved reciprocal
+                # action. Generate candidates under the same assumption.
+                responsibility=1.0 if getattr(self, '_swarm_bridge', None) is not None else 0.5,
+                **({'minimum_distance_m': self._swarm_safety_distance_m + .01} if gateway_mode else {}),
             )
         except Exception as exc:
             safe_world = None
@@ -4204,6 +4219,19 @@ class AutomaticMode:
                         fov_obs[sd.name] = (sts.fully_observable, 1.0)
 
             # 6. minimal_flight.yaml already loaded via AutomaticModeParams
+            if self._swarm_bridge is not None:
+                from control.swept_clearance import raw_frame_takeoff_column_clearance
+                try:
+                    takeoff_frame=lidar.read()
+                    column_clearance=raw_frame_takeoff_column_clearance(takeoff_frame,st0.position_ned_m,self._params.target_z_ned)
+                    if column_clearance<self._traj_params.hard_clearance_m:
+                        rk['termination_reason']='preflight_takeoff_column_blocked'
+                        logger.error('preflight_takeoff_column_blocked clearance_m=%.3f required_m=%.3f',
+                            column_clearance,self._traj_params.hard_clearance_m)
+                        return AutomaticFlightResult(**rk)
+                except Exception as exc:
+                    rk['termination_reason']=f'preflight_takeoff_column:{exc}'
+                    return AutomaticFlightResult(**rk)
             logger.info("Preflight passed — all checks OK.")
 
             # ────────────────────────────────────────────────
@@ -5894,7 +5922,7 @@ class AutomaticMode:
                     if _goal_res.reached and not (self._swarm_bridge is not None and self._swarm_bridge.follower):
                         if self._swarm_bridge is not None:
                             self._swarm_bridge.leader_goal_hold = True
-                        if self._swarm_bridge is None or self._swarm_bridge.link.followers_settled():
+                        if self._swarm_bridge is None or self._swarm_bridge.mission_settled():
                             term = "mission_complete"
                             break
 
