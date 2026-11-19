@@ -264,6 +264,11 @@ class PerceptionWorker:
         with self._lock:
             return self._latest
 
+    def get_latest_raw_frame(self):
+        """Unfiltered safety scan, published before filter/sector processing."""
+        with self._lock:
+            return getattr(self,'_latest_raw',None)
+
     def snapshot_age_s(self, now: Optional[float] = None) -> float:
         """Age of the latest snapshot (or +inf if none yet)."""
         snap = self.get_latest_snapshot()
@@ -301,6 +306,14 @@ class PerceptionWorker:
             try:
                 _rpc_t0 = time.perf_counter()
                 lf = self._lidar.read()
+                with self._lock:
+                    previous=getattr(self,'_latest_raw',None)
+                    stamp=getattr(lf,'raw_timestamp_ns',None)
+                    previous_stamp=getattr(previous,'raw_timestamp_ns',None)
+                    if (not getattr(lf,'frame_valid',False) or previous is None
+                            or type(stamp) is not int or type(previous_stamp) is not int
+                            or stamp>previous_stamp):
+                        self._latest_raw=lf
                 self.lidar_rpc_ms = (time.perf_counter() - _rpc_t0) * 1000.0
                 received = self._clock()
                 # Phase C6-R: classify whether this RPC returned a NEW LiDAR
@@ -1173,6 +1186,9 @@ class AutomaticMode:
         self._vn = session.vehicle_name
         self._cli_overrides = dict(cli_overrides or {})
         self._swarm_bridge = vars(session).get("swarm_bridge")
+        self._swarm_lightweight = (self._swarm_bridge is not None
+            and self._swarm_bridge.navigation_cfg.enabled is True
+            and self._swarm_bridge.navigation_cfg.run_legacy_diagnostics is False)
         self._authoritative_tick_snapshot = None
         self._swarm_peer_readers = {}
         self._swarm_peer_states = {}
@@ -1444,9 +1460,9 @@ class AutomaticMode:
             wall_penalty_radius=0,        # skip expensive proximity scan in shadow
             adaptive_long_step_cells=1,    # 26 neighbors instead of 52
         ))
-        self._cbmba_enabled = True
-        logger.info("cbmba_shadow  enabled=true  resolution=%.2f  max_search_nodes=%d",
-                     self._cbmba.params.resolution, self._cbmba.params.max_search_nodes)
+        self._cbmba_enabled = not self._swarm_lightweight
+        logger.info("cbmba_shadow  enabled=%s  resolution=%.2f  max_search_nodes=%d",
+                     self._cbmba_enabled,self._cbmba.params.resolution, self._cbmba.params.max_search_nodes)
 
         # ── CBMBA guidance adapter (shadow only; never dispatches) ──
         from planners.cbmba_guidance import CbmbaGuidance, CbmbaGuidanceParams as _CbmbaGuidanceParams
@@ -1454,9 +1470,9 @@ class AutomaticMode:
             min_forward_progress=0.25,
             min_waypoint_distance=0.5,
         ))
-        self._cbmba_guidance_enabled = True
-        logger.info("cbmba_guidance_shadow  enabled=true  min_forward_progress=%.2f  min_waypoint_distance=%.2f",
-                     self._cbmba_guidance.params.min_forward_progress,
+        self._cbmba_guidance_enabled = not self._swarm_lightweight
+        logger.info("cbmba_guidance_shadow  enabled=%s  min_forward_progress=%.2f  min_waypoint_distance=%.2f",
+                     self._cbmba_guidance_enabled,self._cbmba_guidance.params.min_forward_progress,
                      self._cbmba_guidance.params.min_waypoint_distance)
 
         # ── diagnostic rate-limit state ──
@@ -1879,7 +1895,7 @@ class AutomaticMode:
         self._traj_global_path_min_clearance: float = float("inf")
         self._traj_local_plan_seq: int = 0         # last applied local-plan request id
         self._navigation_ready: bool = False       # Phase C3-R: altitude startup gate
-        if self._local_navigation_mode == "trajectory":
+        if self._local_navigation_mode == "trajectory" and not self._swarm_lightweight:
             from dataclasses import asdict
             from planners.process_workers import (
                 CbmbaProcessWorker, LocalTrajectoryPlannerWorker, MappingProcessWorker,
@@ -4484,7 +4500,7 @@ class AutomaticMode:
                     time.monotonic(), (spawn[0], spawn[1]),
                 )
                 # In-sim debug drawing + HUD.
-                if self._traj_debug_cfg.get("enabled", False):
+                if self._traj_debug_cfg.get("enabled", False) and not self._swarm_lightweight:
                     from flight_modes.airsim_debug_draw import AirSimDebugDrawer
                     self._debug_drawer = AirSimDebugDrawer(
                         self._adapter,
@@ -4587,6 +4603,11 @@ class AutomaticMode:
             self._running = True
             if self._swarm_bridge is not None:
                 self._swarm_bridge.begin_cruise(self)
+                self._swarm_bridge.raw_lidar_supplier=self._perception_worker.get_latest_raw_frame
+                if self._swarm_lightweight:
+                    from coordination.controller_link import SnapshotPeerReader
+                    sr=SnapshotPeerReader(self,self._vn)
+                    logger.info('swarm_runtime state_source=authoritative_snapshot legacy_workers=false debug_draw=false')
             while self._running:
                 stop_file = vars(self._session).get("stop_file")
                 _coordinated_stop_requested = stop_file is not None and stop_file.exists()
@@ -4595,7 +4616,7 @@ class AutomaticMode:
                     break
                 fn += 1
                 if self._swarm_bridge is not None:
-                    self._swarm_bridge.tick()
+                    self._authoritative_tick_snapshot=self._swarm_bridge.tick()
                 # Phase C1-R sec 6/14: per-frame CBMBA duplicate guard + stage
                 # timing baselines (perf_counter for intra-loop profiling).
                 self._cbmba_searches_this_frame = 0
@@ -5709,7 +5730,7 @@ class AutomaticMode:
                 # command at the control rate from the cached trajectory, so the
                 # slow planners and the fast control loop stay fully decoupled.
                 traj_result = None
-                if self._local_navigation_mode == "trajectory":
+                if self._local_navigation_mode == "trajectory" and not self._swarm_lightweight:
                     _now = time.monotonic()
 
                     # Global reference-path replan tick (non-blocking; the CBMBA
@@ -6248,6 +6269,11 @@ class AutomaticMode:
                             # Recovery changed side — update bypass
                             self._bypass.side = recovery_result.committed_side
                             self._bypass_unsafe_start = None
+                elif self._swarm_lightweight:
+                    # The checked grid route is selected below by A's bridge.
+                    # No absent legacy trajectory should be labelled a failure.
+                    selected_vx = selected_vy = selected_vz = 0.0
+                    command_source = "swarm_navigation"
                 elif self._local_navigation_mode == "trajectory":
                     # ── Trajectory-centric dispatch (recovery already handled above) ──
                     # Track the cached trajectory at control rate via pure pursuit
@@ -6946,7 +6972,7 @@ class AutomaticMode:
                 # ── write current LiDAR into persistent map (read-before-write) ──
                 # Phase C4-R: the ray-casting ``update()`` now runs in the
                 # mapping **process**; the loop only requests + polls non-blocking.
-                if self._local_navigation_mode == "trajectory":
+                if self._local_navigation_mode == "trajectory" and not self._swarm_lightweight:
                     try:
                         _mw_t0 = time.perf_counter()
                         self._request_map_update(lf, st, fr)

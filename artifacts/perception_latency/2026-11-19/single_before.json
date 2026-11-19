@@ -1,0 +1,909 @@
+{
+  "baseline": "cc2f976",
+  "baseline_filter_sha256": "64ee1f95a76f35d29e956609dc08ad1d9612c84e886dc107444f9de2375ad9dd",
+  "case": "single_ue_before",
+  "evidence_type": "read_only_ground_no_actuation",
+  "limitation": "This host and these ground scenes only. No flight, controller-rate, collision-rate or historical dual-UE attribution claims.",
+  "numpy": "2.4.6",
+  "optimized_filter_sha256": "8a22b8e72ced377fac86bf1770f7b1eb6e7fe4db2d9958813d114cc0900be67b",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "python": "3.14.5 (tags/v3.14.5:5607950, May 10 2026, 10:43:50) [MSC v.1944 64 bit (AMD64)]",
+  "results": [
+    {
+      "landed_and_api_released": true,
+      "point_count_max": 10274,
+      "point_count_min": 10063,
+      "repeated_scan_reads": 7,
+      "timing": {
+        "collision_rpc": {
+          "count": 40,
+          "max_ms": 2.557799999976851,
+          "median_ms": 0.3711499999781154,
+          "p95_ms": 1.6719849999390108
+        },
+        "lidar_read": {
+          "count": 40,
+          "max_ms": 6.061799999997675,
+          "median_ms": 3.5390999998980988,
+          "p95_ms": 4.767770000125892
+        },
+        "optimized_filter": {
+          "count": 40,
+          "max_ms": 2.888100000063787,
+          "median_ms": 2.0566499999858934,
+          "p95_ms": 2.7961449999679644
+        },
+        "reference_filter": {
+          "count": 40,
+          "max_ms": 20.787599999948725,
+          "median_ms": 13.253449999979239,
+          "p95_ms": 18.582415000082616
+        },
+        "sectorization": {
+          "count": 40,
+          "max_ms": 7.4465000000145665,
+          "median_ms": 3.6867000000029293,
+          "p95_ms": 5.697385000064513
+        },
+        "state_rpc": {
+          "count": 40,
+          "max_ms": 1.91410000002179,
+          "median_ms": 0.6258000000798347,
+          "p95_ms": 1.6045650001501597
+        }
+      },
+      "trace": [
+        {
+          "collision_rpc": 0.4685999999765045,
+          "lidar_read": 3.4949999999298598,
+          "optimized_filter": 2.572000000100161,
+          "point_count": 10147,
+          "raw_timestamp_ns": 1795057290831819264,
+          "reference_filter": 20.21480000007614,
+          "sectorization": 4.448200000069846,
+          "state_rpc": 0.49379999995835533
+        },
+        {
+          "collision_rpc": 0.378400000045076,
+          "lidar_read": 4.093300000022282,
+          "optimized_filter": 1.9081999998888932,
+          "point_count": 10263,
+          "raw_timestamp_ns": 1795057290933821440,
+          "reference_filter": 12.333699999999226,
+          "sectorization": 4.708700000037425,
+          "state_rpc": 0.32980000014504185
+        },
+        {
+          "collision_rpc": 0.20979999999326537,
+          "lidar_read": 3.551399999878413,
+          "optimized_filter": 1.488100000187842,
+          "point_count": 10263,
+          "raw_timestamp_ns": 1795057290933821440,
+          "reference_filter": 11.692199999970398,
+          "sectorization": 3.45500000003085,
+          "state_rpc": 0.6043000000772736
+        },
+        {
+          "collision_rpc": 0.28189999989081116,
+          "lidar_read": 4.561700000067503,
+          "optimized_filter": 1.7963999998755753,
+          "point_count": 10255,
+          "raw_timestamp_ns": 1795057291035823616,
+          "reference_filter": 11.937499999930878,
+          "sectorization": 3.6850999999842315,
+          "state_rpc": 0.596299999870098
+        },
+        {
+          "collision_rpc": 0.37600000018755964,
+          "lidar_read": 4.3657000001076085,
+          "optimized_filter": 1.5466999998352549,
+          "point_count": 10190,
+          "raw_timestamp_ns": 1795057291137825792,
+          "reference_filter": 11.974999999893043,
+          "sectorization": 5.9441000000788335,
+          "state_rpc": 0.725599999896076
+        },
+        {
+          "collision_rpc": 0.48630000014782127,
+          "lidar_read": 4.408799999964685,
+          "optimized_filter": 1.8546999999671243,
+          "point_count": 10184,
+          "raw_timestamp_ns": 1795057291239827968,
+          "reference_filter": 11.784400000124151,
+          "sectorization": 3.3873999998377258,
+          "state_rpc": 0.8328999999775988
+        },
+        {
+          "collision_rpc": 0.3071000001000357,
+          "lidar_read": 3.6036999999851105,
+          "optimized_filter": 2.0426999999472173,
+          "point_count": 10274,
+          "raw_timestamp_ns": 1795057291341830144,
+          "reference_filter": 11.858399999937319,
+          "sectorization": 4.551699999865377,
+          "state_rpc": 0.714100000095641
+        },
+        {
+          "collision_rpc": 0.27309999995850376,
+          "lidar_read": 3.414099999872633,
+          "optimized_filter": 1.981999999998152,
+          "point_count": 10150,
+          "raw_timestamp_ns": 1795057291443832320,
+          "reference_filter": 11.520400000108566,
+          "sectorization": 3.6772999999357125,
+          "state_rpc": 0.9472000001551351
+        },
+        {
+          "collision_rpc": 0.44079999997848063,
+          "lidar_read": 4.329399999960515,
+          "optimized_filter": 1.8239999999423162,
+          "point_count": 10150,
+          "raw_timestamp_ns": 1795057291443832320,
+          "reference_filter": 9.081800000103613,
+          "sectorization": 4.565799999909359,
+          "state_rpc": 0.7189000000380474
+        },
+        {
+          "collision_rpc": 0.2339000000119995,
+          "lidar_read": 3.0013000000508328,
+          "optimized_filter": 1.7890000001443696,
+          "point_count": 10190,
+          "raw_timestamp_ns": 1795057291545834496,
+          "reference_filter": 14.504800000167961,
+          "sectorization": 3.817600000047605,
+          "state_rpc": 0.7253999999647931
+        },
+        {
+          "collision_rpc": 0.22320000016406993,
+          "lidar_read": 3.6310999998931948,
+          "optimized_filter": 2.0617000000129337,
+          "point_count": 10224,
+          "raw_timestamp_ns": 1795057291647836672,
+          "reference_filter": 12.181999999938853,
+          "sectorization": 3.3929000001080567,
+          "state_rpc": 0.9118999998918298
+        },
+        {
+          "collision_rpc": 0.27930000010201184,
+          "lidar_read": 3.0957999999827734,
+          "optimized_filter": 2.1822000001066044,
+          "point_count": 10219,
+          "raw_timestamp_ns": 1795057291749838848,
+          "reference_filter": 11.470600000166087,
+          "sectorization": 3.853599999956714,
+          "state_rpc": 0.741199999993114
+        },
+        {
+          "collision_rpc": 0.2698000000691536,
+          "lidar_read": 4.756400000132999,
+          "optimized_filter": 1.4873000000079628,
+          "point_count": 10230,
+          "raw_timestamp_ns": 1795057291851841024,
+          "reference_filter": 13.581799999883515,
+          "sectorization": 4.6780000000126165,
+          "state_rpc": 0.6473000000823959
+        },
+        {
+          "collision_rpc": 0.17120000006798364,
+          "lidar_read": 3.447900000082882,
+          "optimized_filter": 2.0168000000921893,
+          "point_count": 10230,
+          "raw_timestamp_ns": 1795057291851841024,
+          "reference_filter": 12.680399999908332,
+          "sectorization": 4.367099999853963,
+          "state_rpc": 0.5748999999468651
+        },
+        {
+          "collision_rpc": 0.2286999999796535,
+          "lidar_read": 4.983799999990879,
+          "optimized_filter": 1.564199999847915,
+          "point_count": 10269,
+          "raw_timestamp_ns": 1795057291953843200,
+          "reference_filter": 10.877100000016071,
+          "sectorization": 3.854999999930442,
+          "state_rpc": 0.7597000001169363
+        },
+        {
+          "collision_rpc": 0.3877999999986059,
+          "lidar_read": 3.8222000000587286,
+          "optimized_filter": 1.608600000054139,
+          "point_count": 10218,
+          "raw_timestamp_ns": 1795057292055845376,
+          "reference_filter": 11.924600000156715,
+          "sectorization": 3.1506000000263157,
+          "state_rpc": 0.8007999999790627
+        },
+        {
+          "collision_rpc": 0.3281000001607026,
+          "lidar_read": 3.9140999999744963,
+          "optimized_filter": 2.888100000063787,
+          "point_count": 10251,
+          "raw_timestamp_ns": 1795057292157847552,
+          "reference_filter": 11.159299999917494,
+          "sectorization": 4.425699999956123,
+          "state_rpc": 0.3815000000031432
+        },
+        {
+          "collision_rpc": 0.2474000000347587,
+          "lidar_read": 4.412999999885869,
+          "optimized_filter": 2.7345000000877917,
+          "point_count": 10272,
+          "raw_timestamp_ns": 1795057292259849728,
+          "reference_filter": 11.586200000010649,
+          "sectorization": 4.575400000021546,
+          "state_rpc": 0.6575999998403859
+        },
+        {
+          "collision_rpc": 0.3496999997878447,
+          "lidar_read": 6.061799999997675,
+          "optimized_filter": 2.4293999999827065,
+          "point_count": 10236,
+          "raw_timestamp_ns": 1795057292361851904,
+          "reference_filter": 12.897000000066328,
+          "sectorization": 5.1614000001336535,
+          "state_rpc": 0.7449000001997774
+        },
+        {
+          "collision_rpc": 0.8602000000337284,
+          "lidar_read": 2.359300000080111,
+          "optimized_filter": 2.7642000000014377,
+          "point_count": 10250,
+          "raw_timestamp_ns": 1795057292463854080,
+          "reference_filter": 15.882200000078228,
+          "sectorization": 5.684400000063761,
+          "state_rpc": 0.23839999994379468
+        },
+        {
+          "collision_rpc": 0.3134000000954984,
+          "lidar_read": 3.638199999841163,
+          "optimized_filter": 2.37080000010792,
+          "point_count": 10250,
+          "raw_timestamp_ns": 1795057292463854080,
+          "reference_filter": 12.21680000003289,
+          "sectorization": 4.826199999797609,
+          "state_rpc": 0.3268000000389293
+        },
+        {
+          "collision_rpc": 0.9680999999091,
+          "lidar_read": 2.5831999998899846,
+          "optimized_filter": 2.7930999999625783,
+          "point_count": 10223,
+          "raw_timestamp_ns": 1795057292565856256,
+          "reference_filter": 16.48950000003424,
+          "sectorization": 4.959800000051473,
+          "state_rpc": 0.6475999998656334
+        },
+        {
+          "collision_rpc": 0.21749999996245606,
+          "lidar_read": 3.82250000006934,
+          "optimized_filter": 2.044999999952779,
+          "point_count": 10213,
+          "raw_timestamp_ns": 1795057292667858432,
+          "reference_filter": 12.53210000004401,
+          "sectorization": 4.720200000065233,
+          "state_rpc": 0.41599999985919567
+        },
+        {
+          "collision_rpc": 0.4352999999355234,
+          "lidar_read": 3.9040000001477893,
+          "optimized_filter": 2.1707000000787957,
+          "point_count": 10272,
+          "raw_timestamp_ns": 1795057292769860608,
+          "reference_filter": 14.071099999910075,
+          "sectorization": 4.334799999924144,
+          "state_rpc": 0.5466000000069471
+        },
+        {
+          "collision_rpc": 2.530499999920721,
+          "lidar_read": 2.5814000000536907,
+          "optimized_filter": 2.0437000000583794,
+          "point_count": 10241,
+          "raw_timestamp_ns": 1795057292871862784,
+          "reference_filter": 13.632299999926545,
+          "sectorization": 3.557999999884487,
+          "state_rpc": 0.493699999879027
+        },
+        {
+          "collision_rpc": 0.3741000000445638,
+          "lidar_read": 3.210600000102204,
+          "optimized_filter": 2.8540000000703003,
+          "point_count": 10265,
+          "raw_timestamp_ns": 1795057292973864960,
+          "reference_filter": 14.265300000033676,
+          "sectorization": 2.027499999940119,
+          "state_rpc": 0.37219999990156794
+        },
+        {
+          "collision_rpc": 1.6267999999399763,
+          "lidar_read": 4.732400000193593,
+          "optimized_filter": 2.4293999999827065,
+          "point_count": 10265,
+          "raw_timestamp_ns": 1795057292973864960,
+          "reference_filter": 15.263400000094407,
+          "sectorization": 3.2896999998683896,
+          "state_rpc": 0.4621000000497588
+        },
+        {
+          "collision_rpc": 1.0498999999981606,
+          "lidar_read": 2.322000000049229,
+          "optimized_filter": 2.561600000035469,
+          "point_count": 10196,
+          "raw_timestamp_ns": 1795057293075867136,
+          "reference_filter": 13.800199999877805,
+          "sectorization": 2.737600000045859,
+          "state_rpc": 0.3237999999328167
+        },
+        {
+          "collision_rpc": 1.04220000002897,
+          "lidar_read": 3.459700000121302,
+          "optimized_filter": 1.8241000000216445,
+          "point_count": 10113,
+          "raw_timestamp_ns": 1795057293177869312,
+          "reference_filter": 13.16580000002432,
+          "sectorization": 3.6250000000563887,
+          "state_rpc": 0.3039999999145948
+        },
+        {
+          "collision_rpc": 2.557799999976851,
+          "lidar_read": 3.5267999999177846,
+          "optimized_filter": 2.14149999987967,
+          "point_count": 10115,
+          "raw_timestamp_ns": 1795057293279871488,
+          "reference_filter": 14.819600000009814,
+          "sectorization": 3.1827000000248518,
+          "state_rpc": 0.4189000001133536
+        },
+        {
+          "collision_rpc": 0.27780000004895555,
+          "lidar_read": 2.469799999971656,
+          "optimized_filter": 1.7751000000316708,
+          "point_count": 10109,
+          "raw_timestamp_ns": 1795057293381873664,
+          "reference_filter": 13.680100000101447,
+          "sectorization": 2.7388999999402586,
+          "state_rpc": 1.6007000001536653
+        },
+        {
+          "collision_rpc": 0.8675999999923079,
+          "lidar_read": 3.8586999999097316,
+          "optimized_filter": 2.7541000001747307,
+          "point_count": 10108,
+          "raw_timestamp_ns": 1795057293483875840,
+          "reference_filter": 15.002999999978783,
+          "sectorization": 7.4465000000145665,
+          "state_rpc": 0.2801000000545173
+        },
+        {
+          "collision_rpc": 1.5473999999358057,
+          "lidar_read": 2.3587000000588887,
+          "optimized_filter": 2.4316999999882682,
+          "point_count": 10108,
+          "raw_timestamp_ns": 1795057293483875840,
+          "reference_filter": 13.560799999822848,
+          "sectorization": 1.9678000001022156,
+          "state_rpc": 0.3005000000939617
+        },
+        {
+          "collision_rpc": 0.27720000002773304,
+          "lidar_read": 2.5266000000101485,
+          "optimized_filter": 2.253999999993539,
+          "point_count": 10102,
+          "raw_timestamp_ns": 1795057293585878016,
+          "reference_filter": 13.457700000117256,
+          "sectorization": 1.8887000001086562,
+          "state_rpc": 1.678000000083557
+        },
+        {
+          "collision_rpc": 0.34329999994042737,
+          "lidar_read": 2.34720000003108,
+          "optimized_filter": 1.9436999998561078,
+          "point_count": 10063,
+          "raw_timestamp_ns": 1795057293687880192,
+          "reference_filter": 17.237100000102146,
+          "sectorization": 2.195000000028813,
+          "state_rpc": 1.065100000005259
+        },
+        {
+          "collision_rpc": 1.5338999999130465,
+          "lidar_read": 2.3370999999769992,
+          "optimized_filter": 2.21319999991465,
+          "point_count": 10105,
+          "raw_timestamp_ns": 1795057293789882368,
+          "reference_filter": 12.626799999907234,
+          "sectorization": 2.231299999948533,
+          "state_rpc": 0.39380000021083106
+        },
+        {
+          "collision_rpc": 0.36819999991166696,
+          "lidar_read": 3.4469999998236744,
+          "optimized_filter": 2.302200000031007,
+          "point_count": 10093,
+          "raw_timestamp_ns": 1795057293891884544,
+          "reference_filter": 14.605499999788663,
+          "sectorization": 2.109700000119119,
+          "state_rpc": 1.91410000002179
+        },
+        {
+          "collision_rpc": 0.3847000000405387,
+          "lidar_read": 2.638299999944138,
+          "optimized_filter": 2.7633000001969776,
+          "point_count": 10085,
+          "raw_timestamp_ns": 1795057293993886720,
+          "reference_filter": 18.49650000008296,
+          "sectorization": 3.688300000021627,
+          "state_rpc": 1.3989999999921565
+        },
+        {
+          "collision_rpc": 0.527700000020559,
+          "lidar_read": 2.510199999960605,
+          "optimized_filter": 2.041700000063429,
+          "point_count": 10085,
+          "raw_timestamp_ns": 1795057293993886720,
+          "reference_filter": 13.341099999934158,
+          "sectorization": 1.9377999999505846,
+          "state_rpc": 0.5488999997851352
+        },
+        {
+          "collision_rpc": 0.2611999998407555,
+          "lidar_read": 3.768800000216288,
+          "optimized_filter": 2.051599999958853,
+          "point_count": 10092,
+          "raw_timestamp_ns": 1795057294095888896,
+          "reference_filter": 20.787599999948725,
+          "sectorization": 2.486399999952482,
+          "state_rpc": 0.7473000000572938
+        }
+      ],
+      "vehicle": "Drone1"
+    },
+    {
+      "landed_and_api_released": true,
+      "point_count_max": 10201,
+      "point_count_min": 9998,
+      "repeated_scan_reads": 7,
+      "timing": {
+        "collision_rpc": {
+          "count": 40,
+          "max_ms": 0.4714000001513341,
+          "median_ms": 0.2797999999302192,
+          "p95_ms": 0.4524799999103379
+        },
+        "lidar_read": {
+          "count": 40,
+          "max_ms": 6.326799999897048,
+          "median_ms": 3.615599999989172,
+          "p95_ms": 4.6379549999528535
+        },
+        "optimized_filter": {
+          "count": 40,
+          "max_ms": 5.177799999955823,
+          "median_ms": 2.54135000000133,
+          "p95_ms": 3.9259399999423295
+        },
+        "reference_filter": {
+          "count": 40,
+          "max_ms": 19.246100000145816,
+          "median_ms": 12.308600000096703,
+          "p95_ms": 18.210789999989174
+        },
+        "sectorization": {
+          "count": 40,
+          "max_ms": 7.196799999974246,
+          "median_ms": 4.334249999942585,
+          "p95_ms": 6.655955000053381
+        },
+        "state_rpc": {
+          "count": 40,
+          "max_ms": 1.0291000000961503,
+          "median_ms": 0.7036499999912849,
+          "p95_ms": 0.9303449999379154
+        }
+      },
+      "trace": [
+        {
+          "collision_rpc": 0.42680000001382723,
+          "lidar_read": 4.065900000114198,
+          "optimized_filter": 2.070499999945241,
+          "point_count": 10176,
+          "raw_timestamp_ns": 1795057290831819264,
+          "reference_filter": 18.698900000117646,
+          "sectorization": 4.715099999884842,
+          "state_rpc": 0.633799999832263
+        },
+        {
+          "collision_rpc": 0.4714000001513341,
+          "lidar_read": 4.766300000028423,
+          "optimized_filter": 1.5379999999822758,
+          "point_count": 10147,
+          "raw_timestamp_ns": 1795057290933821440,
+          "reference_filter": 12.769199999866032,
+          "sectorization": 4.382099999929778,
+          "state_rpc": 0.47100000006139453
+        },
+        {
+          "collision_rpc": 0.28610000003936875,
+          "lidar_read": 3.832599999896047,
+          "optimized_filter": 1.9511000000420609,
+          "point_count": 10147,
+          "raw_timestamp_ns": 1795057290933821440,
+          "reference_filter": 10.315800000171294,
+          "sectorization": 3.607600000123057,
+          "state_rpc": 0.6026000000929344
+        },
+        {
+          "collision_rpc": 0.4515999999057385,
+          "lidar_read": 4.4743999999354855,
+          "optimized_filter": 2.2343000000546454,
+          "point_count": 10041,
+          "raw_timestamp_ns": 1795057291035823616,
+          "reference_filter": 11.366799999905197,
+          "sectorization": 3.5095999999157357,
+          "state_rpc": 0.8264000000508531
+        },
+        {
+          "collision_rpc": 0.2899000000979868,
+          "lidar_read": 3.7630999997873005,
+          "optimized_filter": 2.7717000000393455,
+          "point_count": 10182,
+          "raw_timestamp_ns": 1795057291137825792,
+          "reference_filter": 12.579100000039034,
+          "sectorization": 5.024999999932334,
+          "state_rpc": 0.6352000000333646
+        },
+        {
+          "collision_rpc": 0.2784999999221327,
+          "lidar_read": 3.2025000000430737,
+          "optimized_filter": 1.9965999999840278,
+          "point_count": 10102,
+          "raw_timestamp_ns": 1795057291239827968,
+          "reference_filter": 11.914900000192574,
+          "sectorization": 3.939299999956347,
+          "state_rpc": 0.8417999999892345
+        },
+        {
+          "collision_rpc": 0.20960000006198243,
+          "lidar_read": 3.868699999884484,
+          "optimized_filter": 1.6719000000193773,
+          "point_count": 10001,
+          "raw_timestamp_ns": 1795057291341830144,
+          "reference_filter": 13.580000000047221,
+          "sectorization": 3.7738000000899774,
+          "state_rpc": 0.7484999998723652
+        },
+        {
+          "collision_rpc": 0.25529999993523234,
+          "lidar_read": 2.7517000000898406,
+          "optimized_filter": 2.2718000000168104,
+          "point_count": 10151,
+          "raw_timestamp_ns": 1795057291443832320,
+          "reference_filter": 11.652599999933955,
+          "sectorization": 4.2619000000740925,
+          "state_rpc": 0.5609999998341664
+        },
+        {
+          "collision_rpc": 0.3656999999748223,
+          "lidar_read": 3.9385999998557963,
+          "optimized_filter": 1.993299999867304,
+          "point_count": 10151,
+          "raw_timestamp_ns": 1795057291443832320,
+          "reference_filter": 11.09350000001541,
+          "sectorization": 3.492300000061732,
+          "state_rpc": 0.7034999998722924
+        },
+        {
+          "collision_rpc": 0.3251999999065447,
+          "lidar_read": 4.574599999841666,
+          "optimized_filter": 2.1040999999968335,
+          "point_count": 10124,
+          "raw_timestamp_ns": 1795057291545834496,
+          "reference_filter": 11.923399999886897,
+          "sectorization": 4.1310000001431035,
+          "state_rpc": 0.7657000001017877
+        },
+        {
+          "collision_rpc": 0.22960000001148728,
+          "lidar_read": 2.447500000016589,
+          "optimized_filter": 3.2530000000861037,
+          "point_count": 10157,
+          "raw_timestamp_ns": 1795057291647836672,
+          "reference_filter": 11.530399999855945,
+          "sectorization": 3.5580000001118606,
+          "state_rpc": 0.7210000001123262
+        },
+        {
+          "collision_rpc": 0.18710000017563289,
+          "lidar_read": 3.8322999998854357,
+          "optimized_filter": 1.5771000000768254,
+          "point_count": 10191,
+          "raw_timestamp_ns": 1795057291749838848,
+          "reference_filter": 11.80730000010044,
+          "sectorization": 3.6000000000058208,
+          "state_rpc": 0.8884999999736465
+        },
+        {
+          "collision_rpc": 0.33710000002429297,
+          "lidar_read": 4.24709999992956,
+          "optimized_filter": 2.1370000001752487,
+          "point_count": 10153,
+          "raw_timestamp_ns": 1795057291851841024,
+          "reference_filter": 14.601300000094852,
+          "sectorization": 4.048199999942881,
+          "state_rpc": 0.7843000000775646
+        },
+        {
+          "collision_rpc": 0.2766000000065105,
+          "lidar_read": 3.5651000000598287,
+          "optimized_filter": 1.7733999998199579,
+          "point_count": 10180,
+          "raw_timestamp_ns": 1795057291953843200,
+          "reference_filter": 12.310600000091654,
+          "sectorization": 4.286399999955393,
+          "state_rpc": 0.5893999998534127
+        },
+        {
+          "collision_rpc": 0.25639999989834905,
+          "lidar_read": 2.565500000173415,
+          "optimized_filter": 3.3530999999129563,
+          "point_count": 10180,
+          "raw_timestamp_ns": 1795057291953843200,
+          "reference_filter": 12.306600000101753,
+          "sectorization": 3.310299999839117,
+          "state_rpc": 0.9369000001697714
+        },
+        {
+          "collision_rpc": 0.38740000013604003,
+          "lidar_read": 3.790900000012698,
+          "optimized_filter": 2.159200000050987,
+          "point_count": 10191,
+          "raw_timestamp_ns": 1795057292055845376,
+          "reference_filter": 10.727099999940037,
+          "sectorization": 2.875799999856099,
+          "state_rpc": 0.8106999998744868
+        },
+        {
+          "collision_rpc": 0.3424999999879219,
+          "lidar_read": 4.631199999948876,
+          "optimized_filter": 1.652500000091095,
+          "point_count": 10094,
+          "raw_timestamp_ns": 1795057292157847552,
+          "reference_filter": 10.11160000007294,
+          "sectorization": 5.394100000103208,
+          "state_rpc": 0.5826000001434295
+        },
+        {
+          "collision_rpc": 0.4125999998905172,
+          "lidar_read": 2.5387999999111344,
+          "optimized_filter": 2.2702000001117995,
+          "point_count": 10111,
+          "raw_timestamp_ns": 1795057292259849728,
+          "reference_filter": 15.024399999902016,
+          "sectorization": 4.211000000168497,
+          "state_rpc": 0.5060000000867149
+        },
+        {
+          "collision_rpc": 0.469199999997727,
+          "lidar_read": 6.326799999897048,
+          "optimized_filter": 2.600799999981973,
+          "point_count": 10185,
+          "raw_timestamp_ns": 1795057292361851904,
+          "reference_filter": 13.834099999940008,
+          "sectorization": 4.5703999999204825,
+          "state_rpc": 1.0291000000961503
+        },
+        {
+          "collision_rpc": 0.3019000000676897,
+          "lidar_read": 2.432999999882668,
+          "optimized_filter": 3.0964999998559506,
+          "point_count": 10181,
+          "raw_timestamp_ns": 1795057292463854080,
+          "reference_filter": 16.18770000004588,
+          "sectorization": 5.879099999901882,
+          "state_rpc": 0.4527000000962289
+        },
+        {
+          "collision_rpc": 0.20110000014028628,
+          "lidar_read": 4.370800000060626,
+          "optimized_filter": 2.9173000000355387,
+          "point_count": 10181,
+          "raw_timestamp_ns": 1795057292463854080,
+          "reference_filter": 12.579100000039034,
+          "sectorization": 4.426300000204719,
+          "state_rpc": 0.48930000002656016
+        },
+        {
+          "collision_rpc": 0.3562000001693377,
+          "lidar_read": 2.5960000000395667,
+          "optimized_filter": 2.98320000001695,
+          "point_count": 10177,
+          "raw_timestamp_ns": 1795057292565856256,
+          "reference_filter": 17.41649999985384,
+          "sectorization": 4.604499999913969,
+          "state_rpc": 0.88370000003124
+        },
+        {
+          "collision_rpc": 0.27840000007017807,
+          "lidar_read": 3.8852000000133557,
+          "optimized_filter": 2.521500000057131,
+          "point_count": 10177,
+          "raw_timestamp_ns": 1795057292667858432,
+          "reference_filter": 14.956199999915043,
+          "sectorization": 3.100700000004508,
+          "state_rpc": 0.845199999957913
+        },
+        {
+          "collision_rpc": 0.2810999999383057,
+          "lidar_read": 3.5778000001300825,
+          "optimized_filter": 2.4429000000054657,
+          "point_count": 10181,
+          "raw_timestamp_ns": 1795057292769860608,
+          "reference_filter": 13.338299999986702,
+          "sectorization": 4.577599999947779,
+          "state_rpc": 0.7353000000875909
+        },
+        {
+          "collision_rpc": 0.26440000010552467,
+          "lidar_read": 3.7897999998222076,
+          "optimized_filter": 3.2622999999603053,
+          "point_count": 10201,
+          "raw_timestamp_ns": 1795057292871862784,
+          "reference_filter": 10.771500000146261,
+          "sectorization": 6.646000000046115,
+          "state_rpc": 0.8907999999792082
+        },
+        {
+          "collision_rpc": 0.25820000018939027,
+          "lidar_read": 2.3091000000476924,
+          "optimized_filter": 2.5250999999570922,
+          "point_count": 10179,
+          "raw_timestamp_ns": 1795057292973864960,
+          "reference_filter": 13.48310000003039,
+          "sectorization": 4.385299999967174,
+          "state_rpc": 0.6379999999808206
+        },
+        {
+          "collision_rpc": 0.3386999999293039,
+          "lidar_read": 3.90319999996791,
+          "optimized_filter": 5.177799999955823,
+          "point_count": 10179,
+          "raw_timestamp_ns": 1795057292973864960,
+          "reference_filter": 12.277699999913239,
+          "sectorization": 5.446000000119966,
+          "state_rpc": 0.906100000065635
+        },
+        {
+          "collision_rpc": 0.22100000001046283,
+          "lidar_read": 2.5368000001435576,
+          "optimized_filter": 3.0512000000726403,
+          "point_count": 10032,
+          "raw_timestamp_ns": 1795057293075867136,
+          "reference_filter": 13.725799999974697,
+          "sectorization": 3.394799999796305,
+          "state_rpc": 0.6398000000444881
+        },
+        {
+          "collision_rpc": 0.3050999998777115,
+          "lidar_read": 2.295799999956216,
+          "optimized_filter": 3.960899999810863,
+          "point_count": 10024,
+          "raw_timestamp_ns": 1795057293177869312,
+          "reference_filter": 12.716999999838663,
+          "sectorization": 4.7701999999389955,
+          "state_rpc": 0.571600000057515
+        },
+        {
+          "collision_rpc": 0.29219999987617484,
+          "lidar_read": 3.448400000024776,
+          "optimized_filter": 2.6468999999451626,
+          "point_count": 10037,
+          "raw_timestamp_ns": 1795057293279871488,
+          "reference_filter": 15.833200000088254,
+          "sectorization": 3.775099999984377,
+          "state_rpc": 0.9299999999257125
+        },
+        {
+          "collision_rpc": 0.202200000103403,
+          "lidar_read": 2.3648000001230685,
+          "optimized_filter": 2.9676999999992404,
+          "point_count": 10024,
+          "raw_timestamp_ns": 1795057293381873664,
+          "reference_filter": 9.423700000070312,
+          "sectorization": 6.845100000191451,
+          "state_rpc": 0.5212999999457679
+        },
+        {
+          "collision_rpc": 0.2620000000206346,
+          "lidar_read": 3.6915000000590226,
+          "optimized_filter": 2.5419000000965752,
+          "point_count": 10022,
+          "raw_timestamp_ns": 1795057293483875840,
+          "reference_filter": 17.461200000070676,
+          "sectorization": 7.196799999974246,
+          "state_rpc": 0.6559999999353749
+        },
+        {
+          "collision_rpc": 0.17900000011650263,
+          "lidar_read": 2.3537999998097803,
+          "optimized_filter": 2.6084999999511638,
+          "point_count": 10022,
+          "raw_timestamp_ns": 1795057293483875840,
+          "reference_filter": 9.941499999968073,
+          "sectorization": 6.083200000148281,
+          "state_rpc": 0.6519000000935193
+        },
+        {
+          "collision_rpc": 0.23060000012264936,
+          "lidar_read": 2.485199999910037,
+          "optimized_filter": 2.540799999906085,
+          "point_count": 10014,
+          "raw_timestamp_ns": 1795057293585878016,
+          "reference_filter": 12.200299999904018,
+          "sectorization": 3.5684999998011335,
+          "state_rpc": 0.7038000001102773
+        },
+        {
+          "collision_rpc": 0.2746999998635147,
+          "lidar_read": 3.9420000000518485,
+          "optimized_filter": 3.083599999854414,
+          "point_count": 10016,
+          "raw_timestamp_ns": 1795057293687880192,
+          "reference_filter": 11.838299999908486,
+          "sectorization": 6.597199999987424,
+          "state_rpc": 0.8905999998205516
+        },
+        {
+          "collision_rpc": 0.2653999999893131,
+          "lidar_read": 3.6533999998482614,
+          "optimized_filter": 2.557400000114285,
+          "point_count": 10037,
+          "raw_timestamp_ns": 1795057293789882368,
+          "reference_filter": 11.648700000023382,
+          "sectorization": 3.7503999999444204,
+          "state_rpc": 0.8429000001797249
+        },
+        {
+          "collision_rpc": 0.3263999999489897,
+          "lidar_read": 3.5222999999859894,
+          "optimized_filter": 3.9240999999492487,
+          "point_count": 9998,
+          "raw_timestamp_ns": 1795057293891884544,
+          "reference_filter": 9.33260000010705,
+          "sectorization": 6.446900000128153,
+          "state_rpc": 0.6172999999307649
+        },
+        {
+          "collision_rpc": 0.2369999999700667,
+          "lidar_read": 2.2848000000976754,
+          "optimized_filter": 3.801100000146107,
+          "point_count": 10000,
+          "raw_timestamp_ns": 1795057293993886720,
+          "reference_filter": 19.246100000145816,
+          "sectorization": 4.008200000043871,
+          "state_rpc": 0.702499999988504
+        },
+        {
+          "collision_rpc": 0.27559999989534845,
+          "lidar_read": 2.36840000002303,
+          "optimized_filter": 1.841399999875648,
+          "point_count": 10000,
+          "raw_timestamp_ns": 1795057293993886720,
+          "reference_filter": 10.392299999921306,
+          "sectorization": 6.061799999997675,
+          "state_rpc": 0.5453000001125474
+        },
+        {
+          "collision_rpc": 0.28509999992820667,
+          "lidar_read": 2.578599999878861,
+          "optimized_filter": 3.074900000001435,
+          "point_count": 10018,
+          "raw_timestamp_ns": 1795057294095888896,
+          "reference_filter": 18.185099999982413,
+          "sectorization": 5.65550000010262,
+          "state_rpc": 0.7476999999198597
+        }
+      ],
+      "vehicle": "Drone2"
+    }
+  ],
+  "settings_sha256": "0cc67ebf21a563c94ad2389535fa3bd48ce6bc51d8a6976b4a065ef8b8e27272",
+  "raw_report_sha256": "ef1e3e3b139afcc88bc8eabae3523e1eb5e1dfec32e924127e28b2a0d5cab671"
+}

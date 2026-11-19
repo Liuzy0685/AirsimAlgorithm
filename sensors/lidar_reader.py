@@ -157,6 +157,7 @@ class LidarReader:
         # --- RPC call FIRST, then record time (ROUND 2.2 fix) ---
         self._rpc_calls += 1
         self._rpc_calls_since_change += 1
+        request_started = self._clock()
         try:
             raw = self._adapter.get_raw_client().getLidarData(
                 lidar_name=self._lidar_name,
@@ -178,7 +179,9 @@ class LidarReader:
 
         # Build the frame — catch-all for unexpected errors.
         try:
-            return self._build_frame(raw, received_mono)
+            frame = self._build_frame(raw, received_mono)
+            frame.request_started_monotonic_seconds = request_started
+            return frame
         except Exception as exc:
             logger.exception("Unexpected error building LidarFrame: %s", exc)
             return LidarFrame(

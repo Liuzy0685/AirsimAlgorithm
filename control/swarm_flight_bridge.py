@@ -40,6 +40,9 @@ class SwarmFlightBridge:
         self.points = None
         self.points_world = None
         self.points_at = 0.0
+        self.points_received_at = 0.0
+        self._gateway_scan_id = None
+        self.raw_lidar_supplier = None
         self.adopted_command = None
         self._goal_command_id = None
         self._conflict_active = False
@@ -85,8 +88,10 @@ class SwarmFlightBridge:
         self.router.minimum_clearance_m=mode._traj_params.hard_clearance_m
         self.proxy.motion_guard = self.guard_motion
 
-    def update_lidar(self, frame, points_sensor=None):
+    def update_lidar(self, frame, points_sensor=None, *, navigation=True):
         """Use the measured sensor pose, including mounting offset/rotation."""
+        if type(getattr(frame,'raw_timestamp_ns',None)) is not int or frame.raw_timestamp_ns<0:
+            self.fail('invalid_lidar_timestamp_at_gateway')
         from transforms.lidar_to_local_ned import sensor_to_local_ned
         pose=frame.sensor_pose
         p,q=pose['position'],pose['orientation']
@@ -99,15 +104,28 @@ class SwarmFlightBridge:
         # disappearing filtered obstacle for newly free space.
         if points_sensor is None:points_sensor=frame.point_cloud_sensor
         local=sensor_to_local_ned(points_sensor,[p[k] for k in ('x','y','z')],quaternion)
-        self.points_world=local+np.asarray(self.mode._swarm_spawn_offsets[self.name])
-        self.points=points_sensor
-        self.points_at=frame.received_monotonic_seconds
-        if self.navigation_cfg.enabled and frame.raw_timestamp_ns>self._last_lidar_id:
+        world=local+np.asarray(self.mode._swarm_spawn_offsets[self.name])
+        # A later processed snapshot must not replace a newer raw safety scan.
+        # Re-reading the same simulation scan never renews its wall-clock age.
+        if self._gateway_scan_id is None or frame.raw_timestamp_ns>self._gateway_scan_id:
+            received=frame.received_monotonic_seconds
+            started=getattr(frame,'request_started_monotonic_seconds',None)
+            if started is None:started=received
+            if (type(started) not in (int,float) or not math.isfinite(started)
+                    or type(received) not in (int,float) or not math.isfinite(received)
+                    or not 0<=started<=received<=time.monotonic()):
+                self.fail('invalid_lidar_timing_at_gateway')
+            self.points_world=world
+            self.points=points_sensor
+            self.points_received_at=received
+            self.points_at=started
+            self._gateway_scan_id=frame.raw_timestamp_ns
+        if navigation and self.navigation_cfg.enabled and frame.raw_timestamp_ns>self._last_lidar_id:
             self._last_lidar_id=frame.raw_timestamp_ns
             snap=self.link.snapshot()
             if snap is not None:
                 own=np.asarray(snap.states[self.name].position_ned_m)
-                p=self.points_world
+                p=world
                 p=p[(np.abs(p[:,2]-own[2])<.65)&(np.linalg.norm(p[:,:2]-own[:2],axis=1)<self.navigation_cfg.max_range_m)]
                 for name,state in snap.states.items():
                     if name!=self.name:
@@ -118,6 +136,24 @@ class SwarmFlightBridge:
                 if len(coarse)>512:
                     coarse=coarse[np.argsort(np.linalg.norm(coarse-own[:2],axis=1))[:512]]
                 self._feedback_points=coarse.tolist()
+
+    def _refresh_gateway_scan(self):
+        if self.raw_lidar_supplier is None:return
+        frame=self.raw_lidar_supplier()
+        if frame is None:self.fail('lidar_unavailable_at_gateway')
+        if not frame.frame_valid:self.fail('invalid_lidar_frame_at_gateway')
+        if type(frame.raw_timestamp_ns) is not int or frame.raw_timestamp_ns<0:
+            self.fail('invalid_lidar_timestamp_at_gateway')
+        self.update_lidar(frame,navigation=False)
+
+    def _log_gateway_age(self, reason, snap):
+        now=time.monotonic()
+        logging.getLogger('swarm_gateway').error(
+            'gateway_freshness vehicle=%s reason=%s scan_id=%s request_start_age_s=%.6f '
+            'receive_age_s=%.6f snapshot_age_s=%.6f limit_s=%.3f source=%s',
+            self.name,reason,self._gateway_scan_id,now-self.points_at,
+            now-self.points_received_at,now-snap.timestamp,self.cfg.snapshot_max_age_s,
+            'latest_raw' if self.raw_lidar_supplier is not None else 'control_snapshot')
 
     def route_goal(self,own_state,requested_goal):
         if not self.navigation_cfg.enabled:return requested_goal
@@ -342,8 +378,16 @@ class SwarmFlightBridge:
         if not math.isfinite(duration) or duration <= 0:
             self.fail("dispatch_deadline_elapsed")
         # Recheck the final ORCA velocity against the actual 3D LiDAR cloud.
+        self._refresh_gateway_scan()
+        if (self._gateway_scan_id is not None and abs(self._gateway_scan_id-
+                max(s.timestamp for s in snap.states.values()))>int(self.cfg.snapshot_max_age_s*1e9)):
+            self._log_gateway_age('lidar_sim_time_skew_at_gateway',snap)
+            self.fail('lidar_sim_time_skew_at_gateway')
         if self.points is None or time.monotonic() - self.points_at > self.cfg.snapshot_max_age_s:
+            self._log_gateway_age('lidar_unavailable_at_gateway',snap)
             self.fail("lidar_unavailable_at_gateway")
+        duration=min(duration,self.cfg.snapshot_max_age_s-(time.monotonic()-self.points_at))
+        if duration<=0:self.fail('lidar_unavailable_at_gateway')
         yaw = snap.states[self.name].yaw_rad
         c, s = math.cos(yaw), math.sin(yaw)
         body_v = np.array((velocity[0]*c+velocity[1]*s, -velocity[0]*s+velocity[1]*c, velocity[2]))

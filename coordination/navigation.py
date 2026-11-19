@@ -13,6 +13,7 @@ import numpy as np
 @dataclass(frozen=True)
 class NavigationConfig:
     enabled: bool = False
+    run_legacy_diagnostics: bool = False
     resolution_m: float = .4
     clearance_m: float = 1.3
     obstacle_ttl_s: float = 8.
@@ -29,7 +30,7 @@ class NavigationConfig:
     feedback_max_age_s: float = 1.5
 
     def __post_init__(self):
-        if any(type(getattr(self,k)) is not bool for k in ('enabled','adaptive_slots','maintain_heading','trail_fallback')):
+        if any(type(getattr(self,k)) is not bool for k in ('enabled','adaptive_slots','maintain_heading','trail_fallback','run_legacy_diagnostics')):
             raise ValueError('navigation enable flags must be boolean')
         for k in ('resolution_m','clearance_m','obstacle_ttl_s','replan_interval_s',
                   'waypoint_distance_m','max_range_m','max_slot_shift_m',

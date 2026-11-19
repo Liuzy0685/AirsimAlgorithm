@@ -1,0 +1,83 @@
+{
+  "baseline": "cc2f976",
+  "provided_A_core": {
+    "control/swarm_flight_bridge.py": {
+      "provided_sha256": "f7d052277cadc29472d9c990c85476a4f98bb7b550702a6540c3d93834ef0671",
+      "baseline_matches_allowing_checkout_line_endings": true
+    },
+    "flight_modes/automatic_mode.py": {
+      "provided_sha256": "8f032fb258b3d7182d78c5e111112569ce27ab0fe150deb660f985c96e6adc08",
+      "baseline_matches_allowing_checkout_line_endings": true
+    },
+    "coordination/controller_link.py": {
+      "provided_sha256": "5cb8165f09ec96dfb6b9782168061116f1399d67bb991e4d1938acbe72e53ac1",
+      "baseline_matches_allowing_checkout_line_endings": true
+    }
+  },
+  "B_test_host": "A different computer, confirmed by user",
+  "flight_rerun_performed": false,
+  "local_ground_instances": {
+    "primary_pid": 10864,
+    "primary_port": 41451,
+    "secondary_pid": 13196,
+    "secondary_port": 41452,
+    "resolution": "960x540",
+    "map": "/Game/maze",
+    "method": "single / dual / single-after; only independent read-only ground RPC clients"
+  },
+  "current_source": {
+    "control/swarm_flight_bridge.py": "e8c4a55d61bff596551cd1a36dffa8de15b693039b5196f8b22f69204c574673",
+    "flight_modes/automatic_mode.py": "66db5e6b42f7f6ce8ef26295fddfaf78708f4e0c869e56b71b8cf4524353b725",
+    "models/lidar_frame.py": "7acf0d75b2c34aef42a06e01bf9f4421da4160007c8b78da3de799a4021675f9",
+    "sensors/lidar_reader.py": "655f26b25640690acd86d6614a1809267fb2539dd2963c36712601983f0a41e8",
+    "perception/pointcloud_filter.py": "8a22b8e72ced377fac86bf1770f7b1eb6e7fe4db2d9958813d114cc0900be67b",
+    "coordination/navigation.py": "b4a19ceaa52103603394b1047bc7c2adfcb8391335aa701703f6f15a7dcadba0"
+  },
+  "provided_config_matches": {
+    "configs\\acceptance\\settings_2.json": {
+      "provided_sha256": "ec23f5cc28a17e477b86953812c6dcc53613ee15f179d41c58f8ac77ae7068d6",
+      "local_sha256": "ec23f5cc28a17e477b86953812c6dcc53613ee15f179d41c58f8ac77ae7068d6",
+      "matches": true
+    },
+    "configs\\acceptance\\swarm_2_navigation.yaml": {
+      "provided_sha256": "8891b293d2e6e078b584ab353688410bacfbb9f1634d6401043284f62e76531f",
+      "local_sha256": "8891b293d2e6e078b584ab353688410bacfbb9f1634d6401043284f62e76531f",
+      "matches": true
+    },
+    "configs\\acceptance\\formation_2.yaml": {
+      "provided_sha256": "71ad34628eb3e911c5134ac45538f2c0b8baebf7c792e8de742194231239f64e",
+      "local_sha256": "71ad34628eb3e911c5134ac45538f2c0b8baebf7c792e8de742194231239f64e",
+      "matches": true
+    },
+    "configs/acceptance/flight.yaml": {
+      "provided_sha256": "88a9a947da06dea6c0978953d4c39803804dc5f1163cfb59c896c7aeff318261",
+      "local_sha256": "88a9a947da06dea6c0978953d4c39803804dc5f1163cfb59c896c7aeff318261",
+      "matches": true
+    },
+    "configs/acceptance/perception.yaml": {
+      "provided_sha256": "71df797186315e4234f5b2de31d5f72688f452a6e31fb22af1d2b52b1b56e3cc",
+      "local_sha256": "71df797186315e4234f5b2de31d5f72688f452a6e31fb22af1d2b52b1b56e3cc",
+      "matches": true
+    },
+    "configs/trajectory_planner.yaml": {
+      "provided_sha256": "e6bf5fbbaa42876906241dadf0271a64ef81d14dd73c25ceb7cc5b8fa9884640",
+      "local_sha256": "e6bf5fbbaa42876906241dadf0271a64ef81d14dd73c25ceb7cc5b8fa9884640",
+      "matches": true
+    }
+  },
+  "benchmark_script_sha256": "56cce9d79dc30580e27188f72c897e64e94aaf9fd75af1c473f72ffba18901e8",
+  "initial_full_regression": {
+    "failed": 5,
+    "passed": 1469,
+    "reason": "Minimal pre-existing sensor-pose test frames omitted the real model raw_timestamp_ns field; fixtures now include authoritative timestamps, with all clearance assertions retained.",
+    "raw_report_sha256": "9f22658b38259853def26ac519d7439b2afdcb631220950860270bc6ed2dd6e0"
+  },
+  "final_full_regression": {
+    "tests": "1476",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0",
+    "time": "252.001",
+    "report_sha256": "46cbc9471d63cda5f0342adc1021e0118d14b1bd30cfc79804572425e1c45d5d"
+  }
+}
