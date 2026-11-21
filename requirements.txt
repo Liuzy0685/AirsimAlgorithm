@@ -13,6 +13,9 @@ PyYAML>=6.0
 # NOT via pip.
 msgpack-rpc-python>=0.4
 
+# C read-only telemetry gateway and low-rate camera service.
+aiohttp>=3.9,<4
+
 # Gamepad manual flight (optional — pygame/SDL joystick backend).
 # The gamepad reader degrades gracefully to "disconnected" if pygame is absent.
 pygame>=2.1

@@ -31,8 +31,25 @@ def server_client():
 
 def active_map(project):
     path=Path(project).parent/'Saved/Logs/Blocks.log'
-    matches=re.findall(r'LoadMap\((/Game/[^)]+)\)',path.read_text(encoding='utf-8',errors='replace'))
-    return matches[-1] if matches else None
+    text=path.read_text(encoding='utf-8',errors='replace')
+    # UE4 writes different map-load records depending on whether a level was
+    # opened from the editor, with the console command, or as a PIE world.
+    # Keep the source position so the last record wins across mixed formats.
+    patterns=(
+        re.compile(r'LoadMap\(\s*(/Game/[^)\s]+)'),
+        re.compile(r'MAP\s+LOAD\s+FILE\s*=\s*"[^"]*?[\\/]Content[\\/]([^\\/"]+)\.umap"', re.I),
+        re.compile(r'Created PIE world by copying editor world from\s+(/Game/[^.\s]+)', re.I),
+    )
+    matches=[]
+    for pattern in patterns:
+        for match in pattern.finditer(text):
+            value=match.group(1)
+            if value.startswith('/Game/'):
+                map_path=value
+            else:
+                map_path='/Game/'+value
+            matches.append((match.start(), map_path))
+    return max(matches, key=lambda item:item[0])[1] if matches else None
 
 
 def collect_map(name,args,config,cfg):

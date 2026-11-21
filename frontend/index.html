@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>大创无人机 · 任务控制台</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">MULTI-UAV OPERATOR CONSOLE</p>
+        <h1>大创无人机任务控制台</h1>
+        <p class="subtle">任务操作经过 A API；连续状态来自只读遥测；页面不直接调用 AirSim 飞控。</p>
+      </div>
+      <div class="topbar-actions">
+        <span id="demo-badge" class="demo-badge hidden">演示数据</span>
+        <span id="telemetry-connection" class="status-pill offline">遥测未连接</span>
+        <span id="operator-connection" class="status-pill offline">任务 API 未连接</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="panel connection-panel">
+        <div class="panel-heading">
+          <div><p class="eyebrow">CONNECTION</p><h2>本机服务连接</h2></div>
+          <span id="api-hint" class="muted">默认地址：127.0.0.1:8790</span>
+        </div>
+        <div class="connection-grid">
+          <label>任务 API 地址<input id="api-base" value="http://127.0.0.1:8790/api/v1" autocomplete="url" /></label>
+          <label>操作令牌<input id="operator-token" type="password" placeholder="读取 runs/operator/operator.token" autocomplete="off" /></label>
+          <label>图像服务地址<input id="camera-base" placeholder="可选，例如 http://127.0.0.1:8780" autocomplete="url" /></label>
+          <div class="connection-actions"><button id="connect-operator" class="primary-button" type="button">连接并读取能力</button><button id="disconnect-operator" class="secondary-button" type="button">断开连接</button></div>
+        </div>
+        <p id="operator-message" class="message">请先输入 A API 生成的操作令牌。</p>
+      </section>
+
+      <section class="summary-grid">
+        <article class="summary-card"><span>任务状态</span><strong id="mission-state">未连接</strong></article>
+        <article class="summary-card"><span>机群</span><strong id="fleet-summary">—</strong></article>
+        <article class="summary-card"><span>当前任务</span><strong id="mission-id">—</strong></article>
+        <article class="summary-card"><span>配置版本</span><strong id="mission-revision">—</strong></article>
+        <article class="summary-card"><span>数据状态</span><strong id="data-status">等待数据</strong></article>
+      </section>
+
+      <section class="layout-grid">
+        <article class="panel map-panel">
+          <div class="panel-heading">
+            <div><p class="eyebrow">WORLD NED MAP</p><h2>真实地图与任务选点</h2></div>
+            <div class="map-actions"><button id="zoom-out" type="button">−</button><button id="zoom-reset" type="button">重置</button><button id="zoom-in" type="button">＋</button></div>
+          </div>
+          <div id="map" class="map" aria-label="World NED map"><div class="map-empty">连接任务 API 后读取真实地图</div></div>
+          <div class="map-footer"><span id="map-coverage">地图覆盖范围：—</span><span id="map-coordinates">点击地图设置领航机终点</span></div>
+          <div class="map-legend" aria-label="地图图例"><span><i class="legend-swatch legend-obstacle"></i>已导出障碍包围盒</span><span><i class="legend-swatch legend-start"></i>实测起点</span><span><i class="legend-swatch legend-goal"></i>任务终点</span><span><i class="legend-swatch legend-slot"></i>名义槽位</span><span><i class="legend-swatch legend-current"></i>实际跟随目标</span><span><i class="legend-swatch legend-drone"></i>无人机/航迹</span></div>
+          <p class="map-note">X=北、Y=东、Z=下。地图是实测柱体渲染网格包围盒的部分覆盖，预览槽位不是已验证可飞路径；真正执行仍由 A 的实时感知和安全网关决定。</p>
+        </article>
+
+        <article class="panel capabilities-panel">
+          <div class="panel-heading"><div><p class="eyebrow">CAPABILITIES</p><h2>后端能力</h2></div></div>
+          <div id="capabilities-detail" class="capabilities-detail"><div class="empty-state">尚未读取 /capabilities</div></div>
+        </article>
+      </section>
+
+      <section class="panel mission-panel">
+        <div class="panel-heading"><div><p class="eyebrow">MISSION SETUP</p><h2>任务与初始编队</h2></div><span id="preflight-status" class="muted">尚未预检</span></div>
+        <div class="mission-form">
+          <div class="form-block fleet-block"><h3>固定机群</h3><div id="fleet-fields" class="fleet-fields"><span class="muted">读取能力后显示</span></div></div>
+          <div class="form-block goal-block"><h3>领航机终点（World NED 米）</h3><div class="field-row"><label>X 北<input id="goal-x" type="number" step="0.1" /></label><label>Y 东<input id="goal-y" type="number" step="0.1" /></label><label>Z 下<input id="goal-z" type="number" step="0.1" /></label></div><p class="muted">直接点击地图会填写 X/Y；起点由后端预检返回 actual_start，网页不移动无人机。</p></div>
+          <div class="form-block formation-block"><h3>初始队形</h3><div class="field-row"><label>形状<select id="formation-shape"><option value="line">横队 line</option><option value="column">纵队 column</option><option value="vee">V 字 vee</option></select></label><label>间距（米）<input id="formation-spacing" type="number" step="0.1" /></label></div><p id="formation-limit" class="muted">等待能力参数</p></div>
+        </div>
+        <div class="button-row"><button id="validate-mission" class="secondary-button" type="button" disabled>预检任务</button><button id="create-mission" class="primary-button" type="button" disabled>创建任务</button><button id="apply-formation" class="secondary-button" type="button" disabled>提交队形修改</button></div>
+        <div id="preflight-result" class="preflight-result empty-state">预检结果会显示实测起点、名义终点槽位和后端警告。</div>
+      </section>
+
+      <section class="layout-grid lower-grid">
+        <article class="panel lifecycle-panel">
+          <div class="panel-heading"><div><p class="eyebrow">MISSION LIFECYCLE</p><h2>任务操作</h2></div><span id="operation-state" class="muted">无操作</span></div>
+          <div class="lifecycle-actions"><button id="start-mission" class="primary-button" type="button" disabled>请求启动任务</button><button id="stop-mission" class="danger-button" type="button" disabled>请求停止并降落</button></div>
+          <p id="request-message" class="message">按钮只表示请求已提交，最终状态以任务 API 回报为准。</p>
+          <div id="operation-log" class="operation-log"><span class="muted">暂无操作记录</span></div>
+        </article>
+        <article class="panel formation-status-panel">
+          <div class="panel-heading"><div><p class="eyebrow">FORMATION STATE</p><h2>编队状态</h2></div></div>
+          <div class="status-grid"><div><span>用户请求队形</span><strong id="requested-formation">—</strong></div><div><span>B 已采用配置</span><strong id="applied-formation">—</strong></div><div><span>当前实际模式</span><strong id="effective-formation">未知</strong></div><div><span>物理编队恢复</span><strong id="formation-settled">未知</strong></div></div>
+          <p id="formation-status-reason" class="reason">没有收到真实 B 状态时显示“未知”，不推断已恢复。</p>
+        </article>
+      </section>
+
+      <section class="panel telemetry-panel">
+        <div class="panel-heading"><div><p class="eyebrow">LIVE TELEMETRY</p><h2>机队状态与航迹</h2></div><div class="map-actions"><span id="telemetry-source" class="muted">来源：—</span><button id="clear-trails" class="secondary-button" type="button">清除航迹</button></div></div>
+        <div id="drone-list" class="drone-list"><div class="empty-state">还没有收到无人机状态</div></div>
+        <div class="diagnostic-grid"><div><span>快照序号</span><strong id="sequence">—</strong></div><div><span>采集完整</span><strong id="collection-complete">—</strong></div><div><span>采集耗时</span><strong id="collection-duration">—</strong></div><div><span>最大时间差</span><strong id="max-skew">—</strong></div><div><span>传输延迟</span><strong id="transport-latency">—</strong></div></div>
+      </section>
+
+      <section class="panel cameras-panel">
+        <div class="panel-heading"><div><p class="eyebrow">DUAL VIEW CAMERAS</p><h2>每架无人机双视角</h2></div><span class="muted">每秒更新一帧 · 点击当前画面放大</span></div>
+        <div id="camera-list" class="camera-grid"><div class="camera-card unavailable">请配置独立图像服务地址；A 任务 API 不提供视频流。</div></div>
+      </section>
+
+      <div id="camera-lightbox" class="camera-lightbox" hidden role="dialog" aria-modal="true" aria-labelledby="camera-lightbox-title">
+        <button id="camera-lightbox-close" class="camera-lightbox-close" type="button" aria-label="关闭大图">×</button>
+        <div class="camera-lightbox-content">
+          <p id="camera-lightbox-title" class="camera-lightbox-title"></p>
+          <img id="camera-lightbox-image" alt="放大后的无人机视角" />
+          <p id="camera-lightbox-message" class="camera-lightbox-message">正在加载画面…</p>
+        </div>
+      </div>
+    </main>
+    <script src="/static/app.js?v=20261120-07" defer></script>
+  </body>
+</html>
