@@ -37,7 +37,7 @@ def active_map(project):
     # Keep the source position so the last record wins across mixed formats.
     patterns=(
         re.compile(r'LoadMap\(\s*(/Game/[^)\s]+)'),
-        re.compile(r'MAP\s+LOAD\s+FILE\s*=\s*"[^"]*?[\\/]Content[\\/]([^\\/"]+)\.umap"', re.I),
+        re.compile(r'MAP\s+LOAD\s+FILE\s*=\s*"[^"]*?[\\/]Content[\\/](.+?)\.umap"', re.I),
         re.compile(r'Created PIE world by copying editor world from\s+(/Game/[^.\s]+)', re.I),
     )
     matches=[]
@@ -47,7 +47,7 @@ def active_map(project):
             if value.startswith('/Game/'):
                 map_path=value
             else:
-                map_path='/Game/'+value
+                map_path='/Game/'+value.replace('\\', '/')
             matches.append((match.start(), map_path))
     return max(matches, key=lambda item:item[0])[1] if matches else None
 

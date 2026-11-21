@@ -1,6 +1,8 @@
 from types import SimpleNamespace
 import json
+import math
 from pathlib import Path
+import asyncio
 
 import pytest
 
@@ -66,6 +68,25 @@ def test_first_person_uses_vehicle_camera_zero(monkeypatch):
     assert client.calls == [("image", "0", "Drone1", False)]
 
 
+def test_third_person_applies_vehicle_spawn_offset_to_external_camera(monkeypatch):
+    class SettingsClient(FakeClient):
+        def getSettingsString(self):
+            return json.dumps({
+                "Vehicles": {"Drone2": {"X": 0.5, "Y": -3.0, "Z": 0.0, "Yaw": 0.0}}
+            })
+
+    client = SettingsClient()
+    monkeypatch.setattr(camera_service, "_import_airsim", lambda: FakeAirSim)
+    hub = camera_service.CameraHub(client, ["Drone2"], camera_service.CameraConfig())
+
+    hub._capture("Drone2", "third")
+
+    camera_pose = client.calls[1][3]
+    assert camera_pose.position.x_val == pytest.approx(0.5 + 1.0 - 8.0 * math.cos(0.25))
+    assert camera_pose.position.y_val == pytest.approx(-3.0 + 2.0 - 8.0 * math.sin(0.25))
+    assert camera_pose.position.z_val == pytest.approx(-2.0 - 4.0)
+
+
 def test_missing_external_camera_is_rejected_before_capture():
     class SettingsClient:
         def __init__(self):
@@ -79,6 +100,50 @@ def test_missing_external_camera_is_rejected_before_capture():
     with pytest.raises(RuntimeError, match="Drone2Third"):
         camera_service.validate_external_camera_settings(client, ["Drone1", "Drone2"])
     assert client.client.closed
+
+
+def test_camera_capture_is_started_only_for_selected_view(monkeypatch):
+    client = FakeClient()
+    monkeypatch.setattr(camera_service, "_import_airsim", lambda: FakeAirSim)
+    hub = camera_service.CameraHub(client, ["Drone1", "Drone2"], camera_service.CameraConfig())
+
+    async def exercise():
+        await hub.start(None)
+        assert hub.status()["Drone1"]["first"]["status"] == "idle"
+        await hub.set_active("Drone2", "third")
+        assert hub.status()["Drone2"]["third"]["active"] is True
+        assert hub.status()["Drone1"]["first"]["active"] is False
+        await hub.set_active("Drone1", "first")
+        assert hub.status()["Drone1"]["first"]["active"] is True
+        assert hub.status()["Drone2"]["third"]["active"] is False
+        await hub.set_active(mode="all")
+        assert sum(item["active"] for views in hub.status().values() for item in views.values()) == 4
+        await hub.stop(None)
+
+    asyncio.run(exercise())
+
+
+def test_camera_fps_can_be_changed_at_runtime():
+    client = FakeClient()
+    hub = camera_service.CameraHub(client, ["Drone1"], camera_service.CameraConfig())
+
+    async def exercise():
+        await hub.set_active("Drone1", "first", fps=10)
+        assert hub.config.interval_s == pytest.approx(0.1)
+        assert camera_service._fps_from_interval(hub.config.interval_s) == 10
+        await hub.set_active("Drone1", "first", fps=1)
+        assert hub.config.interval_s == pytest.approx(1.0)
+        assert camera_service._fps_from_interval(hub.config.interval_s) == 1
+        await hub.stop(None)
+
+    asyncio.run(exercise())
+
+
+def test_camera_fps_rejects_unsupported_values():
+    hub = camera_service.CameraHub(FakeClient(), ["Drone1"], camera_service.CameraConfig())
+
+    with pytest.raises(ValueError, match="one of"):
+        asyncio.run(hub.set_active("Drone1", "first", fps=7))
 
 
 @pytest.mark.parametrize("settings_name,expected_count", [("settings_2.json", 2), ("settings_5.json", 5)])

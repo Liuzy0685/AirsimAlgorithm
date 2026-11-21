@@ -65,7 +65,7 @@
         <div class="panel-heading"><div><p class="eyebrow">MISSION SETUP</p><h2>任务与初始编队</h2></div><span id="preflight-status" class="muted">尚未预检</span></div>
         <div class="mission-form">
           <div class="form-block fleet-block"><h3>固定机群</h3><div id="fleet-fields" class="fleet-fields"><span class="muted">读取能力后显示</span></div></div>
-          <div class="form-block goal-block"><h3>领航机终点（World NED 米）</h3><div class="field-row"><label>X 北<input id="goal-x" type="number" step="0.1" /></label><label>Y 东<input id="goal-y" type="number" step="0.1" /></label><label>Z 下<input id="goal-z" type="number" step="0.1" /></label></div><p class="muted">直接点击地图会填写 X/Y；起点由后端预检返回 actual_start，网页不移动无人机。</p></div>
+          <div class="form-block goal-block"><h3>领航机终点（World NED 米）</h3><div class="field-row"><label>X 北<input id="goal-x" type="number" step="0.1" /></label><label>Y 东<input id="goal-y" type="number" step="0.1" /></label><label>Z 下<input id="goal-z" type="number" step="0.1" readonly aria-readonly="true" /></label></div><p id="goal-z-note" class="muted">Z 由后端能力接口提供，当前版本固定为巡航高度。直接点击地图会填写 X/Y；起点由后端预检返回 actual_start。</p></div>
           <div class="form-block formation-block"><h3>初始队形</h3><div class="field-row"><label>形状<select id="formation-shape"><option value="line">横队 line</option><option value="column">纵队 column</option><option value="vee">V 字 vee</option></select></label><label>间距（米）<input id="formation-spacing" type="number" step="0.1" /></label></div><p id="formation-limit" class="muted">等待能力参数</p></div>
         </div>
         <div class="button-row"><button id="validate-mission" class="secondary-button" type="button" disabled>预检任务</button><button id="create-mission" class="primary-button" type="button" disabled>创建任务</button><button id="apply-formation" class="secondary-button" type="button" disabled>提交队形修改</button></div>
@@ -75,7 +75,7 @@
       <section class="layout-grid lower-grid">
         <article class="panel lifecycle-panel">
           <div class="panel-heading"><div><p class="eyebrow">MISSION LIFECYCLE</p><h2>任务操作</h2></div><span id="operation-state" class="muted">无操作</span></div>
-          <div class="lifecycle-actions"><button id="start-mission" class="primary-button" type="button" disabled>请求启动任务</button><button id="stop-mission" class="danger-button" type="button" disabled>请求停止并降落</button></div>
+          <div class="lifecycle-actions"><button id="start-mission" class="primary-button" type="button" disabled>请求启动任务</button><button id="stop-mission" class="danger-button" type="button" disabled>请求停止并降落</button><button id="recovery-check" class="secondary-button" type="button" hidden title="只读检查 AirSim 是否已安全落地并释放控制权">安全恢复检查</button></div>
           <p id="request-message" class="message">按钮只表示请求已提交，最终状态以任务 API 回报为准。</p>
           <div id="operation-log" class="operation-log"><span class="muted">暂无操作记录</span></div>
         </article>
@@ -93,7 +93,8 @@
       </section>
 
       <section class="panel cameras-panel">
-        <div class="panel-heading"><div><p class="eyebrow">DUAL VIEW CAMERAS</p><h2>每架无人机双视角</h2></div><span class="muted">每秒更新一帧 · 点击当前画面放大</span></div>
+        <div class="panel-heading"><div><p class="eyebrow">ON-DEMAND CAMERA</p><h2>按需查看无人机视角</h2></div><span id="camera-refresh-label" class="muted">选择一架无人机后采集画面</span></div>
+        <div class="camera-toolbar"><label>查看模式<select id="camera-mode" aria-label="选择相机查看模式"><option value="selected">单视角（按需采集）</option><option value="all">全部视角（较高负载）</option></select></label><label>无人机<select id="camera-vehicle" aria-label="选择无人机"><option value="">等待能力接口</option></select></label><label>帧率<select id="camera-fps" aria-label="选择相机帧率"><option value="1">1 FPS · 低负载</option><option value="5">5 FPS · 推荐</option><option value="10">10 FPS · 较高负载</option><option value="20">20 FPS · 高负载</option></select></label><div class="camera-view-toggle" role="group" aria-label="选择相机视角"><button type="button" class="secondary-button camera-view-button" data-camera-view="first">第一视角</button><button type="button" class="secondary-button camera-view-button" data-camera-view="third">第三视角</button></div><span id="camera-service-status" class="camera-service-status">未选择视角</span></div>
         <div id="camera-list" class="camera-grid"><div class="camera-card unavailable">请配置独立图像服务地址；A 任务 API 不提供视频流。</div></div>
       </section>
 
@@ -106,6 +107,6 @@
         </div>
       </div>
     </main>
-    <script src="/static/app.js?v=20261120-07" defer></script>
+    <script src="/static/app.js?v=20261122-02" defer></script>
   </body>
 </html>

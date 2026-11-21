@@ -167,6 +167,45 @@ class MissionManager:
         require(not any(m.get('manual_intervention_required') for m in self.data['missions'].values()),
                 'manual_intervention_required', 'Previous flight cleanup is unverified; resolve before restarting', 409)
 
+    def verify_recovery(self, body):
+        """Clear an interrupted-cleanup guard only after a fresh AirSim check.
+
+        This endpoint never sends flight commands.  The configured read-only
+        preflight probe must confirm every vehicle is landed, stationary,
+        disarmed/API-released, ready, and still matches the selected map and
+        settings before the durable guard can be cleared.
+        """
+        with self.lock:
+            rid, digest, previous = self._replay('recovery/check', body)
+            if previous:
+                return previous
+            require(set(body) == {'request_id'}, 'invalid_fields', 'Only request_id is accepted')
+            require(not any(m['state'] in ACTIVE for m in self.data['missions'].values()),
+                    'mission_active', 'Cannot verify recovery while a mission is active', 409)
+        states = self.probe()
+        checked = {
+            name: {
+                'position_ned_m': list(value['position_ned_m']),
+                'velocity_ned_mps': list(value['velocity_ned_mps']),
+                'landed_state': value['landed_state'],
+            }
+            for name, value in states.items()
+        }
+        with self.lock:
+            cleared = []
+            for mission in self.data['missions'].values():
+                if mission.get('manual_intervention_required'):
+                    mission['manual_intervention_required'] = False
+                    mission['recovery_verified_at_unix_ms'] = int(time.time() * 1000)
+                    mission['recovery_verified_vehicles'] = list(checked)
+                    cleared.append(mission['mission_id'])
+            response = dict(accepted=True, request_id=rid, cleared_mission_ids=cleared,
+                            vehicles=checked, message='Fresh AirSim recovery check passed')
+            self._receipt(rid, digest, response)
+            for mission_id in cleared:
+                self._event(self.data['missions'][mission_id])
+            return response
+
     def start(self, mid, body):
         with self.lock:
             rid, digest, previous = self._replay('start/'+mid, body)

@@ -121,6 +121,8 @@ class OperatorHandler(BaseHTTPRequestHandler):
             if self.command=='GET' and path=='/api/v1/events':
                 after=int(parse_qs(target.query).get('after',['0'])[0])
                 return self._events(max(0,after))
+            if self.command=='POST' and path=='/api/v1/recovery/check':
+                return self._json(200,manager.verify_recovery(self._body()))
             if self.command=='POST' and path=='/api/v1/missions/validate':
                 return self._json(200,manager.validate(self._body()))
             if self.command=='POST' and path=='/api/v1/missions':

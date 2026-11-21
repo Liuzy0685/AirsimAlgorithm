@@ -67,6 +67,7 @@ $env:AIRSIM_PYTHONCLIENT_PATH='D:\30817\Adrone\airsim\AirSim-main\PythonClient'
 | `PUT /missions/{id}/formation` | `request_id, expected_revision, formation` | 草稿设置结果，或运行时请求待处理状态 |
 | `GET /operations/{request_id}` | 无 | 启动/停止/编队操作的最新结果 |
 | `GET /events?after={sequence}` | SSE 游标 | `update` 事件及最新序号；必要时要求重载任务 |
+| `POST /recovery/check` | `request_id` | 只读安全恢复检查；通过后解除历史清理锁，不发送飞行指令 |
 
 任务请求例子（`map_revision` 必须读取接口，不能写死）：
 
@@ -122,6 +123,8 @@ API 记录到的 `applied_formation` 是配置状态；实际飞行可以因避�
 没有 B 运行时状态时应显示“编队模式未接入”，不能猜测 `nominal/trail`。
 
 失败清理若被安全网关拒绝，`manual_intervention_required=true`，禁止后续启动。
+可在确认所有车辆已落地、静止、解锁并释放 API 控制后调用 `POST /recovery/check`。
+该接口重新执行 AirSim 只读预检，并同时核对当前 settings、车辆数量、地图和坐标变换；检查失败时保持启动锁。
 不能为了让任务显示成功而绕过感知校验或强制清除记录。模拟器恢复/重启也不算落地成功。
 API 意外退出后不自动重启任务，保留停止文件入口，并在原 runner 最终结果出现时重新核对清理。
 

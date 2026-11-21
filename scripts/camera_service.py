@@ -9,19 +9,18 @@ Run, for example::
 
     python scripts/camera_service.py --vehicles Drone1 Drone2
 
-The dashboard expects ``/stream/{vehicle}/first`` and
+The dashboard uses ``/frame/{vehicle}/{view}`` for the selected view and
 ``/stream/{vehicle}/third``. First-person streams use the vehicle camera named
 ``0``. Third-person streams use a separately configured external camera named
-``{vehicle}Third`` (for example, ``Drone1Third``). Frames are intentionally
-low-rate; configure the camera resolution in AirSim settings rather than
-resizing in the browser.
+``{vehicle}Third`` (for example, ``Drone1Third``). Capture is started on
+demand by ``POST /api/cameras/active``.
 """
 
 from __future__ import annotations
 
 import argparse
 import asyncio
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import json
 import logging
 import math
@@ -38,6 +37,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 LOGGER = logging.getLogger("camera_service")
+SUPPORTED_FPS = (1, 5, 10, 20)
+DEFAULT_FPS = 5
 
 
 def validate_external_camera_settings(client: Any, vehicles: list[str]) -> None:
@@ -61,10 +62,73 @@ def validate_external_camera_settings(client: Any, vehicles: list[str]) -> None:
 class CameraConfig:
     host: str = "127.0.0.1"
     port: int = 8780
-    interval_s: float = 1.0
+    # Five FPS is a reasonable observer load for the 320x240 PNG frames.
+    interval_s: float = 0.2
     camera_name: str = "0"
     third_distance_m: float = 8.0
     third_height_m: float = 4.0
+
+
+def _fps_from_interval(interval_s: float) -> int:
+    """Return the nearest supported display FPS for status reporting."""
+    return min(SUPPORTED_FPS, key=lambda fps: abs((1.0 / interval_s) - fps))
+
+
+def _interval_for_fps(fps: Any) -> float:
+    try:
+        value = int(fps)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"fps must be one of {SUPPORTED_FPS}") from exc
+    if value not in SUPPORTED_FPS:
+        raise ValueError(f"fps must be one of {SUPPORTED_FPS}")
+    return 1.0 / value
+
+
+def _load_vehicle_origins(client: Any, vehicles: list[str]) -> dict[str, tuple[float, float, float, float]]:
+    """Read each vehicle's common NED spawn offset and initial yaw.
+
+    ``simGetVehiclePose`` is relative to the vehicle's local NED origin,
+    while external cameras use the shared world NED frame.  Unit-test fakes
+    may not expose ``getSettingsString``; in that case the zero origin keeps
+    the local-frame behavior used by the fake client.
+    """
+    getter = getattr(client, "getSettingsString", None)
+    if not callable(getter):
+        return {vehicle: (0.0, 0.0, 0.0, 0.0) for vehicle in vehicles}
+    try:
+        settings = json.loads(getter())
+    except (TypeError, ValueError) as exc:
+        raise RuntimeError("AirSim returned invalid settings JSON") from exc
+    configured = settings.get("Vehicles", {})
+    origins: dict[str, tuple[float, float, float, float]] = {}
+    for vehicle in vehicles:
+        item = configured.get(vehicle, {})
+        try:
+            origins[vehicle] = (
+                float(item.get("X", 0.0)),
+                float(item.get("Y", 0.0)),
+                float(item.get("Z", 0.0)),
+                math.radians(float(item.get("Yaw", 0.0))),
+            )
+        except (TypeError, ValueError) as exc:
+            raise RuntimeError(f"AirSim settings contain invalid spawn pose for {vehicle}") from exc
+    return origins
+
+
+def _common_vehicle_pose(airsim: Any, pose: Any, origin: tuple[float, float, float, float]) -> tuple[Any, float]:
+    """Convert a local vehicle pose to the shared World NED frame."""
+    origin_x, origin_y, origin_z, origin_yaw = origin
+    cos_yaw = math.cos(origin_yaw)
+    sin_yaw = math.sin(origin_yaw)
+    local_x = float(pose.position.x_val)
+    local_y = float(pose.position.y_val)
+    common_position = airsim.Vector3r(
+        origin_x + cos_yaw * local_x - sin_yaw * local_y,
+        origin_y + sin_yaw * local_x + cos_yaw * local_y,
+        origin_z + float(pose.position.z_val),
+    )
+    _pitch, _roll, local_yaw = airsim.to_eularian_angles(pose.orientation)
+    return common_position, origin_yaw + local_yaw
 
 
 def _import_airsim() -> Any:
@@ -72,6 +136,11 @@ def _import_airsim() -> Any:
     if candidate and candidate not in sys.path:
         sys.path.insert(0, candidate)
     try:
+        # AirSim's bundled msgpack-rpc client still passes the removed
+        # ``encoding`` argument on modern msgpack releases.  The normal
+        # AirSim adapter applies this patch before importing AirSim; this
+        # standalone read-only service must do the same.
+        from adapters import msgpack_compat  # noqa: F401
         import airsim  # type: ignore
     except ImportError as exc:
         raise RuntimeError(
@@ -91,9 +160,10 @@ class CameraHub:
         self.client = client
         self.vehicles = tuple(dict.fromkeys(vehicles))
         self.config = config
+        self.vehicle_origins = _load_vehicle_origins(client, list(self.vehicles))
         self.lock = threading.Lock()
         self.latest: dict[tuple[str, str], dict[str, Any]] = {}
-        self.tasks: list[asyncio.Task[None]] = []
+        self.tasks: dict[tuple[str, str], asyncio.Task[None]] = {}
         self.stop_event = asyncio.Event()
 
     def _capture(self, vehicle: str, view: str) -> bytes:
@@ -105,18 +175,19 @@ class CameraHub:
                 )
             elif view == "third":
                 pose = self.client.simGetVehiclePose(vehicle_name=vehicle)
-                pitch, _roll, yaw = airsim.to_eularian_angles(pose.orientation)
-                del pitch
+                common_position, yaw = _common_vehicle_pose(
+                    airsim, pose, self.vehicle_origins[vehicle]
+                )
                 distance = self.config.third_distance_m
                 height = self.config.third_height_m
-                camera_x = pose.position.x_val - distance * math.cos(yaw)
-                camera_y = pose.position.y_val - distance * math.sin(yaw)
-                camera_z = pose.position.z_val - height
+                camera_x = common_position.x_val - distance * math.cos(yaw)
+                camera_y = common_position.y_val - distance * math.sin(yaw)
+                camera_z = common_position.z_val - height
                 # AirSim uses NED coordinates: an object above the camera has
-                # a smaller Z value, while positive pitch points the camera
-                # down toward the target.  The previous negative pitch made
-                # the third-person camera look over the drone.
-                look_pitch = math.atan2(height, distance)
+                # a smaller Z value.  AirSim's positive pitch rotates the
+                # optical axis toward smaller NED Z, so the camera must use a
+                # negative pitch to look down at the vehicle.
+                look_pitch = -math.atan2(height, distance)
                 orientation = airsim.to_quaternion(look_pitch, 0.0, yaw)
                 external_pose = airsim.Pose(
                     airsim.Vector3r(camera_x, camera_y, camera_z), orientation
@@ -165,17 +236,33 @@ class CameraHub:
 
     async def start(self, _app: web.Application) -> None:
         self.stop_event.clear()
-        self.tasks = [
-            asyncio.create_task(self.capture_loop(vehicle, view))
-            for vehicle in self.vehicles
-            for view in ("first", "third")
-        ]
+        self.tasks.clear()
+
+    async def set_active(self, vehicle: str = "", view: str = "", mode: str = "selected", fps: Any = None) -> None:
+        if fps is not None:
+            self.config = replace(self.config, interval_s=_interval_for_fps(fps))
+        if mode == "all":
+            selected = {(name, item_view) for name in self.vehicles for item_view in ("first", "third")}
+        elif mode == "selected" and vehicle in self.vehicles and view in {"first", "third"}:
+            selected = {(vehicle, view)}
+        else:
+            raise ValueError("unknown camera selection")
+        for key, task in list(self.tasks.items()):
+            if key in selected:
+                continue
+            task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
+            self.tasks.pop(key, None)
+        for vehicle_name, item_view in selected:
+            task = self.tasks.get((vehicle_name, item_view))
+            if task is None or task.done():
+                self.tasks[(vehicle_name, item_view)] = asyncio.create_task(self.capture_loop(vehicle_name, item_view))
 
     async def stop(self, _app: web.Application) -> None:
         self.stop_event.set()
-        for task in self.tasks:
+        for task in self.tasks.values():
             task.cancel()
-        await asyncio.gather(*self.tasks, return_exceptions=True)
+        await asyncio.gather(*self.tasks.values(), return_exceptions=True)
         self.tasks.clear()
 
     def status(self) -> dict[str, Any]:
@@ -184,8 +271,10 @@ class CameraHub:
             result[vehicle] = {}
             for view in ("first", "third"):
                 item = self.latest.get((vehicle, view), {})
+                active = (vehicle, view) in self.tasks and not self.tasks[(vehicle, view)].done()
                 result[vehicle][view] = {
-                    "status": item.get("status", "starting"),
+                    "status": item.get("status", "starting") if active else "idle",
+                    "active": active,
                     "captured_at_unix_ms": item.get("captured_at_unix_ms"),
                     "error": item.get("error", ""),
                 }
@@ -200,7 +289,36 @@ def create_app(hub: CameraHub) -> web.Application:
 
     async def status(_request: web.Request) -> web.Response:
         return web.json_response(
-            hub.status(), headers={"Access-Control-Allow-Origin": "http://127.0.0.1:8000"}
+            hub.status(), headers={
+                "Access-Control-Allow-Origin": "http://127.0.0.1:8000",
+                "Access-Control-Expose-Headers": "X-Camera-Fps",
+                "X-Camera-Fps": str(_fps_from_interval(hub.config.interval_s)),
+            }
+        )
+
+    async def active_options(_request: web.Request) -> web.Response:
+        return web.Response(status=204, headers={
+            "Access-Control-Allow-Origin": "http://127.0.0.1:8000",
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+        })
+
+    async def active(request: web.Request) -> web.Response:
+        try:
+            body = await request.json()
+            mode = str(body.get("mode", "selected"))
+            vehicle = str(body.get("vehicle", ""))
+            view = str(body.get("view", ""))
+            fps = body.get("fps")
+            await hub.set_active(vehicle, view, mode=mode, fps=fps)
+        except (ValueError, AttributeError, TypeError) as exc:
+            raise web.HTTPBadRequest(text=str(exc)) from exc
+        except Exception as exc:
+            raise web.HTTPBadRequest(text=f"invalid camera selection: {exc}") from exc
+        return web.json_response(
+            {"active": {"mode": mode, "vehicle": vehicle, "view": view,
+                         "fps": _fps_from_interval(hub.config.interval_s)}},
+            headers={"Access-Control-Allow-Origin": "http://127.0.0.1:8000"},
         )
 
     async def stream(request: web.Request) -> web.StreamResponse:
@@ -263,6 +381,8 @@ def create_app(hub: CameraHub) -> web.Application:
 
     app.router.add_get("/health", health)
     app.router.add_get("/api/cameras", status)
+    app.router.add_options("/api/cameras/active", active_options)
+    app.router.add_post("/api/cameras/active", active)
     app.router.add_get("/stream/{vehicle}/{view}", stream)
     app.router.add_get("/frame/{vehicle}/{view}", frame)
     app.on_startup.append(hub.start)
@@ -275,7 +395,7 @@ def main() -> int:
     parser.add_argument("--vehicles", nargs="+", help="AirSim vehicle names; default is client.listVehicles()")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8780)
-    parser.add_argument("--interval", type=float, default=1.0, help="capture interval in seconds")
+    parser.add_argument("--interval", type=float, default=1.0 / DEFAULT_FPS, help="initial capture interval in seconds (default: 0.2, about 5 FPS)")
     parser.add_argument("--camera-name", default="0")
     parser.add_argument("--third-distance", type=float, default=8.0)
     parser.add_argument("--third-height", type=float, default=4.0)

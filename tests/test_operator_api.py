@@ -289,6 +289,29 @@ def test_api_restart_never_replays_active_flight_and_preserves_receipts(env):
     assert len(env.backend.calls)==1
 
 
+def test_recovery_check_clears_guard_only_after_fresh_probe(env):
+    mid=create(env)
+    env.m.data['missions'][mid]['state']='FAILED'
+    env.m.data['missions'][mid]['manual_intervention_required']=True
+    reply=env.m.verify_recovery(dict(request_id='recovery-1'))
+    assert reply['accepted']
+    assert reply['cleared_mission_ids']==[mid]
+    assert not env.m.get(mid)['manual_intervention_required']
+    assert env.m.verify_recovery(dict(request_id='recovery-1'))==reply
+
+
+def test_recovery_check_keeps_guard_when_probe_fails(env):
+    mid=create(env)
+    env.m.data['missions'][mid]['state']='FAILED'
+    env.m.data['missions'][mid]['manual_intervention_required']=True
+    def unsafe():
+        raise OperatorError('vehicle_not_released','vehicle is still controlled',409)
+    env.m.probe=unsafe
+    with pytest.raises(OperatorError,match='still controlled'):
+        env.m.verify_recovery(dict(request_id='recovery-unsafe'))
+    assert env.m.get(mid)['manual_intervention_required']
+
+
 def test_backend_translates_world_goal_once_and_passes_task_binding(env,monkeypatch):
     mid=create(env)
     mission=env.m.data['missions'][mid]
