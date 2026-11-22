@@ -491,6 +491,8 @@ class SwarmFlightBridge:
 
     def report_dispatch(self, source, *, avoiding=False):
         self._accepted_speed=math.hypot(*self._last_guard_velocity[:2])
+        if self.hardening.enabled and self.hardening.smoothing:
+            self.motion_limiter.accept(self._last_guard_velocity[:2])
         if self.hardening.enabled and self._last_gateway_at is not None:
             self.diagnostics.record(source,dispatch_return_ms=(time.monotonic()-self._last_gateway_at)*1000)
         if self._gateway_refined:

@@ -215,27 +215,42 @@ class MotionLimiter:
     def __init__(self, acceleration):
         self.acceleration = acceleration
         self.last_at = None
+        self.last_command = None
+
+    def accept(self, velocity):
+        """Remember the velocity actually accepted after CPA / gateway filters."""
+        values=tuple(float(v) for v in velocity)
+        if len(values)!=2 or not all(math.isfinite(v) for v in values):
+            raise ValueError('invalid accepted motion')
+        self.last_command=values
 
     def limit(self, desired, measured, now):
         # A requested stop / safety override is never delayed by smoothing.
         desired, measured = np.asarray(desired, float), np.asarray(measured, float)
         if not np.all(np.isfinite(desired)) or not np.all(np.isfinite(measured)):
             raise ValueError('nonfinite motion')
-        dt = .05 if self.last_at is None else max(0., min(.2, now-self.last_at))
+        gap=None if self.last_at is None else now-self.last_at
+        dt = .05 if gap is None else max(0., min(.2, gap))
+        # Rate-limit commands, not the tracking error on every control tick.
+        # Reanchoring on measured speed each tick creates a false steady speed
+        # ceiling when the vehicle tracks commands with ordinary lag/bias.
+        reference=measured if self.last_command is None or gap is None or gap>.3 or gap<0 else np.asarray(self.last_command)
         self.last_at = now
         if np.linalg.norm(desired) < 1e-9:
+            self.last_command=(0.,0.)
             return (0., 0.)
-        delta = desired - measured
+        delta = desired - reference
         magnitude = float(np.linalg.norm(delta))
         step = self.acceleration * dt
         if magnitude > step:
             delta *= step / magnitude
-        result = measured + delta
+        result = reference + delta
         # Smoothing must not exceed the requested speed cap.
         length, cap = float(np.linalg.norm(result)), float(np.linalg.norm(desired))
         if length > cap:
             result *= cap/length
-        return tuple(float(v) for v in result)
+        self.last_command=tuple(float(v) for v in result)
+        return self.last_command
 
 
 class PassageAdvisor:

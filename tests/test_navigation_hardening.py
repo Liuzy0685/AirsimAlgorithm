@@ -135,6 +135,41 @@ def test_smoothing_bounds_acceleration_but_never_delays_requested_stop():
     assert limiter.limit((0.,0.),second,.11)==(0.,0.)
 
 
+def test_command_ramp_reaches_requested_speed_despite_persistent_tracking_error():
+    limiter=MotionLimiter(.35)
+    command=(0.,0.)
+    for i in range(100):
+        measured=(.9*command[0],.9*command[1])
+        command=limiter.limit((.35,0.),measured,i*.05)
+        limiter.accept(command)
+    assert command==pytest.approx((.35,0.))
+
+
+def test_filtered_stop_reanchors_the_next_command_ramp():
+    limiter=MotionLimiter(.35)
+    for i in range(30):limiter.limit((.35,0.),(0.,0.),i*.05)
+    limiter.accept((0.,0.))
+    result=limiter.limit((.35,0.),(0.,0.),1.5)
+    assert math.hypot(*result)<=.35*.05+1e-12
+
+
+def test_long_pause_reanchors_from_measured_velocity_instead_of_replaying_old_command():
+    limiter=MotionLimiter(.35)
+    for i in range(30):limiter.limit((.35,0.),(0.,0.),i*.05)
+    result=limiter.limit((.35,0.),(0.,0.),3.)
+    assert math.hypot(*result)<=.35*.2+1e-12
+
+
+def test_bridge_feeds_actual_gateway_velocity_back_to_smoother():
+    from test_swarm_wiring import bridge_fixture
+    bridge,_,_=bridge_fixture()
+    bridge.hardening=cfg()
+    bridge.motion_limiter.accept((.35,0.))
+    bridge._last_guard_velocity=(0.,0.,0.)
+    bridge.report_dispatch('inter_uav_orca_fallback_hold',avoiding=True)
+    assert bridge.motion_limiter.last_command==(0.,0.)
+
+
 def test_speed_cap_reduces_with_latency_and_respects_braking_equation():
     early=latency_speed_cap(2.,.9,.1,.35,2.)
     late=latency_speed_cap(2.,.9,.5,.35,2.)
