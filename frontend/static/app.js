@@ -31,18 +31,23 @@
     catch (_) { return fallback; }
   }
 
+  const savedCameraSelection = storedJson("uav.camera.selection", { vehicle: "", view: "first" });
+  const initialCameraSelection = Array.isArray(savedCameraSelection?.cameras)
+    ? savedCameraSelection.cameras
+    : [{ vehicle: savedCameraSelection?.vehicle || "", view: savedCameraSelection?.view || "first" }];
+
   const state = {
     apiBase: storedValue("uav.operator.apiBase", "http://127.0.0.1:8790/api/v1"),
     token: storedValue("uav.operator.token").trim(),
     cameraBase: storedValue("uav.camera.base"),
     savedVehicleNames: storedJson("uav.camera.vehicleNames", []),
-    cameraSelection: storedJson("uav.camera.selection", { vehicle: "", view: "first" }),
-    cameraMode: storedValue("uav.camera.mode", "selected"),
+    cameraSelection: { cameras: initialCameraSelection },
     cameraFps: Number(storedValue("uav.camera.fps", "5")),
     cameraStatus: {},
     cameraServiceOnline: false,
     cameraNamesKey: "",
     cameraRefreshBusy: false,
+    cameraFrameAbort: null,
     cameraSelectionBusy: false,
     cameraLightboxOpen: false,
     capabilities: null,
@@ -71,6 +76,7 @@
     mapZoom: 1,
     eventSequence: Number(storedValue("uav.operator.eventSequence", "0")),
     backendLoading: false,
+    recoveryNotice: storedJson("uav.operator.recoveryNotice", null),
   };
 
   $("api-base").value = state.apiBase;
@@ -95,17 +101,45 @@
     node.className = `message ${kind}`;
   }
 
+  function renderRecoveryNotice() {
+    const node = $("recovery-notice");
+    if (!node) return;
+    const notice = state.recoveryNotice;
+    if (!notice) {
+      node.hidden = true;
+      node.replaceChildren();
+      return;
+    }
+    const when = new Date(Number(notice.at || Date.now())).toLocaleString();
+    node.hidden = false;
+    node.className = `recovery-notice ${notice.kind === "error" ? "error" : "success"}`;
+    node.innerHTML = `<div class="recovery-notice-heading"><strong>${notice.kind === "error" ? "安全恢复检查未通过" : "安全恢复检查记录"}</strong><span>${escapeHtml(when)}</span></div><div><strong>${escapeHtml(notice.code || "recovery")}</strong>：${escapeHtml(notice.message || "—")}</div>${notice.detail ? `<p class="muted">${escapeHtml(notice.detail)}</p>` : ""}<button id="clear-recovery-notice" class="text-button" type="button">清除这条记录</button>`;
+    $("clear-recovery-notice").addEventListener("click", clearRecoveryNotice);
+  }
+
+  function setRecoveryNotice(kind, code, text, detail = "") {
+    state.recoveryNotice = { kind, code, message: text, detail, at: Date.now() };
+    setStoredValue("uav.operator.recoveryNotice", JSON.stringify(state.recoveryNotice));
+    renderRecoveryNotice();
+  }
+
+  function clearRecoveryNotice() {
+    state.recoveryNotice = null;
+    setStoredValue("uav.operator.recoveryNotice", "");
+    renderRecoveryNotice();
+  }
+
   function persist() {
     setStoredValue("uav.operator.apiBase", state.apiBase);
     setStoredValue("uav.camera.base", state.cameraBase);
     setStoredValue("uav.operator.token", state.token);
     setStoredValue("uav.camera.vehicleNames", JSON.stringify(state.savedVehicleNames));
     setStoredValue("uav.camera.selection", JSON.stringify(state.cameraSelection));
-    setStoredValue("uav.camera.mode", state.cameraMode);
     setStoredValue("uav.camera.fps", String(state.cameraFps));
     setStoredValue("uav.operator.requestIds", JSON.stringify(state.requestIds));
     setStoredValue("uav.operator.requestSignatures", JSON.stringify(state.requestSignatures));
     setStoredValue("uav.operator.eventSequence", String(state.eventSequence));
+    if (state.recoveryNotice) setStoredValue("uav.operator.recoveryNotice", JSON.stringify(state.recoveryNotice));
     if (state.mission?.mission_id) setStoredValue("uav.operator.missionId", state.mission.mission_id);
   }
 
@@ -462,53 +496,6 @@
     renderMap(); renderCameras(state.capabilities?.vehicle_names || Object.keys(drones));
   }
 
-  function renderCamerasLegacy(names = []) {
-    const list = $("camera-list"); const base = state.cameraBase.replace(/\/+$/, "");
-    const vehicleNames = [...new Set(names.length ? names : (state.capabilities?.vehicle_names || state.savedVehicleNames || []))];
-    if (!vehicleNames.includes(state.cameraSelection.vehicle)) state.cameraSelection.vehicle = vehicleNames[0] || "";
-    if (!["first", "third"].includes(state.cameraSelection.view)) state.cameraSelection.view = "first";
-    persist();
-    const key = `${base}|${vehicleNames.join(",")}|${state.cameraSelection.vehicle}|${state.cameraSelection.view}`;
-    if (key === state.cameraNamesKey) return;
-    state.cameraNamesKey = key;
-    if (!base) { list.innerHTML = '<div class="camera-card unavailable">请配置独立图像服务地址；A 任务 API 不提供视频流。</div>'; return; }
-    list.replaceChildren();
-    for (const name of vehicleNames) {
-      const safeName = escapeHtml(name); const encodedName = encodeURIComponent(name); const pair = document.createElement("article"); pair.className = "camera-pair"; pair.innerHTML = `<h3><span>${safeName}</span><span class="muted">实时双视角</span></h3><div class="camera-views"><div class="camera-card"><span>第一视角 · 机载前向</span><img loading="lazy" decoding="async" alt="${safeName} 第一视角" data-camera-title="${safeName} · 第一视角 · 机载前向" data-camera-frame="${base}/frame/${encodedName}/first" /><span class="camera-time" data-camera-time="${safeName}-first">等待画面</span></div><div class="camera-card"><span>第三视角 · 后上方跟随</span><img loading="lazy" decoding="async" alt="${safeName} 第三视角" data-camera-title="${safeName} · 第三视角 · 后上方跟随" data-camera-frame="${base}/frame/${encodedName}/third" /><span class="camera-time" data-camera-time="${safeName}-third">等待画面</span></div></div>`; list.appendChild(pair);
-    }
-    refreshCameraStatus();
-    refreshCameraFrames();
-  }
-
-  function renderCamerasSelectedLegacy(names = []) {
-    const list = $("camera-list"); const base = state.cameraBase.replace(/\/+$/, "");
-    const vehicleNames = [...new Set(names.length ? names : (state.capabilities?.vehicle_names || state.savedVehicleNames || []))];
-    if (!vehicleNames.includes(state.cameraSelection.vehicle)) state.cameraSelection.vehicle = vehicleNames[0] || "";
-    if (!["first", "third"].includes(state.cameraSelection.view)) state.cameraSelection.view = "first";
-    persist();
-    const key = `${base}|${vehicleNames.join(",")}|${state.cameraSelection.vehicle}|${state.cameraSelection.view}`;
-    if (key === state.cameraNamesKey) return;
-    state.cameraNamesKey = key;
-    const selector = $("camera-vehicle");
-    selector.replaceChildren();
-    for (const name of vehicleNames) { const option = document.createElement("option"); option.value = name; option.textContent = name; selector.appendChild(option); }
-    selector.value = state.cameraSelection.vehicle;
-    document.querySelectorAll(".camera-view-button").forEach((button) => {
-      const selected = button.dataset.cameraView === state.cameraSelection.view;
-      button.classList.toggle("selected", selected);
-      button.setAttribute("aria-pressed", String(selected));
-    });
-    if (!base) { list.innerHTML = '<div class="camera-card unavailable">请配置独立图像服务地址；A 任务 API 不提供视频流。</div>'; $("camera-service-status").textContent = "未配置图像服务"; return; }
-    if (!state.cameraSelection.vehicle) { list.innerHTML = '<div class="camera-card unavailable">能力接口尚未返回无人机列表。</div>'; $("camera-service-status").textContent = "等待无人机列表"; return; }
-    const safeName = escapeHtml(state.cameraSelection.vehicle); const encodedName = encodeURIComponent(state.cameraSelection.vehicle); const view = state.cameraSelection.view;
-    const viewLabel = view === "first" ? "第一视角 · 机载前向" : "第三视角 · 后上方跟随";
-    list.innerHTML = `<article class="camera-pair selected-camera"><h3><span>${safeName} · ${viewLabel}</span><span class="muted">仅采集当前选择</span></h3><div class="camera-views"><div class="camera-card available"><span>${viewLabel}</span><img loading="lazy" decoding="async" alt="${safeName} ${viewLabel}" data-camera-title="${safeName} · ${viewLabel}" data-camera-frame="${base}/frame/${encodedName}/${view}" /><span class="camera-time" id="camera-frame-status">等待相机服务</span></div></div></article>`;
-    $("camera-service-status").textContent = state.cameraSelectionBusy ? "正在切换视角…" : "正在请求当前视角";
-    void activateCameraSelection();
-    void refreshCameraStatus();
-    void refreshCameraFrames();
-  }
-
   function cameraCardMarkup(name, view, base) {
     const safeName = escapeHtml(name); const encodedName = encodeURIComponent(name);
     const viewLabel = view === "first" ? "第一视角 · 机载前向" : "第三视角 · 后上方跟随";
@@ -518,36 +505,50 @@
   function renderCameras(names = []) {
     const list = $("camera-list"); const base = state.cameraBase.replace(/\/+$/, "");
     const vehicleNames = [...new Set(names.length ? names : (state.capabilities?.vehicle_names || state.savedVehicleNames || []))];
-    if (!vehicleNames.includes(state.cameraSelection.vehicle)) state.cameraSelection.vehicle = vehicleNames[0] || "";
-    if (!["first", "third"].includes(state.cameraSelection.view)) state.cameraSelection.view = "first";
-    if (!["selected", "all"].includes(state.cameraMode)) state.cameraMode = "selected";
+    const available = vehicleNames.flatMap((vehicle) => ["first", "third"].map((view) => ({ vehicle, view })));
+    const availableKeys = new Set(available.map(({ vehicle, view }) => `${vehicle}:${view}`));
+    let selected = (Array.isArray(state.cameraSelection.cameras) ? state.cameraSelection.cameras : [])
+      .filter((item) => item && availableKeys.has(`${item.vehicle}:${item.view}`))
+      .map((item) => ({ vehicle: item.vehicle, view: item.view }));
+    const seen = new Set();
+    selected = selected.filter((item) => {
+      const key = `${item.vehicle}:${item.view}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    if (!selected.length && available.length) selected = [available[0]];
+    state.cameraSelection.cameras = selected;
     if (![1, 5, 10, 20].includes(state.cameraFps)) state.cameraFps = 5;
     persist();
-    const key = `${base}|${vehicleNames.join(",")}|${state.cameraMode}|${state.cameraSelection.vehicle}|${state.cameraSelection.view}|${state.cameraFps}`;
+    const selectionKey = selected.map(({ vehicle, view }) => `${vehicle}:${view}`).join(",");
+    const key = `${base}|${vehicleNames.join(",")}|${selectionKey}|${state.cameraFps}`;
     if (key === state.cameraNamesKey) return;
     state.cameraNamesKey = key;
-    const mode = $("camera-mode"); mode.value = state.cameraMode;
     const fps = $("camera-fps"); fps.value = String(state.cameraFps);
-    const selector = $("camera-vehicle"); selector.replaceChildren();
-    for (const name of vehicleNames) { const option = document.createElement("option"); option.value = name; option.textContent = name; selector.appendChild(option); }
-    selector.value = state.cameraSelection.vehicle; selector.disabled = state.cameraMode === "all";
-    document.querySelectorAll(".camera-view-button").forEach((button) => {
-      const selected = button.dataset.cameraView === state.cameraSelection.view;
-      button.classList.toggle("selected", selected && state.cameraMode === "selected");
-      button.setAttribute("aria-pressed", String(selected && state.cameraMode === "selected"));
-      button.disabled = state.cameraMode === "all";
-    });
+    const selectedKeys = new Set(selectionKey.split(",").filter(Boolean));
+    $("camera-options").replaceChildren();
+    for (const { vehicle, view } of available) {
+      const label = document.createElement("label");
+      label.className = "camera-option";
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.dataset.cameraVehicle = vehicle;
+      checkbox.dataset.cameraView = view;
+      checkbox.checked = selectedKeys.has(`${vehicle}:${view}`);
+      const text = document.createElement("span");
+      text.textContent = `${vehicle} · ${view === "first" ? "第一视角" : "第三视角"}`;
+      label.append(checkbox, text);
+      $("camera-options").appendChild(label);
+    }
     if (!base) { list.innerHTML = '<div class="camera-card unavailable">请配置独立图像服务地址；A 任务 API 不提供视频流。</div>'; $("camera-service-status").textContent = "未配置图像服务"; return; }
     if (!vehicleNames.length) { list.innerHTML = '<div class="camera-card unavailable">能力接口尚未返回无人机列表。</div>'; $("camera-service-status").textContent = "等待无人机列表"; return; }
-    if (state.cameraMode === "all") {
-      list.innerHTML = vehicleNames.map((name) => `<article class="camera-pair"><h3><span>${escapeHtml(name)}</span><span class="muted">双视角 · 全部采集</span></h3><div class="camera-views">${cameraCardMarkup(name, "first", base)}${cameraCardMarkup(name, "third", base)}</div></article>`).join("");
-      $("camera-refresh-label").textContent = "全部视角采集中 · 负载较高";
-    } else {
-      const viewLabel = state.cameraSelection.view === "first" ? "第一视角 · 机载前向" : "第三视角 · 后上方跟随";
-      list.innerHTML = `<article class="camera-pair selected-camera"><h3><span>${escapeHtml(state.cameraSelection.vehicle)} · ${viewLabel}</span><span class="muted">仅采集当前选择</span></h3><div class="camera-views">${cameraCardMarkup(state.cameraSelection.vehicle, state.cameraSelection.view, base)}</div></article>`;
-      $("camera-refresh-label").textContent = "单视角按需采集 · 负载较低";
-    }
-    $("camera-service-status").textContent = state.cameraSelectionBusy ? "正在切换视角…" : `当前 ${state.cameraFps} FPS`;
+    list.querySelectorAll("img[data-object-url]").forEach((image) => {
+      URL.revokeObjectURL(image.dataset.objectUrl);
+    });
+    list.innerHTML = `<article class="camera-pair selected-camera camera-count-${selected.length}"><h3><span>已选 ${selected.length} 个摄像头</span><span class="muted">只采集勾选项</span></h3><div class="camera-views">${selected.map(({ vehicle, view }) => cameraCardMarkup(vehicle, view, base)).join("")}</div></article>`;
+    $("camera-refresh-label").textContent = `${selected.length} 路按需采集 · ${state.cameraFps} FPS`;
+    $("camera-service-status").textContent = state.cameraSelectionBusy ? "正在切换摄像头…" : `已选择 ${selected.length} 路 · ${state.cameraFps} FPS`;
     void activateCameraSelection();
     void refreshCameraStatus();
     void refreshCameraFrames();
@@ -557,13 +558,16 @@
     if (state.cameraRefreshBusy || state.cameraLightboxOpen || document.hidden) return;
     const images = [...document.querySelectorAll("img[data-camera-frame]")];
     if (!images.length) return;
+    const controller = new AbortController();
+    state.cameraFrameAbort = controller;
     state.cameraRefreshBusy = true;
     try {
       await Promise.all(images.map(async (image) => {
         try {
-          const response = await fetch(`${image.dataset.cameraFrame}?t=${Date.now()}`, { cache: "no-store" });
+          const response = await fetch(`${image.dataset.cameraFrame}?t=${Date.now()}`, { cache: "no-store", signal: controller.signal });
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           const blob = await response.blob();
+          if (state.cameraLightboxOpen || controller.signal.aborted) return;
           const nextUrl = URL.createObjectURL(blob);
           const previousUrl = image.dataset.objectUrl;
           image.src = nextUrl;
@@ -572,12 +576,14 @@
           if (placeholder) placeholder.hidden = true;
           image.dataset.objectUrl = nextUrl;
           if (previousUrl) URL.revokeObjectURL(previousUrl);
-        } catch (_) {
+        } catch (error) {
+          if (error.name === "AbortError") return;
           const placeholder = image.closest(".camera-frame-shell")?.querySelector("[data-camera-placeholder]");
           if (!image.dataset.objectUrl && placeholder) { placeholder.hidden = false; placeholder.textContent = "正在等待相机画面…"; }
         }
       }));
     } finally {
+      if (state.cameraFrameAbort === controller) state.cameraFrameAbort = null;
       state.cameraRefreshBusy = false;
     }
   }
@@ -622,8 +628,11 @@
         else if (item?.active && capturedAt) node.textContent = `在线 · ${new Date(capturedAt).toLocaleTimeString()} · ${formatAge(capturedAt)}`;
         else node.textContent = "未采集 · 选择后启动";
       });
-      const item = cameras?.[state.cameraSelection.vehicle]?.[state.cameraSelection.view];
-      $("camera-service-status").textContent = state.cameraMode === "all" ? `全部视角采集中${fpsLabel}` : (item?.status === "offline" ? `当前视角断流${fpsLabel}` : (item?.active ? `当前视角采集中${fpsLabel}` : `当前视角未采集${fpsLabel}`));
+      const selected = state.cameraSelection.cameras || [];
+      const activeCount = selected.filter(({ vehicle, view }) => cameras?.[vehicle]?.[view]?.active).length;
+      const offlineCount = selected.filter(({ vehicle, view }) => cameras?.[vehicle]?.[view]?.status === "offline").length;
+      const statusText = offlineCount ? `${offlineCount} 路断流` : `${activeCount}/${selected.length} 路采集中`;
+      $("camera-service-status").textContent = `${statusText}${fpsLabel}`;
     } catch (error) {
       state.cameraServiceOnline = false;
       document.querySelectorAll(".camera-time").forEach((node) => { node.textContent = `图像服务离线 · ${error.message}`; });
@@ -634,20 +643,20 @@
 
   async function activateCameraSelection() {
     const base = state.cameraBase.replace(/\/+$/, "");
-    const { vehicle, view } = state.cameraSelection;
-    if (!base || (state.cameraMode !== "all" && (!vehicle || !["first", "third"].includes(view)))) return;
+    const cameras = state.cameraSelection.cameras || [];
+    if (!base || !cameras.length) return;
     state.cameraSelectionBusy = true;
     try {
       const response = await fetch(`${base}/api/cameras/active`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(state.cameraMode === "all" ? { mode: "all", fps: state.cameraFps } : { mode: "selected", vehicle, view, fps: state.cameraFps }),
+        body: JSON.stringify({ mode: "custom", cameras, fps: state.cameraFps }),
       });
       const text = await response.text();
       let body = null; try { body = text ? JSON.parse(text) : null; } catch (_) { body = null; }
       if (!response.ok) throw new Error(body?.error || body?.message || `HTTP ${response.status}`);
       state.cameraSelectionBusy = false;
-      $("camera-service-status").textContent = `${state.cameraMode === "all" ? "全部视角采集中" : "当前视角采集中"} · ${state.cameraFps} FPS`;
+      $("camera-service-status").textContent = `已启动 ${cameras.length} 路采集 · ${state.cameraFps} FPS`;
       await refreshCameraStatus();
       await refreshCameraFrames();
     } catch (error) {
@@ -668,14 +677,16 @@
     $("camera-lightbox-message").textContent = "正在加载画面…";
   }
 
-  $("camera-vehicle").addEventListener("change", (event) => {
-    state.cameraSelection.vehicle = event.target.value;
-    state.cameraNamesKey = "";
-    persist();
-    renderCameras(state.capabilities?.vehicle_names || state.savedVehicleNames);
-  });
-  $("camera-mode").addEventListener("change", (event) => {
-    state.cameraMode = event.target.value === "all" ? "all" : "selected";
+  $("camera-options").addEventListener("change", (event) => {
+    const checkbox = event.target.closest("input[data-camera-vehicle]");
+    if (!checkbox) return;
+    const checked = [...$("camera-options").querySelectorAll("input[data-camera-vehicle]:checked")];
+    if (!checked.length) {
+      checkbox.checked = true;
+      $("camera-service-status").textContent = "至少选择一个摄像头";
+      return;
+    }
+    state.cameraSelection.cameras = checked.map((item) => ({ vehicle: item.dataset.cameraVehicle, view: item.dataset.cameraView }));
     state.cameraNamesKey = "";
     persist();
     renderCameras(state.capabilities?.vehicle_names || state.savedVehicleNames);
@@ -686,16 +697,10 @@
     persist();
     renderCameras(state.capabilities?.vehicle_names || state.savedVehicleNames);
   });
-  document.querySelectorAll(".camera-view-button").forEach((button) => button.addEventListener("click", () => {
-    state.cameraSelection.view = button.dataset.cameraView;
-    state.cameraNamesKey = "";
-    persist();
-    renderCameras(state.capabilities?.vehicle_names || state.savedVehicleNames);
-  }));
-
   $("camera-list").addEventListener("click", (event) => {
     const image = event.target.closest("img[data-camera-title]");
     if (!image) return;
+    if (state.cameraFrameAbort) state.cameraFrameAbort.abort();
     state.cameraLightboxOpen = true;
     $("camera-lightbox-title").textContent = image.dataset.cameraTitle;
     const preview = $("camera-lightbox-image");
@@ -846,10 +851,14 @@
       const requestId = newRequestId(`recovery-${state.mission?.mission_id || "all"}`);
       requestMessage("正在检查无人机是否已落地、解锁并释放控制权，请等待后端回报。", "success");
       const result = await api("/recovery/check", { method: "POST", body: { request_id: requestId } });
-      requestMessage(`安全恢复检查通过，已解除 ${result.cleared_mission_ids?.length || 0} 个旧任务的启动锁。`, "success");
+      const text = `已解除 ${result.cleared_mission_ids?.length || 0} 个旧任务的启动锁。`;
+      setRecoveryNotice("success", "recovery_check_passed", text, "后端已完成只读检查，未发送飞行指令。");
+      requestMessage(`安全恢复检查通过，${text}`, "success");
       if (state.savedMissionId) await loadMission(state.savedMissionId);
     } catch (error) {
-      requestMessage(`${error.code || "安全恢复检查失败"}：${error.message}`, "error");
+      const code = error.code || "recovery_check_failed";
+      setRecoveryNotice("error", code, error.message, "请先在 Unreal/AirSim 中确认所有无人机已落地、速度接近 0 且 API 控制已释放；前端不会绕过此安全条件。");
+      requestMessage(`${code}：${error.message}`, "error");
     }
   }
 
@@ -912,6 +921,7 @@
 
   startMissionPolling();
   connectTelemetry();
+  renderRecoveryNotice();
   renderCameras(state.savedVehicleNames);
   // Reconnect only for read-only capability, map, mission, and camera state.
   // No flight operation is sent during page restoration.

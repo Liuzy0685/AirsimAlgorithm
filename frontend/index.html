@@ -77,6 +77,7 @@
           <div class="panel-heading"><div><p class="eyebrow">MISSION LIFECYCLE</p><h2>任务操作</h2></div><span id="operation-state" class="muted">无操作</span></div>
           <div class="lifecycle-actions"><button id="start-mission" class="primary-button" type="button" disabled>请求启动任务</button><button id="stop-mission" class="danger-button" type="button" disabled>请求停止并降落</button><button id="recovery-check" class="secondary-button" type="button" hidden title="只读检查 AirSim 是否已安全落地并释放控制权">安全恢复检查</button></div>
           <p id="request-message" class="message">按钮只表示请求已提交，最终状态以任务 API 回报为准。</p>
+          <div id="recovery-notice" class="recovery-notice" hidden></div>
           <div id="operation-log" class="operation-log"><span class="muted">暂无操作记录</span></div>
         </article>
         <article class="panel formation-status-panel">
@@ -94,7 +95,7 @@
 
       <section class="panel cameras-panel">
         <div class="panel-heading"><div><p class="eyebrow">ON-DEMAND CAMERA</p><h2>按需查看无人机视角</h2></div><span id="camera-refresh-label" class="muted">选择一架无人机后采集画面</span></div>
-        <div class="camera-toolbar"><label>查看模式<select id="camera-mode" aria-label="选择相机查看模式"><option value="selected">单视角（按需采集）</option><option value="all">全部视角（较高负载）</option></select></label><label>无人机<select id="camera-vehicle" aria-label="选择无人机"><option value="">等待能力接口</option></select></label><label>帧率<select id="camera-fps" aria-label="选择相机帧率"><option value="1">1 FPS · 低负载</option><option value="5">5 FPS · 推荐</option><option value="10">10 FPS · 较高负载</option><option value="20">20 FPS · 高负载</option></select></label><div class="camera-view-toggle" role="group" aria-label="选择相机视角"><button type="button" class="secondary-button camera-view-button" data-camera-view="first">第一视角</button><button type="button" class="secondary-button camera-view-button" data-camera-view="third">第三视角</button></div><span id="camera-service-status" class="camera-service-status">未选择视角</span></div>
+        <div class="camera-toolbar"><div class="camera-option-group"><span class="camera-control-label">选择摄像头（可多选）</span><div id="camera-options" class="camera-options"><span class="muted">等待能力接口</span></div><p class="camera-selection-note">至少选择一个；只采集勾选的视角。</p></div><label>帧率<select id="camera-fps" aria-label="选择相机帧率"><option value="1">1 FPS · 低负载</option><option value="5">5 FPS · 推荐</option><option value="10">10 FPS · 较高负载</option><option value="20">20 FPS · 高负载</option></select></label><span id="camera-service-status" class="camera-service-status">未选择视角</span></div>
         <div id="camera-list" class="camera-grid"><div class="camera-card unavailable">请配置独立图像服务地址；A 任务 API 不提供视频流。</div></div>
       </section>
 
@@ -107,6 +108,6 @@
         </div>
       </div>
     </main>
-    <script src="/static/app.js?v=20261122-02" defer></script>
+    <script src="/static/app.js?v=20261122-04" defer></script>
   </body>
 </html>

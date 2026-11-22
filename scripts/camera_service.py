@@ -238,11 +238,30 @@ class CameraHub:
         self.stop_event.clear()
         self.tasks.clear()
 
-    async def set_active(self, vehicle: str = "", view: str = "", mode: str = "selected", fps: Any = None) -> None:
+    async def set_active(
+        self,
+        vehicle: str = "",
+        view: str = "",
+        mode: str = "selected",
+        fps: Any = None,
+        cameras: Any = None,
+    ) -> None:
         if fps is not None:
             self.config = replace(self.config, interval_s=_interval_for_fps(fps))
         if mode == "all":
             selected = {(name, item_view) for name in self.vehicles for item_view in ("first", "third")}
+        elif mode == "custom":
+            if not isinstance(cameras, list) or not cameras:
+                raise ValueError("custom mode requires at least one camera")
+            selected = set()
+            for item in cameras:
+                if not isinstance(item, dict):
+                    raise ValueError("each camera must contain vehicle and view")
+                item_vehicle = str(item.get("vehicle", ""))
+                item_view = str(item.get("view", ""))
+                if item_vehicle not in self.vehicles or item_view not in {"first", "third"}:
+                    raise ValueError("unknown camera selection")
+                selected.add((item_vehicle, item_view))
         elif mode == "selected" and vehicle in self.vehicles and view in {"first", "third"}:
             selected = {(vehicle, view)}
         else:
@@ -310,13 +329,15 @@ def create_app(hub: CameraHub) -> web.Application:
             vehicle = str(body.get("vehicle", ""))
             view = str(body.get("view", ""))
             fps = body.get("fps")
-            await hub.set_active(vehicle, view, mode=mode, fps=fps)
+            cameras = body.get("cameras")
+            await hub.set_active(vehicle, view, mode=mode, fps=fps, cameras=cameras)
         except (ValueError, AttributeError, TypeError) as exc:
             raise web.HTTPBadRequest(text=str(exc)) from exc
         except Exception as exc:
             raise web.HTTPBadRequest(text=f"invalid camera selection: {exc}") from exc
         return web.json_response(
             {"active": {"mode": mode, "vehicle": vehicle, "view": view,
+                         "cameras": cameras if mode == "custom" else None,
                          "fps": _fps_from_interval(hub.config.interval_s)}},
             headers={"Access-Control-Allow-Origin": "http://127.0.0.1:8000"},
         )

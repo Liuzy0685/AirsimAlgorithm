@@ -123,6 +123,35 @@ def test_camera_capture_is_started_only_for_selected_view(monkeypatch):
     asyncio.run(exercise())
 
 
+def test_camera_capture_supports_an_arbitrary_selected_set(monkeypatch):
+    client = FakeClient()
+    monkeypatch.setattr(camera_service, "_import_airsim", lambda: FakeAirSim)
+    hub = camera_service.CameraHub(client, ["Drone1", "Drone2"], camera_service.CameraConfig())
+
+    async def exercise():
+        await hub.set_active(
+            mode="custom",
+            cameras=[
+                {"vehicle": "Drone1", "view": "first"},
+                {"vehicle": "Drone2", "view": "third"},
+            ],
+        )
+        assert hub.status()["Drone1"]["first"]["active"] is True
+        assert hub.status()["Drone2"]["third"]["active"] is True
+        assert hub.status()["Drone1"]["third"]["active"] is False
+        assert hub.status()["Drone2"]["first"]["active"] is False
+        await hub.stop(None)
+
+    asyncio.run(exercise())
+
+
+def test_camera_custom_selection_requires_at_least_one_camera():
+    hub = camera_service.CameraHub(FakeClient(), ["Drone1"], camera_service.CameraConfig())
+
+    with pytest.raises(ValueError, match="at least one"):
+        asyncio.run(hub.set_active(mode="custom", cameras=[]))
+
+
 def test_camera_fps_can_be_changed_at_runtime():
     client = FakeClient()
     hub = camera_service.CameraHub(client, ["Drone1"], camera_service.CameraConfig())

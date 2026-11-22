@@ -51,7 +51,7 @@ $env:PYTHONPATH = 'D:\AirSimDev\AirSim\PythonClient'
 python scripts/camera_service.py --vehicles Drone1 Drone2 --interval 0.2
 ```
 
-图像服务成功启动后，在页面填写 `http://127.0.0.1:8780`。双机/五机 settings 必须与所选机群一致，并包含每架机命名为 `{vehicle}Third` 的外部相机；服务会在启动时检查配置，缺少相机定义时拒绝采集，避免向 AirSim 查询不存在的相机。页面选择一架无人机和一个视角后，才会向服务发送 `POST /api/cameras/active` 并启动对应采集任务，未选择的视角不调用 AirSim。页面的 A 操作令牌保存在当前浏览器的 localStorage 中，不写入 URL。
+图像服务成功启动后，在页面填写 `http://127.0.0.1:8780`。双机/五机 settings 必须与所选机群一致，并包含每架机命名为 `{vehicle}Third` 的外部相机；服务会在启动时检查配置，缺少相机定义时拒绝采集，避免向 AirSim 查询不存在的相机。页面把每架机的第一视角和第三视角分别作为复选项，可从一个选到多个；页面只向服务发送已勾选的 `POST /api/cameras/active` 采集集合，未选择的视角不调用 AirSim。页面的 A 操作令牌保存在当前浏览器的 localStorage 中，不写入 URL。
 
 相机服务入口会先加载 `adapters.msgpack_compat`，兼容 AirSim 自带旧版 msgpack-rpc 与现代 msgpack；如果服务仍报 `encoding` 参数错误，说明启动时使用的 Python 环境没有安装本仓库依赖。图像服务使用机载相机 `0` 读取每架机前向视角，并分别读取、移动 `Drone1Third`、`Drone2Third` 等外部相机到对应无人机后上方；它只读位姿/图像，不负责起飞、移动或降落。图像为 320×240，默认采集间隔 0.2 秒（约 5 FPS），页面按约 5 FPS 请求当前单视角画面；相机状态接口仍按 1 Hz 刷新。
 
@@ -78,8 +78,8 @@ AirSim 返回的车辆位姿可能是相对于该机局部原点的 NED 坐标�
 - `GET /stream/{vehicle}/third`：独立外部相机的后上方跟随视角。
 - `GET /frame/{vehicle}/{view}`：最近缓存的单帧 PNG；页面默认使用该接口降低浏览器和 Unreal 负载。
 - `GET /api/cameras`：每架机两个视角的最近采集状态。
-- `POST /api/cameras/active`：选择并启动一个采集视角，输入为 `{"vehicle":"Drone1","view":"first"}`；服务同时只保持一个 active 采集任务。
+- `POST /api/cameras/active`：选择并启动一个或多个采集视角，输入为 `{"mode":"custom","cameras":[{"vehicle":"Drone1","view":"first"},{"vehicle":"Drone2","view":"third"}],"fps":5}`；服务只保持集合中的 active 采集任务。
 
-图像服务使用单独的只读 AirSim RPC 客户端，第三视角采用按需缓存的图像，避免浏览器刷新或视频采集抢占飞行控制连接。页面默认是“单视角（按需采集）”，也可切换为“全部视角（较高负载）”；全部视角会同时激活配置机群的第一/第三视角。帧率可选择 `1/5/10/20 FPS`，默认 `5 FPS`，切换后立即生效；全部视角或高帧率会明显增加 Unreal、AirSim RPC、编码和浏览器负载。页面状态会区分未采集、采集中、在线、画面过期、断流和图像服务离线。AirSim 中没有可用外部相机时，第三视角会显示离线原因；这时需要在 `settings.json` 中配置 ExternalCamera 或改用已有外部相机名称。
+图像服务使用单独的只读 AirSim RPC 客户端，第三视角采用按需缓存的图像，避免浏览器刷新或视频采集抢占飞行控制连接。页面默认勾选一个摄像头，也可同时勾选多个视角；选一个时显示大画面，选两个或更多时按两列排列；切换选择后立即停止未选视角的采集。帧率可选择 `1/5/10/20 FPS`，默认 `5 FPS`，切换后立即生效；选择更多视角或更高帧率会明显增加 Unreal、AirSim RPC、编码和浏览器负载。点击画面放大时页面会冻结当前帧并中止未完成的刷新请求，关闭后恢复实时刷新。页面状态会区分未采集、采集中、在线、画面过期、断流和图像服务离线。AirSim 中没有可用外部相机时，第三视角会显示离线原因；这时需要在 `settings.json` 中配置 ExternalCamera 或改用已有外部相机名称。
 
 地图的 `coverage` 如果是 `partial_cylinder_render_meshes_only`，只表示部分柱体渲染网格包围盒已导出。它不是完整碰撞地图，也不是可飞区域认证；实际避障仍由 A 的实时感知和控制网关负责。
