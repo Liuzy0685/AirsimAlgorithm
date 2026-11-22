@@ -57,6 +57,10 @@ class OperatorMap:
     def __init__(self, value):
         self.value = json.loads(canonical(value))
         identifier(value.get('map_id'), 'map_id')
+        self.asset_path = value.get('asset_path', '/Game/' + value['map_id'])
+        require(isinstance(self.asset_path, str) and re.fullmatch(
+            r'/Game/[A-Za-z0-9_-]+(?:/[A-Za-z0-9_-]+)*', self.asset_path),
+            'invalid_map', 'Need a project /Game asset path without traversal')
         require(value.get('frame') == 'world_ned' and value.get('units') == 'm',
                 'invalid_map', 'Map must use World NED meters')
         b = value.get('bounds_xy_m', [])
@@ -76,8 +80,14 @@ class OperatorMap:
         self.revision = hashlib.sha256(canonical(value).encode()).hexdigest()
 
     def public(self):
-        return dict(self.value, map_revision=self.revision,
+        return dict(self.value, asset_path=self.asset_path, map_revision=self.revision,
                     bounds_semantics='editing_extent_not_free_space', collision_certified=False)
+
+    def asset_file(self, project):
+        content = (Path(project).resolve().parent / 'Content').resolve()
+        asset = (content / (self.asset_path[len('/Game/'):] + '.umap')).resolve()
+        require(asset.is_relative_to(content), 'invalid_map', 'Asset must stay inside project Content')
+        return asset
 
     def check_point(self, point, clearance):
         x, y, z = point

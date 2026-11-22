@@ -1,0 +1,540 @@
+{
+  "ground_preflight": {
+    "Drone1": {
+      "position_ned_m": [
+        0.5,
+        -6.0,
+        0.6715055704116821
+      ],
+      "velocity_ned_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "yaw_rad": 0.0,
+      "sim_timestamp_ns": 1795330071870400512,
+      "landed_state": 0
+    },
+    "Drone2": {
+      "position_ned_m": [
+        0.5,
+        -3.0,
+        0.6715055704116821
+      ],
+      "velocity_ned_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "yaw_rad": 0.0,
+      "sim_timestamp_ns": 1795330071870400512,
+      "landed_state": 0
+    },
+    "Drone3": {
+      "position_ned_m": [
+        0.5,
+        -9.0,
+        0.6715055704116821
+      ],
+      "velocity_ned_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "yaw_rad": 0.0,
+      "sim_timestamp_ns": 1795330071870400512,
+      "landed_state": 0
+    },
+    "Drone4": {
+      "position_ned_m": [
+        0.5,
+        0.0,
+        0.6715055704116821
+      ],
+      "velocity_ned_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "yaw_rad": 0.0,
+      "sim_timestamp_ns": 1795330071870400512,
+      "landed_state": 0
+    },
+    "Drone5": {
+      "position_ned_m": [
+        0.5,
+        -12.0,
+        0.6715055704116821
+      ],
+      "velocity_ned_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "yaw_rad": 0.0,
+      "sim_timestamp_ns": 1795330071870400512,
+      "landed_state": 0
+    }
+  },
+  "vehicles": [
+    "Drone1",
+    "Drone2",
+    "Drone3",
+    "Drone4",
+    "Drone5"
+  ],
+  "browser_tested": false,
+  "flight_tested": false,
+  "capabilities": {
+    "api_version": 1,
+    "cruise_z_ned_m": -2.0,
+    "flight_enabled": false,
+    "flight_limits": {
+      "Drone1": {
+        "command_duration_s": 0.15,
+        "emergency_distance_m": 0.8,
+        "forward_speed_mps": 0.35,
+        "front_threshold_m": 2.5,
+        "geofence_radius_m": 45.0,
+        "landing_confirmation_frames": 3,
+        "max_flight_duration_s": 480.0,
+        "max_vertical_speed_mps": 0.5,
+        "preflight_lidar_frames": 3,
+        "side_speed_mps": 0.25,
+        "takeoff_timeout_s": 20.0,
+        "target_z_ned": -2.0
+      },
+      "Drone2": {
+        "command_duration_s": 0.15,
+        "emergency_distance_m": 0.8,
+        "forward_speed_mps": 0.35,
+        "front_threshold_m": 2.5,
+        "geofence_radius_m": 45.0,
+        "landing_confirmation_frames": 3,
+        "max_flight_duration_s": 480.0,
+        "max_vertical_speed_mps": 0.5,
+        "preflight_lidar_frames": 3,
+        "side_speed_mps": 0.25,
+        "takeoff_timeout_s": 20.0,
+        "target_z_ned": -2.0
+      },
+      "Drone3": {
+        "command_duration_s": 0.15,
+        "emergency_distance_m": 0.8,
+        "forward_speed_mps": 0.35,
+        "front_threshold_m": 2.5,
+        "geofence_radius_m": 45.0,
+        "landing_confirmation_frames": 3,
+        "max_flight_duration_s": 480.0,
+        "max_vertical_speed_mps": 0.5,
+        "preflight_lidar_frames": 3,
+        "side_speed_mps": 0.25,
+        "takeoff_timeout_s": 20.0,
+        "target_z_ned": -2.0
+      },
+      "Drone4": {
+        "command_duration_s": 0.15,
+        "emergency_distance_m": 0.8,
+        "forward_speed_mps": 0.35,
+        "front_threshold_m": 2.5,
+        "geofence_radius_m": 45.0,
+        "landing_confirmation_frames": 3,
+        "max_flight_duration_s": 480.0,
+        "max_vertical_speed_mps": 0.5,
+        "preflight_lidar_frames": 3,
+        "side_speed_mps": 0.25,
+        "takeoff_timeout_s": 20.0,
+        "target_z_ned": -2.0
+      },
+      "Drone5": {
+        "command_duration_s": 0.15,
+        "emergency_distance_m": 0.8,
+        "forward_speed_mps": 0.35,
+        "front_threshold_m": 2.5,
+        "geofence_radius_m": 45.0,
+        "landing_confirmation_frames": 3,
+        "max_flight_duration_s": 480.0,
+        "max_vertical_speed_mps": 0.5,
+        "preflight_lidar_frames": 3,
+        "side_speed_mps": 0.25,
+        "takeoff_timeout_s": 20.0,
+        "target_z_ned": -2.0
+      }
+    },
+    "leader": "Drone1",
+    "safety_distance_m": 2.0,
+    "shapes": [
+      "line",
+      "column",
+      "vee"
+    ],
+    "spacing_m": {
+      "max": 8.0,
+      "min": 2.7
+    },
+    "state_service_url": "ws://127.0.0.1:8765/ws/swarm",
+    "supports": {
+      "fleet_edit": false,
+      "inflight_goal_edit": false,
+      "initial_formation": true,
+      "pause_resume": false,
+      "recovery_land": true,
+      "runtime_formation": "requires_B_heartbeat",
+      "spawn_edit": false,
+      "speed_altitude_edit": false
+    },
+    "vehicle_names": [
+      "Drone1",
+      "Drone2",
+      "Drone3",
+      "Drone4",
+      "Drone5"
+    ]
+  },
+  "task_preview": {
+    "actual_start": {
+      "Drone1": {
+        "landed_state": 0,
+        "position_ned_m": [
+          0.5,
+          -6.0,
+          0.6715055704116821
+        ],
+        "sim_timestamp_ns": 1795330072380411392,
+        "velocity_ned_mps": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "yaw_rad": 0.0
+      },
+      "Drone2": {
+        "landed_state": 0,
+        "position_ned_m": [
+          0.5,
+          -3.0,
+          0.6715055704116821
+        ],
+        "sim_timestamp_ns": 1795330072380411392,
+        "velocity_ned_mps": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "yaw_rad": 0.0
+      },
+      "Drone3": {
+        "landed_state": 0,
+        "position_ned_m": [
+          0.5,
+          -9.0,
+          0.6715055704116821
+        ],
+        "sim_timestamp_ns": 1795330072380411392,
+        "velocity_ned_mps": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "yaw_rad": 0.0
+      },
+      "Drone4": {
+        "landed_state": 0,
+        "position_ned_m": [
+          0.5,
+          0.0,
+          0.6715055704116821
+        ],
+        "sim_timestamp_ns": 1795330072380411392,
+        "velocity_ned_mps": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "yaw_rad": 0.0
+      },
+      "Drone5": {
+        "landed_state": 0,
+        "position_ned_m": [
+          0.5,
+          -12.0,
+          0.6715055704116821
+        ],
+        "sim_timestamp_ns": 1795330072380411392,
+        "velocity_ned_mps": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "yaw_rad": 0.0
+      }
+    },
+    "config": {
+      "formation": {
+        "shape": "line",
+        "spacing_m": 3.0
+      },
+      "leader": "Drone1",
+      "leader_goal_ned_m": [
+        4.5,
+        -6.0,
+        -2.0
+      ],
+      "map_id": "flying_example",
+      "map_revision": "6ff1ca02e88ea18a1263228bb340cc505de586a2fc7c5f579df00abe9659ed9b",
+      "vehicle_names": [
+        "Drone1",
+        "Drone2",
+        "Drone3",
+        "Drone4",
+        "Drone5"
+      ]
+    },
+    "initial_slots_preview": {
+      "Drone2": [
+        0.5,
+        -3.0,
+        -2.0
+      ],
+      "Drone3": [
+        0.5,
+        -9.0,
+        -2.0
+      ],
+      "Drone4": [
+        0.5,
+        0.0,
+        -2.0
+      ],
+      "Drone5": [
+        0.5,
+        -12.0,
+        -2.0
+      ]
+    },
+    "map_coverage": "partial_cylinder_render_meshes_only",
+    "preview_semantics": "nominal_only_not_a_collision_free_route",
+    "terminal_slots_preview": {
+      "Drone1": [
+        4.5,
+        -6.0,
+        -2.0
+      ],
+      "Drone2": [
+        4.5,
+        -3.0,
+        -2.0
+      ],
+      "Drone3": [
+        4.5,
+        -9.0,
+        -2.0
+      ],
+      "Drone4": [
+        4.5,
+        0.0,
+        -2.0
+      ],
+      "Drone5": [
+        4.5,
+        -12.0,
+        -2.0
+      ]
+    },
+    "valid": true,
+    "warnings": [
+      "Partial map and endpoint checks do not prove a route; A rechecks real LiDAR and peers during flight."
+    ]
+  },
+  "telemetry": {
+    "type": "telemetry",
+    "protocol_version": 1,
+    "frame": "world_ned",
+    "timestamp": 1795330273618,
+    "source": "a-state-service",
+    "stream_id": "7787d85a-0689-4ac7-8c8e-3b112f600bac",
+    "sequence_id": 9,
+    "drones": {
+      "Drone1": {
+        "vehicle_name": "Drone1",
+        "valid": true,
+        "validity_reason": "",
+        "position_ned_m": [
+          0.5,
+          -6.0,
+          0.6715055704116821
+        ],
+        "linear_velocity_ned_mps": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "orientation_quaternion_xyzw": [
+          0.0,
+          0.0,
+          0.0,
+          0.9999998807907104
+        ],
+        "angular_velocity_body_radps": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "sim_timestamp_ns": 1795330072779419904,
+        "state_received_monotonic_seconds": 67541.1943461,
+        "received_at_unix_ms": 1795330273595,
+        "coordination_state": "UNKNOWN",
+        "coordination_reason": "",
+        "active_command_id": null
+      },
+      "Drone2": {
+        "vehicle_name": "Drone2",
+        "valid": true,
+        "validity_reason": "",
+        "position_ned_m": [
+          0.5,
+          -3.0,
+          0.6715055704116821
+        ],
+        "linear_velocity_ned_mps": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "orientation_quaternion_xyzw": [
+          0.0,
+          0.0,
+          0.0,
+          0.9999998807907104
+        ],
+        "angular_velocity_body_radps": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "sim_timestamp_ns": 1795330072779419904,
+        "state_received_monotonic_seconds": 67541.1946618,
+        "received_at_unix_ms": 1795330273595,
+        "coordination_state": "UNKNOWN",
+        "coordination_reason": "",
+        "active_command_id": null
+      },
+      "Drone3": {
+        "vehicle_name": "Drone3",
+        "valid": true,
+        "validity_reason": "",
+        "position_ned_m": [
+          0.5,
+          -9.0,
+          0.6715055704116821
+        ],
+        "linear_velocity_ned_mps": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "orientation_quaternion_xyzw": [
+          0.0,
+          0.0,
+          0.0,
+          0.9999998807907104
+        ],
+        "angular_velocity_body_radps": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "sim_timestamp_ns": 1795330072779419904,
+        "state_received_monotonic_seconds": 67541.1949621,
+        "received_at_unix_ms": 1795330273596,
+        "coordination_state": "UNKNOWN",
+        "coordination_reason": "",
+        "active_command_id": null
+      },
+      "Drone4": {
+        "vehicle_name": "Drone4",
+        "valid": true,
+        "validity_reason": "",
+        "position_ned_m": [
+          0.5,
+          0.0,
+          0.6715055704116821
+        ],
+        "linear_velocity_ned_mps": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "orientation_quaternion_xyzw": [
+          0.0,
+          0.0,
+          0.0,
+          0.9999998807907104
+        ],
+        "angular_velocity_body_radps": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "sim_timestamp_ns": 1795330072779419904,
+        "state_received_monotonic_seconds": 67541.1952253,
+        "received_at_unix_ms": 1795330273596,
+        "coordination_state": "UNKNOWN",
+        "coordination_reason": "",
+        "active_command_id": null
+      },
+      "Drone5": {
+        "vehicle_name": "Drone5",
+        "valid": true,
+        "validity_reason": "",
+        "position_ned_m": [
+          0.5,
+          -12.0,
+          0.6715055704116821
+        ],
+        "linear_velocity_ned_mps": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "orientation_quaternion_xyzw": [
+          0.0,
+          0.0,
+          0.0,
+          0.9999998807907104
+        ],
+        "angular_velocity_body_radps": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "sim_timestamp_ns": 1795330072779419904,
+        "state_received_monotonic_seconds": 67541.1955125,
+        "received_at_unix_ms": 1795330273596,
+        "coordination_state": "UNKNOWN",
+        "coordination_reason": "",
+        "active_command_id": null
+      }
+    },
+    "goal": null,
+    "status": "NORMAL",
+    "obstacles": [],
+    "coordination_state": "UNKNOWN",
+    "coordination": {},
+    "active_command": null,
+    "cameras": {},
+    "diagnostics": {
+      "source_sent_at_unix_ms": 1795330273596,
+      "received_at_unix_ms": 1795330273618,
+      "transport_latency_ms": 22
+    },
+    "snapshot": {
+      "snapshot_id": "4",
+      "collection_complete": true,
+      "collection_duration_s": 0.0018570999964140356,
+      "max_receive_skew_s": 0.0011663999903248623,
+      "max_sim_skew_s": 0.0
+    }
+  },
+  "passed": true
+}

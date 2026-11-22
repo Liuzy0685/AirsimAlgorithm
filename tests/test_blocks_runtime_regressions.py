@@ -26,7 +26,7 @@ def test_legacy_landing_needs_new_verified_ground_event(z,timestamp,normal,expec
     s._startup_ground_z=1.1;s._startup_floor_ts=100
     raw=NS(landed_state=1,kinematics_estimated=NS(position=NS(z_val=z),
         linear_velocity=NS(x_val=0.,y_val=0.,z_val=0.)))
-    col=NS(has_collided=False,object_name='(null)',time_stamp=timestamp,
+    col=NS(has_collided=False,object_name='(null)',time_stamp=timestamp,penetration_depth=0.,
         normal=NS(x_val=normal[0],y_val=normal[1],z_val=normal[2]))
     s._client=NS(getMultirotorState=lambda **kw:raw,simGetCollisionInfo=lambda **kw:col)
     now=[0.]

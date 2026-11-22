@@ -1,0 +1,10 @@
+{
+  "Drone1": {
+    "landed": 0,
+    "api": false
+  },
+  "Drone2": {
+    "landed": 0,
+    "api": false
+  }
+}

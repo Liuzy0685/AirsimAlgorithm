@@ -26,6 +26,7 @@ class MissionManager:
         self.url, self.clock = operator_url, clock
         self.lock = threading.RLock()
         self.processes = {}
+        self.recovery_processes = {}
         self.b_seen = {}
         self.b_status_stamps = {}
         self._convergence = {}
@@ -35,7 +36,10 @@ class MissionManager:
         # A supervisor restart must never relaunch or replay a flight.
         for mission in self.data['missions'].values():
             if mission['state'] in ACTIVE or mission['state']=='INTERRUPTED':
-                self._finish_from_disk(mission, interrupted=True)
+                if mission.get('_recovery_request_id'):
+                    self._finish_recovery_from_disk(mission, interrupted=True)
+                else:
+                    self._finish_from_disk(mission, interrupted=True)
         self._save()
 
     def _save(self):
@@ -154,7 +158,8 @@ class MissionManager:
                 requested_formation=checked['config']['formation'], applied_formation=None, applied_revision=None,
                 formation_runtime=None,
                 b_status=None, pending_formation=None, vehicle_results={}, reason='',
-                created_at_unix_ms=int(time.time()*1000), _b_token=secrets.token_urlsafe(32))
+                created_at_unix_ms=int(time.time()*1000), _b_token=secrets.token_urlsafe(32),
+                _ground_reference=copy.deepcopy(checked['actual_start']))
             self.data['missions'][mid] = mission
             self._event(mission)
             return self._receipt(rid, digest, dict(accepted=True, mission=self.public(mission)))
@@ -166,6 +171,107 @@ class MissionManager:
         # with a new runtime directory only after independent control-release verification.
         require(not any(m.get('manual_intervention_required') for m in self.data['missions'].values()),
                 'manual_intervention_required', 'Previous flight cleanup is unverified; resolve before restarting', 409)
+
+    def verify_recovery(self, body):
+        """Clear an interrupted-cleanup guard only after a fresh AirSim check.
+
+        This endpoint never sends flight commands.  The configured read-only
+        preflight probe must confirm every vehicle is landed, stationary,
+        disarmed/API-released, ready, and still matches the selected map and
+        settings before the durable guard can be cleared.
+        """
+        with self.lock:
+            rid, digest, previous = self._replay('recovery/check', body)
+            if previous:
+                return previous
+            require(set(body) == {'request_id'}, 'invalid_fields', 'Only request_id is accepted')
+            require(not any(m['state'] in ACTIVE for m in self.data['missions'].values()),
+                    'mission_active', 'Cannot verify recovery while a mission is active', 409)
+        states = self.probe()
+        checked = {
+            name: {
+                'position_ned_m': list(value['position_ned_m']),
+                'velocity_ned_mps': list(value['velocity_ned_mps']),
+                'landed_state': value['landed_state'],
+            }
+            for name, value in states.items()
+        }
+        with self.lock:
+            require(not any(m['state'] in ACTIVE for m in self.data['missions'].values()),
+                    'mission_active','A mission started during the recovery check',409)
+            cleared = []
+            for mission in self.data['missions'].values():
+                if mission.get('manual_intervention_required'):
+                    mission['manual_intervention_required'] = False
+                    mission['recovery_verified_at_unix_ms'] = int(time.time() * 1000)
+                    mission['recovery_verified_vehicles'] = list(checked)
+                    cleared.append(mission['mission_id'])
+            response = dict(accepted=True, request_id=rid, cleared_mission_ids=cleared,
+                            vehicles=checked, message='Fresh AirSim recovery check passed')
+            self._receipt(rid, digest, response)
+            for mission_id in cleared:
+                self._event(self.data['missions'][mission_id])
+            return response
+
+    def recovery_land(self, mid, body):
+        with self.lock:
+            rid,digest,previous=self._replay('recovery-land/'+mid,body)
+            if previous:return previous
+            require(set(body)=={'request_id','expected_revision'},'invalid_fields','Need expected_revision')
+            m=self._mission(mid)
+            require(self.profile.allow_flight,'flight_disabled','Recovery landing needs --allow-flight',403)
+            require(type(body['expected_revision']) is int and body['expected_revision']==m['revision'],
+                    'revision_conflict','Reload mission before recovery',409)
+            require(m['state'] in {'FAILED','INTERRUPTED'} and m.get('manual_intervention_required'),
+                    'invalid_mission_state','Only an unverified failed/interrupted task can recover',409)
+            require(not any(x['state'] in ACTIVE for x in self.data['missions'].values()),
+                    'mission_active','Cannot recover while another flight or recovery is active',409)
+            require(not self.processes and not self.recovery_processes,
+                    'controller_still_running','Old supervisor is still running; request cooperative stop',409)
+            require(callable(getattr(self.backend,'launch_recovery',None)),
+                    'recovery_unavailable','No recovery backend configured',503)
+            m.setdefault('original_failure',dict(reason=m.get('reason'),vehicle_results=copy.deepcopy(m['vehicle_results'])))
+            m['revision']+=1
+            m['state']='LANDING'
+            m['_recovery_request_id']=rid
+            m['_b_token']=secrets.token_urlsafe(32)
+            m['recovery']=dict(request_id=rid,state='RUNNING',vehicle_results={})
+            self.data['operations'][rid]=dict(request_id=rid,mission_id=mid,kind='recovery_land',state='RUNNING')
+            response=dict(accepted=True,request_id=rid,mission_id=mid,state='LANDING',completed=False)
+            self._receipt(rid,digest,response)
+            self._event(m)
+            try:
+                directory=self.directory/mid/'recovery'/rid
+                proc=self.backend.launch_recovery(copy.deepcopy(m),directory,rid)
+                self.recovery_processes[mid]=proc
+                m['recovery']['process_id']=proc.pid
+                self._event(m)
+            except Exception as exc:
+                m.update(state='FAILED',manual_intervention_required=True,reason='recovery_launch_failed')
+                m['recovery'].update(state='FAILED',reason=str(exc))
+                self.data['operations'][rid].update(state='FAILED',reason='recovery_launch_failed')
+                self._event(m)
+            return response
+
+    def _finish_recovery_from_disk(self,m,*,interrupted=False):
+        rid=m['_recovery_request_id']
+        try:
+            result=read_json(self.directory/m['mission_id']/'recovery'/rid/'result.json')
+            verified=(result.get('cleanup_verified') is True and result.get('mission_id')==m['mission_id']
+                and result.get('request_id')==rid and result.get('revision')==m['revision']
+                and set(result.get('vehicle_results',{}))==set(self.profile.names)
+                and all(r.get('landing_confirmed') is True and r.get('disarmed') is True
+                        and r.get('api_control_released') is True and r.get('cleanup',{}).get('control_released') is True
+                        for r in result['vehicle_results'].values()))
+        except (OSError,ValueError,TypeError,KeyError,AttributeError):
+            result=dict(vehicle_results={},reason='recovery_result_missing')
+            verified=False
+        m.update(state='STOPPED' if verified else ('INTERRUPTED' if interrupted else 'FAILED'),
+                 manual_intervention_required=not verified,reason='recovery_landed' if verified else result.get('reason','invalid_recovery_result'))
+        m['recovery']=dict(result,request_id=rid,state='COMPLETED' if verified else 'FAILED')
+        m['recovery'].pop('observation_trace',None)  # Full diagnostics remain in the immutable worker result file.
+        if verified:m['vehicle_results']=result['vehicle_results']
+        self.data['operations'][rid].update(state='COMPLETED' if verified else 'FAILED',reason=m['reason'])
 
     def start(self, mid, body):
         with self.lock:
@@ -215,6 +321,9 @@ class MissionManager:
                 return previous
             require(set(body) == {'request_id'}, 'invalid_fields', 'Only request_id is accepted')
             m = self._mission(mid)
+            require(mid not in self.recovery_processes and not (
+                m.get('_recovery_request_id') and m['state'] in ACTIVE),
+                'recovery_in_progress','Recovery landing is already executing; wait for its verified result',409)
             require(m['state'] in ACTIVE or m['state'] == 'INTERRUPTED', 'invalid_mission_state', 'Task is not active', 409)
             (self.directory / mid).mkdir(exist_ok=True)
             (self.directory / mid / 'stop.requested').touch()
@@ -379,6 +488,11 @@ class MissionManager:
 
     def tick(self):
         with self.lock:
+            for mid,proc in list(self.recovery_processes.items()):
+                if proc.poll() is not None:
+                    self._finish_recovery_from_disk(self._mission(mid))
+                    del self.recovery_processes[mid]
+                    self._event(self._mission(mid))
             for mid, proc in list(self.processes.items()):
                 m = self._mission(mid)
                 if proc.poll() is not None:
@@ -401,6 +515,12 @@ class MissionManager:
                         m['state'] = phase
                         self._event(m)
             for m in self.data['missions'].values():
+                if m['state']=='INTERRUPTED' and m.get('_recovery_request_id'):
+                    path=self.directory/m['mission_id']/'recovery'/m['_recovery_request_id']/'result.json'
+                    if path.exists():
+                        self._finish_recovery_from_disk(m)
+                        self._event(m)
+                    continue
                 if m['state']=='INTERRUPTED' and (self.directory/m['mission_id']/'runner.result.json').exists():
                     self._finish_from_disk(m)
                     self._event(m)
@@ -414,8 +534,8 @@ class MissionManager:
             for mid in list(self.processes):
                 self.stop(mid, {'request_id': 'shutdown-'+uuid.uuid4().hex})
         deadline = time.monotonic()+timeout
-        while self.processes and time.monotonic()<deadline:
+        while (self.processes or self.recovery_processes) and time.monotonic()<deadline:
             self.tick()
             time.sleep(.2)
         self.closed.set()
-        return not self.processes
+        return not self.processes and not self.recovery_processes

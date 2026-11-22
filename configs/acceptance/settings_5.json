@@ -184,5 +184,62 @@
       }
     }
   },
+  "ExternalCameras": {
+    "Drone1Third": {
+      "X": 0.0,
+      "Y": 0.0,
+      "Z": -5.0,
+      "Pitch": 0.0,
+      "Roll": 0.0,
+      "Yaw": 0.0,
+      "CaptureSettings": [
+        { "ImageType": 0, "Width": 320, "Height": 240, "FOV_Degrees": 90 }
+      ]
+    },
+    "Drone2Third": {
+      "X": 0.0,
+      "Y": 0.0,
+      "Z": -5.0,
+      "Pitch": 0.0,
+      "Roll": 0.0,
+      "Yaw": 0.0,
+      "CaptureSettings": [
+        { "ImageType": 0, "Width": 320, "Height": 240, "FOV_Degrees": 90 }
+      ]
+    },
+    "Drone3Third": {
+      "X": 0.0,
+      "Y": 0.0,
+      "Z": -5.0,
+      "Pitch": 0.0,
+      "Roll": 0.0,
+      "Yaw": 0.0,
+      "CaptureSettings": [
+        { "ImageType": 0, "Width": 320, "Height": 240, "FOV_Degrees": 90 }
+      ]
+    },
+    "Drone4Third": {
+      "X": 0.0,
+      "Y": 0.0,
+      "Z": -5.0,
+      "Pitch": 0.0,
+      "Roll": 0.0,
+      "Yaw": 0.0,
+      "CaptureSettings": [
+        { "ImageType": 0, "Width": 320, "Height": 240, "FOV_Degrees": 90 }
+      ]
+    },
+    "Drone5Third": {
+      "X": 0.0,
+      "Y": 0.0,
+      "Z": -5.0,
+      "Pitch": 0.0,
+      "Roll": 0.0,
+      "Yaw": 0.0,
+      "CaptureSettings": [
+        { "ImageType": 0, "Width": 320, "Height": 240, "FOV_Degrees": 90 }
+      ]
+    }
+  },
   "DefaultVehicleConfig": "SimpleFlight"
 }

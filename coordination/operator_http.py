@@ -114,13 +114,15 @@ class OperatorHandler(BaseHTTPRequestHandler):
                         d['target_z'] for d in p.swarm['drones'] if d['vehicle_name']==p.service.leader),
                     supports={'initial_formation':True,'runtime_formation':'requires_B_heartbeat',
                               'pause_resume':False,'spawn_edit':False,'inflight_goal_edit':False,
-                              'fleet_edit':False,'speed_altitude_edit':False},
+                              'fleet_edit':False,'speed_altitude_edit':False,'recovery_land':True},
                     flight_limits=p.flight_limits, state_service_url=p.service.url))
             if self.command=='GET' and path=='/api/v1/maps/current':
                 return self._json(200,manager.profile.map.public())
             if self.command=='GET' and path=='/api/v1/events':
                 after=int(parse_qs(target.query).get('after',['0'])[0])
                 return self._events(max(0,after))
+            if self.command=='POST' and path=='/api/v1/recovery/check':
+                return self._json(200,manager.verify_recovery(self._body()))
             if self.command=='POST' and path=='/api/v1/missions/validate':
                 return self._json(200,manager.validate(self._body()))
             if self.command=='POST' and path=='/api/v1/missions':
@@ -128,13 +130,15 @@ class OperatorHandler(BaseHTTPRequestHandler):
             match=re.fullmatch(r'/api/v1/operations/([A-Za-z0-9_-]{1,80})',path)
             if match and self.command=='GET':
                 return self._json(200,manager.operation(match[1]))
-            match=re.fullmatch(r'/api/v1/missions/([A-Za-z0-9_-]{1,80})(?:/(start|stop|formation))?',path)
+            match=re.fullmatch(r'/api/v1/missions/([A-Za-z0-9_-]{1,80})(?:/(start|stop|formation|recovery-land))?',path)
             if match:
                 mid,action=match.groups()
                 if action is None and self.command=='GET':
                     return self._json(200,manager.get(mid))
                 if action in {'start','stop'} and self.command=='POST':
                     return self._json(202,getattr(manager,action)(mid,self._body()))
+                if action=='recovery-land' and self.command=='POST':
+                    return self._json(202,manager.recovery_land(mid,self._body()))
                 if action=='formation' and self.command=='PUT':
                     return self._json(202,manager.configure(mid,self._body()))
             raise OperatorError('route_not_found','Unknown API route/method',404)

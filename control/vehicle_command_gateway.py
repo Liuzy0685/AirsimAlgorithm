@@ -191,7 +191,7 @@ class GatewayFlightClient:
     are local to that owning process; the state service additionally rejects
     duplicate live controller subscriptions. Unknown write APIs are denied.
     """
-    _FLIGHT = {"enableApiControl", "armDisarm", "takeoffAsync", "hoverAsync", "landAsync",
+    _FLIGHT = {"enableApiControl", "armDisarm", "takeoffAsync", "hoverAsync", "landAsync", "cancelLastTask",
                "moveByVelocityAsync", "moveByVelocityBodyFrameAsync", "moveByVelocityZBodyFrameAsync", "moveToZAsync"}
 
     def __init__(self, gateway, raw, vehicle_name, controller_id):

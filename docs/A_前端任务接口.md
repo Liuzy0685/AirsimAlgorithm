@@ -11,8 +11,11 @@
 - 持久化请求去重、任务版本检查、单任务运行、重启不重放任务。
 - 调用现有独立进程启动器，收集真实起飞/飞行/清理结果；SSE 发布任务阶段变化。
 - A 侧运行时队形设置入口、B 专用心跳/拉取/结果/状态回报接口。
-  **B 当前网络服务尚未接入这些新增接口**，因此飞行中修改队形会返回
-  `503 b_control_unavailable`，不会伪报成功。起飞前选择队形已经可用。
+  B 网络服务已接入运行时配置通道；只有任务运行且收到 B 心跳时接受运行时修改。
+  通道离线时仍返回 `503 b_control_unavailable`，不会伪报成功。
+
+新增统一地图/机群启动方案、FlyingExampleMap 地面兼容和显式失败任务恢复降落，
+见 [2026-11-22 联调与恢复说明](前端联调与恢复_2026-11-22.md)。
 
 第一版固定使用服务启动时的完整机群与领航机、配置速度和巡航高度；
 不支持飞行中修改终点、暂停后继续、编辑出生点或换机群。`capabilities.supports` 明确返回支持情况。
@@ -67,6 +70,7 @@ $env:AIRSIM_PYTHONCLIENT_PATH='D:\30817\Adrone\airsim\AirSim-main\PythonClient'
 | `PUT /missions/{id}/formation` | `request_id, expected_revision, formation` | 草稿设置结果，或运行时请求待处理状态 |
 | `GET /operations/{request_id}` | 无 | 启动/停止/编队操作的最新结果 |
 | `GET /events?after={sequence}` | SSE 游标 | `update` 事件及最新序号；必要时要求重载任务 |
+| `POST /recovery/check` | `request_id` | 只读安全恢复检查；通过后解除历史清理锁，不发送飞行指令 |
 
 任务请求例子（`map_revision` 必须读取接口，不能写死）：
 
@@ -122,6 +126,8 @@ API 记录到的 `applied_formation` 是配置状态；实际飞行可以因避�
 没有 B 运行时状态时应显示“编队模式未接入”，不能猜测 `nominal/trail`。
 
 失败清理若被安全网关拒绝，`manual_intervention_required=true`，禁止后续启动。
+可在确认所有车辆已落地、静止、解锁并释放 API 控制后调用 `POST /recovery/check`。
+该接口重新执行 AirSim 只读预检，并同时核对当前 settings、车辆数量、地图和坐标变换；检查失败时保持启动锁。
 不能为了让任务显示成功而绕过感知校验或强制清除记录。模拟器恢复/重启也不算落地成功。
 API 意外退出后不自动重启任务，保留停止文件入口，并在原 runner 最终结果出现时重新核对清理。
 

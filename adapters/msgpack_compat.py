@@ -39,6 +39,10 @@ def patch_msgpack() -> None:
         def __init__(self, *args, **kwargs):
             kwargs.pop("encoding", None)
             kwargs.pop("unicode_errors", None)
+            # msgpack 0.x with encoding="utf-8" returned Python strings.
+            # Preserve that contract on msgpack 1.x, whose raw default can
+            # otherwise turn all AirSim RPC keys and text into bytes.
+            kwargs.setdefault("raw", False)
             super().__init__(*args, **kwargs)
 
     msgpack.Packer = _CompatPacker
