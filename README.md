@@ -199,6 +199,7 @@ export AIRSIM_PYTHONCLIENT_PATH="<AirSim源码>/PythonClient"
 - **恢复机制**：卡死（XY 位移 < 0.15m 持续 ≥2.5s）与震荡（vy 符号翻转）检测 → 后退/侧移脱困（`local_recovery.py` / `recovery_commander.py`）。
 - **目标终止**：`goal_termination.py`。
 - **多进程调度**：CBMBA/轨迹/建图以多进程 worker 运行，感知以线程运行（`process_workers.py`）。
+- **局部导航对照改进**：可独立启用观测记忆、停滞重规划、运动限速和平滑、窄通道让行建议；相机服务具有全局采集预算。启用方法、资源取舍和待验收范围见[六方面改进与 A/B 验证](docs/local_navigation_hardening.md)。
 
 ---
 

@@ -1,0 +1,115 @@
+{
+  "scope": "offline observed-memory/router fixtures; CPU workers are not cooperative flights",
+  "recorded_utc": "2026-11-22T16:51:50.673876+00:00",
+  "workers": 2,
+  "iterations": 30,
+  "python": "3.14.5 (tags/v3.14.5:5607950, May 10 2026, 10:43:50) [MSC v.1944 64 bit (AMD64)]",
+  "numpy": "2.4.6",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "parent_commit": "a3d300c9640800815f8c384248a3163b099faf69",
+  "source_sha256_lf": {
+    "coordination/navigation_hardening.py": "333c9ffa8a44655a703d57e5211f58e2eaa90f89c53149f377be936a59a35522",
+    "coordination/navigation.py": "c75620c93aed2ed2503717bee97752af1dc90a7e24f5a8c8948c8c3b848fe11c",
+    "control/swarm_flight_bridge.py": "114e1989d96f40900aa7783cf8d1c45eee49ee5da772359213fb13ec8c1699ad",
+    "scripts/camera_service.py": "99083840b2341d3258a9000c25d1117c6a5382865236644e84a40d2a40ad73e6",
+    "scripts/benchmark_navigation_hardening.py": "42b1a40e8d2b2d3212268d00e6343fbb40d3373fed6034e58dc04a74fc64185c"
+  },
+  "rows": [
+    {
+      "worker": 1,
+      "scene": "visible_8000_points",
+      "hardening": false,
+      "frames": 30,
+      "step_p50_ms": 2.4667500001669396,
+      "step_p95_ms": 2.80000999882759,
+      "maximum_ms": 12.267699999938486,
+      "available_frames": 30,
+      "search_timeouts": 0,
+      "previously_seen_static_segment_misses": 0
+    },
+    {
+      "worker": 1,
+      "scene": "visible_8000_points",
+      "hardening": true,
+      "frames": 30,
+      "step_p50_ms": 7.334049999371928,
+      "step_p95_ms": 7.897720000528352,
+      "maximum_ms": 8.164699998815195,
+      "available_frames": 30,
+      "search_timeouts": 0,
+      "previously_seen_static_segment_misses": 0
+    },
+    {
+      "worker": 1,
+      "scene": "previously_seen_wall_outside_view",
+      "hardening": false,
+      "frames": 30,
+      "step_p50_ms": 0.13674999991053483,
+      "step_p95_ms": 0.49433999975008186,
+      "maximum_ms": 9.119700000155717,
+      "available_frames": 30,
+      "search_timeouts": 0,
+      "previously_seen_static_segment_misses": 19
+    },
+    {
+      "worker": 1,
+      "scene": "previously_seen_wall_outside_view",
+      "hardening": true,
+      "frames": 30,
+      "step_p50_ms": 0.6606500000998494,
+      "step_p95_ms": 0.8263249993433414,
+      "maximum_ms": 12.946800001373049,
+      "available_frames": 30,
+      "search_timeouts": 0,
+      "previously_seen_static_segment_misses": 0
+    },
+    {
+      "worker": 2,
+      "scene": "visible_8000_points",
+      "hardening": false,
+      "frames": 30,
+      "step_p50_ms": 2.33719999960158,
+      "step_p95_ms": 2.7753500003200315,
+      "maximum_ms": 11.783899999500136,
+      "available_frames": 30,
+      "search_timeouts": 0,
+      "previously_seen_static_segment_misses": 0
+    },
+    {
+      "worker": 2,
+      "scene": "visible_8000_points",
+      "hardening": true,
+      "frames": 30,
+      "step_p50_ms": 7.251900000483147,
+      "step_p95_ms": 7.743580000078509,
+      "maximum_ms": 8.113899999443674,
+      "available_frames": 30,
+      "search_timeouts": 0,
+      "previously_seen_static_segment_misses": 0
+    },
+    {
+      "worker": 2,
+      "scene": "previously_seen_wall_outside_view",
+      "hardening": false,
+      "frames": 30,
+      "step_p50_ms": 0.13085000045975903,
+      "step_p95_ms": 0.4939500004184083,
+      "maximum_ms": 8.739800001421827,
+      "available_frames": 30,
+      "search_timeouts": 0,
+      "previously_seen_static_segment_misses": 19
+    },
+    {
+      "worker": 2,
+      "scene": "previously_seen_wall_outside_view",
+      "hardening": true,
+      "frames": 30,
+      "step_p50_ms": 0.6705499999952735,
+      "step_p95_ms": 0.7992749992808966,
+      "maximum_ms": 12.854300000981311,
+      "available_frames": 30,
+      "search_timeouts": 0,
+      "previously_seen_static_segment_misses": 0
+    }
+  ]
+}

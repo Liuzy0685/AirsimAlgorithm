@@ -63,6 +63,10 @@ def load_config(path):
     service = ServiceConfig(**config.get("state_service", {}))
     from coordination.navigation import NavigationConfig
     navigation=NavigationConfig(**config.get('navigation',{}))
+    from coordination.navigation_hardening import HardeningConfig
+    hardening=HardeningConfig(**config.get('local_navigation_hardening',{}))
+    if hardening.enabled and not navigation.enabled:
+        raise ValueError('local navigation hardening requires navigation.enabled')
     if navigation.enabled and not service.enabled:
         raise ValueError('obstacle-aware navigation requires the authoritative A service')
     if service.leader not in names:

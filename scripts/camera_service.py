@@ -67,6 +67,8 @@ class CameraConfig:
     camera_name: str = "0"
     third_distance_m: float = 8.0
     third_height_m: float = 4.0
+    max_total_fps: float = 10.0
+    capture_utilization: float = .5
 
 
 def _fps_from_interval(interval_s: float) -> int:
@@ -157,6 +159,9 @@ class CameraHub:
             raise ValueError("at least one vehicle is required")
         if config.interval_s <= 0:
             raise ValueError("interval_s must be positive")
+        if (not math.isfinite(config.max_total_fps) or config.max_total_fps < 0
+                or not math.isfinite(config.capture_utilization) or not 0 < config.capture_utilization <= 1):
+            raise ValueError('invalid camera capture budget')
         self.client = client
         self.vehicles = tuple(dict.fromkeys(vehicles))
         self.config = config
@@ -165,6 +170,40 @@ class CameraHub:
         self.latest: dict[tuple[str, str], dict[str, Any]] = {}
         self.tasks: dict[tuple[str, str], asyncio.Task[None]] = {}
         self.stop_event = asyncio.Event()
+        self.capture_gate = asyncio.Lock()
+        self.next_capture_at = 0.
+        self.capture_ema_s = 0.
+        self.capture_count = 0
+
+    def global_capture_period(self):
+        rate_period = 1/self.config.max_total_fps if self.config.max_total_fps else 0.
+        return max(rate_period, self.capture_ema_s/self.config.capture_utilization)
+
+    def effective_interval(self):
+        active = sum(not task.done() for task in self.tasks.values())
+        return max(self.config.interval_s, max(1, active)*self.global_capture_period())
+
+    async def budgeted_capture(self, vehicle, view):
+        # Queue in asyncio, not a thread per view blocked on the RPC lock.
+        # Cancellation waits for an already-started read to finish before
+        # releasing the gate: re-selection cannot accumulate orphan RPC jobs.
+        async with self.capture_gate:
+            await asyncio.sleep(max(0., self.next_capture_at-time.monotonic()))
+            started=time.monotonic()
+            task=asyncio.create_task(asyncio.to_thread(self._capture,vehicle,view))
+            try:
+                return await asyncio.shield(task)
+            except asyncio.CancelledError:
+                try:
+                    await task
+                except Exception:
+                    pass
+                raise
+            finally:
+                elapsed=time.monotonic()-started
+                self.capture_ema_s=elapsed if not self.capture_count else .8*self.capture_ema_s+.2*elapsed
+                self.capture_count+=1
+                self.next_capture_at=time.monotonic()+max(0.,self.global_capture_period()-elapsed)
 
     def _capture(self, vehicle: str, view: str) -> bytes:
         airsim = _import_airsim()
@@ -209,14 +248,15 @@ class CameraHub:
 
     async def capture_loop(self, vehicle: str, view: str) -> None:
         while not self.stop_event.is_set():
-            started = time.time()
+            started = time.monotonic()
             try:
-                image = await asyncio.to_thread(self._capture, vehicle, view)
+                image = await self.budgeted_capture(vehicle, view)
                 self.latest[(vehicle, view)] = {
                     "image": image,
                     "captured_at_unix_ms": int(time.time() * 1000),
                     "status": "online",
                     "error": "",
+                    "capture_ms": self.capture_ema_s*1000,
                 }
             except asyncio.CancelledError:
                 raise
@@ -228,7 +268,7 @@ class CameraHub:
                     "status": "offline",
                     "error": f"{type(exc).__name__}: {exc}",
                 }
-            delay = max(0.0, self.config.interval_s - (time.time() - started))
+            delay = max(0.0, self.effective_interval() - (time.monotonic() - started))
             try:
                 await asyncio.wait_for(self.stop_event.wait(), timeout=delay)
             except asyncio.TimeoutError:
@@ -296,6 +336,10 @@ class CameraHub:
                     "active": active,
                     "captured_at_unix_ms": item.get("captured_at_unix_ms"),
                     "error": item.get("error", ""),
+                    "requested_fps": _fps_from_interval(self.config.interval_s),
+                    "effective_fps_limit": 1/self.effective_interval(),
+                    "capture_ms": item.get('capture_ms'),
+                    "throttled": self.effective_interval()>self.config.interval_s+1e-6,
                 }
         return result
 
@@ -370,7 +414,7 @@ def create_app(hub: CameraHub) -> web.Application:
                         + image
                         + b"\r\n"
                     )
-                await asyncio.sleep(hub.config.interval_s)
+                await asyncio.sleep(hub.effective_interval())
         except (asyncio.CancelledError, ConnectionResetError, BrokenPipeError):
             pass
         finally:
@@ -420,6 +464,8 @@ def main() -> int:
     parser.add_argument("--camera-name", default="0")
     parser.add_argument("--third-distance", type=float, default=8.0)
     parser.add_argument("--third-height", type=float, default=4.0)
+    parser.add_argument('--max-total-fps',type=float,default=10.,help='global capture budget; 0 disables rate cap')
+    parser.add_argument('--capture-utilization',type=float,default=.5,help='capture duty fraction in (0,1]; back off when RPC slows')
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     airsim = _import_airsim()
@@ -437,6 +483,8 @@ def main() -> int:
             camera_name=args.camera_name,
             third_distance_m=args.third_distance,
             third_height_m=args.third_height,
+            max_total_fps=args.max_total_fps,
+            capture_utilization=args.capture_utilization,
         ),
     )
     web.run_app(create_app(hub), host=args.host, port=args.port)

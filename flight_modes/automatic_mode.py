@@ -7046,6 +7046,10 @@ class AutomaticMode:
                 # cumulative numbers (168+264+321+233 > 555) over-stated each stage.
                 _stg_total_ms = (time.perf_counter() - _stg_t0) * 1000.0
                 _stg_dispatch_ms = (time.perf_counter() - _stg_dispatch_start) * 1000.0
+                if self._swarm_bridge is not None and self._swarm_bridge.hardening.enabled:
+                    self._swarm_bridge.diagnostics.record(control_work_ms=_stg_total_ms,
+                        planning_ms=_stg_plan_ms,dispatch_stage_ms=_stg_dispatch_ms,
+                        velocity_rpc_ms=_rpc_velocity_command_ms,velocity_submit_ms=_rpc_velocity_submit_ms)
                 # Phase C5-R: sum of top-level *exclusive* stages (sequential,
                 # non-overlapping deltas).  The cbmba_*/trajectory_*/map_* fields
                 # are drill-downs nested inside worker_request_ms /

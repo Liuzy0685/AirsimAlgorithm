@@ -85,8 +85,13 @@ def segment_clear(a,b,points,clearance):
 
 class CommittedGridRouter:
     """Persist observed static surfaces, commit a detour and recheck new scans."""
-    def __init__(self,cfg:NavigationConfig,*,clock=time.monotonic,minimum_clearance_m=.95):
+    def __init__(self,cfg:NavigationConfig,*,clock=time.monotonic,minimum_clearance_m=.95,hardening=None):
+        from coordination.navigation_hardening import HardeningConfig, ObservedStaticMemory
         self.cfg,self.clock=cfg,clock
+        self.hardening=hardening or HardeningConfig()
+        self.memory=ObservedStaticMemory(cfg.resolution_m,self.hardening)
+        self.travel_history=[];self.failed_cells={};self.last_failure_reason=''
+        self.search_timed_out=False;self._search_deadline=math.inf
         self.minimum_clearance_m=minimum_clearance_m
         self.cells={};self.path=[];self.goal=None
         self.last_plan=-math.inf;self.route_version=0
@@ -119,8 +124,12 @@ class CommittedGridRouter:
         if not candidates:return []
         return [tuple(position[:2]),min(candidates,key=lambda x:x[0])[1]]
 
-    def observe(self,points_xy):
+    def observe(self,points_xy,*,origin=None,scan_id=None,dynamic_regions=(),clearing_points=None):
         now=self.clock();h=self.cfg.resolution_m
+        if self.hardening.enabled and self.hardening.memory:
+            self.memory.observe(points_xy,now,origin=origin,scan_id=scan_id,dynamic_regions=dynamic_regions,
+                                clearing_points=clearing_points)
+            return
         points=np.asarray(points_xy,float).reshape(-1,2)
         if not np.all(np.isfinite(points)):raise ValueError('nonfinite observed obstacle')
         for x,y in np.unique(np.rint(points/h).astype(int),axis=0):self.cells[(int(x),int(y))]=now
@@ -130,10 +139,43 @@ class CommittedGridRouter:
 
     def obstacles(self,position=None):
         now=self.clock();h=self.cfg.resolution_m
+        if self.hardening.enabled and self.hardening.memory:
+            p=self.memory.points(now)
+            if position is not None and len(p):p=p[np.linalg.norm(p-np.asarray(position[:2]),axis=1)<=self.cfg.max_range_m]
+            return p
         self.cells={k:t for k,t in self.cells.items() if 0<=now-t<self.cfg.obstacle_ttl_s}
         p=np.asarray([(x*h,y*h) for x,y in self.cells],float).reshape(-1,2)
         if position is not None and len(p):p=p[np.linalg.norm(p-np.asarray(position[:2]),axis=1)<=self.cfg.max_range_m]
         return p
+
+    def note_stall(self,position,reason):
+        if not self.hardening.enabled or not self.hardening.recovery:return
+        now=self.clock();h=self.cfg.resolution_m
+        self.failed_cells={k:t for k,t in self.failed_cells.items() if now<t}
+        for point in self.path[2:]:
+            if math.dist(position[:2],point)<.5:continue
+            self.failed_cells[tuple(round(v/h) for v in point)]=now+self.hardening.failure_ttl_s
+        if len(self.failed_cells)>2048:
+            self.failed_cells=dict(sorted(self.failed_cells.items(),key=lambda item:item[1],reverse=True)[:2048])
+        self.last_failure_reason=reason
+        self.path=[];self.last_plan=-math.inf
+
+    def verified_retreat(self,position,*,temporary_obstacles=()):
+        """Return a short previously traveled segment, rechecked against NOW."""
+        points=self.obstacles(position)
+        temporary=np.asarray(temporary_obstacles,float).reshape(-1,2)
+        if len(temporary):points=np.vstack((points,temporary))
+        margin=max(self.minimum_clearance_m+self.cfg.resolution_m/math.sqrt(2.),self.cfg.clearance_m)
+        previous=tuple(position[:2]);distance=0.
+        for point in reversed(self.travel_history):
+            step=math.dist(previous,point)
+            if step<.05:continue
+            distance+=step
+            if distance>2. or not segment_clear(previous,point,points,margin):break
+            if distance>=.4 and segment_clear(position,point,points,margin):
+                return point[0],point[1],position[2]
+            previous=point
+        return None
 
     def _search(self,start,goal,points,penalty=None):
         h=self.cfg.resolution_m
@@ -144,13 +186,15 @@ class CommittedGridRouter:
         n=math.ceil(radius/h)
         stencil=[(i,j) for i in range(-n,n+1) for j in range(-n,n+1) if math.hypot(i,j)*h<=radius]
         blocked=set()
-        for x,y in points:
+        for index,(x,y) in enumerate(points):
+            if self.hardening.enabled and self.hardening.recovery and index%128==0 and self.clock()>self._search_deadline:
+                self.search_timed_out=True;return []
             ix,iy=round(x/h),round(y/h)
             if not lo[0]-n<=ix<=hi[0]+n or not lo[1]-n<=iy<=hi[1]+n:continue
             blocked.update((ix+i,iy+j) for i,j in stencil)
         if s in blocked or g in blocked:return []
         opened=[(math.dist(s,g),0.,s)];cost={s:0.};parent={};expanded=0
-        deadline=self.clock()+.06
+        deadline=min(self.clock()+.06,self._search_deadline)
         while opened and expanded<self.cfg.max_expansions:
             _,old,u=heapq.heappop(opened)
             if old!=cost.get(u):continue
@@ -161,12 +205,14 @@ class CommittedGridRouter:
                 path[0]=tuple(start[:2]);path[-1]=tuple(goal[:2])
                 return path
             expanded+=1
-            if expanded%100==0 and self.clock()>deadline:return []
+            if expanded%100==0 and self.clock()>deadline:
+                self.search_timed_out=True;return []
             for dx,dy in ((1,0),(-1,0),(0,1),(0,-1),(1,1),(1,-1),(-1,1),(-1,-1)):
                 v=(u[0]+dx,u[1]+dy)
                 if (not lo[0]<=v[0]<=hi[0] or not lo[1]<=v[1]<=hi[1] or v in blocked
                         or (dx and dy and ((u[0]+dx,u[1]) in blocked or (u[0],u[1]+dy) in blocked))):continue
                 c=old+math.hypot(dx,dy)+(1.5 if penalty and v in penalty else 0.)
+                if self.hardening.enabled and self.hardening.recovery and self.failed_cells and self.failed_cells.get(v,-math.inf)>self.clock():c+=3.
                 if c<cost.get(v,math.inf):
                     cost[v]=c;parent[v]=u;heapq.heappush(opened,(c+math.dist(v,g),c,v))
         return []
@@ -174,6 +220,13 @@ class CommittedGridRouter:
     def waypoint(self,position,goal,*,temporary_obstacles=()):
         if any(not math.isfinite(v) for v in (*position,*goal)):raise ValueError('invalid route endpoints')
         points=self.obstacles(position);now=self.clock()
+        if self.hardening.enabled:
+            self.search_timed_out=False
+            self._search_deadline=now+.08 if self.hardening.recovery else math.inf
+            self.failed_cells={k:t for k,t in self.failed_cells.items() if now<t}
+            if ((self.hardening.recovery or self.hardening.passage)
+                    and (not self.travel_history or math.dist(position[:2],self.travel_history[-1])>.15)):
+                self.travel_history.append(tuple(position[:2]));self.travel_history=self.travel_history[-128:]
         if (math.dist(position,goal)<.15 and
                 segment_clear(position,goal,points,self.minimum_clearance_m+self.cfg.resolution_m/math.sqrt(2.))):
             self.path=[];self.path_available=True;self.goal_blocked=False;self.escaping=False
@@ -208,7 +261,11 @@ class CommittedGridRouter:
                 penalty={tuple(round(v/h) for v in p) for p in path[len(path)//4:3*len(path)//4]}
                 alternative=self._search(position,goal,points,penalty)
                 candidates=[p for p in (path,alternative) if p and all(segment_clear(a,b,points,self.cfg.clearance_m) for a,b in zip(p,p[1:]))]
-                self.path=min(candidates,key=lambda p:sum(math.dist(a,b) for a,b in zip(p,p[1:]))) if candidates else []
+                def route_cost(p):
+                    length=sum(math.dist(a,b) for a,b in zip(p,p[1:]))
+                    return length+(3*h*sum(tuple(round(v/h) for v in q) in self.failed_cells for q in p)
+                                   if self.hardening.enabled else 0.)
+                self.path=min(candidates,key=route_cost) if candidates else []
                 self.escaping=False
             else:self.path=[]
             if not self.path:
