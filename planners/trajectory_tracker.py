@@ -81,6 +81,7 @@ class TrajectoryTracker:
         is_reverse: bool = False,
         goal_xy: Optional[Tuple[float, float]] = None,
         goal_ned: Optional[Tuple[float, float, float]] = None,
+        speed_limit_mps: Optional[float] = None,
     ) -> TrackerResult:
         """Compute a body-frame velocity to track the cached trajectory.
 
@@ -213,6 +214,18 @@ class TrajectoryTracker:
             res.vx = goal_vx
             res.vy = goal_vy
 
+        if speed_limit_mps is not None:
+            # Also applies after terminal-goal blending; that branch must not
+            # restore a faster command than the checked trajectory permits.
+            cap = float(speed_limit_mps)
+            if not math.isfinite(cap) or cap < 0:
+                res.vx = res.vy = res.yaw_rate_radps = 0.0
+            else:
+                magnitude = math.hypot(res.vx, res.vy)
+                if magnitude > cap:
+                    scale = cap / magnitude
+                    res.vx *= scale
+                    res.vy *= scale
         return res
 
     @staticmethod

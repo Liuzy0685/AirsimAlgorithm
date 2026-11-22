@@ -195,7 +195,7 @@ export AIRSIM_PYTHONCLIENT_PATH="<AirSim源码>/PythonClient"
 
 - **CBMBA A\***：全局路径规划，从旧 JS 项目纯 Python 移植（`planners/cbmba_astar.py`）。
 - **APF（人工势场）**：反应式避障（`planners/improved_potential_field.py`）。
-- **局部轨迹规划**：确定性轨迹生成 + 跟踪（`local_trajectory_planner.py` / `trajectory_tracker.py`）。
+- **局部轨迹规划**：固定候选回退 + 有预算的自适应曲率候选、有限细化及跟踪（`local_trajectory_planner.py` / `trajectory_tracker.py`）；启用范围、时限和离线对照见[自适应局部轨迹说明](docs/adaptive_local_trajectories.md)。
 - **恢复机制**：卡死（XY 位移 < 0.15m 持续 ≥2.5s）与震荡（vy 符号翻转）检测 → 后退/侧移脱困（`local_recovery.py` / `recovery_commander.py`）。
 - **目标终止**：`goal_termination.py`。
 - **多进程调度**：CBMBA/轨迹/建图以多进程 worker 运行，感知以线程运行（`process_workers.py`）。

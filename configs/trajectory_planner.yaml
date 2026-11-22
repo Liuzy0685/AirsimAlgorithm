@@ -16,6 +16,19 @@ trajectory_planner:
   planning_hz: 8.0             # local replan rate (tracking runs faster)
   max_compute_ms: 20.0
 
+  # Fixed arcs remain checked fallbacks. Additional curves use the live goal,
+  # observed obstacle gradient and previous curvature, then a bounded fine search.
+  # This affects the trajectory branch; swarm navigation's grid router retains
+  # its own motion selection and final LiDAR / peer gateway checks.
+  adaptive_candidates:
+    enabled: true
+    max_candidates: 18        # includes fixed, optional rejoin, adaptive and fine
+    proposals: 4
+    refinements: 2
+    curvature_step: 0.10      # 1/m; all candidates stay within +/-0.90 1/m
+    braking_accel_mps2: 0.35  # conservative clearance-based speed cap
+    lateral_accel_mps2: 0.40
+
   # LiDAR returns are on the obstacle surface.  This leaves a practical
   # narrow-passage gate while retaining a margin around the vehicle.
   hard_clearance_m: 0.90

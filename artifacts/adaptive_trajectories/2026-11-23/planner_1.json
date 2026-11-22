@@ -1,0 +1,425 @@
+{
+  "recorded_utc": "2026-11-22T16:14:00.374683+00:00",
+  "scope": "offline synthetic planner fixtures; no AirSim, RPC, camera load or flight validation",
+  "baseline_note": "fixed baseline uses the current revision's distance-query acceleration; no timing claim against an untouched old checkout",
+  "python": "3.14.5 (tags/v3.14.5:5607950, May 10 2026, 10:43:50) [MSC v.1944 64 bit (AMD64)]",
+  "numpy": "2.4.6",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "cpu": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
+  "workers": 1,
+  "iterations": 30,
+  "base_commit": "554292f76b3a2c8dff05099639647fdb14d86e69",
+  "source_sha256_lf": {
+    "planners/local_trajectory_planner.py": "4c64f7f6933c1e303814c9190e92f1be69c0f45f80a98467d44abda575129ec0",
+    "mapping/distance_field.py": "b8fec9baa7d83935efdb275dddd926a654a1465b3311031cc0c97f67473f25fd",
+    "configs/trajectory_planner.yaml": "1187fbe59fccd6311350ce0ad4d3fc1149a39ca56758c7e57bd711f2134d975c",
+    "scripts/benchmark_adaptive_trajectories.py": "2a4d4f75c9f8cc270ebff149baa3e2be24a10c389addd135f80e1d81590b7549"
+  },
+  "rows": [
+    {
+      "vehicle": 1,
+      "fixture": "open_goal_turn",
+      "mode": "fixed_sampled",
+      "frames": 30,
+      "obstacle_points": 0,
+      "wall": {
+        "p50_ms": 0.18330000011701486,
+        "p95_ms": 0.1979599995593162,
+        "p99_ms": 0.20174299987957056,
+        "max_ms": 0.2027000000452972
+      },
+      "compute": {
+        "p50_ms": 0.1791499998944346,
+        "p95_ms": 0.19387500055927376,
+        "p99_ms": 0.1971300006061938,
+        "max_ms": 0.19800000063696643
+      },
+      "budget_ms": 20.0,
+      "budget_exhausted": 0,
+      "wall_budget_overruns": 0,
+      "selected": 30,
+      "no_plan": 0,
+      "unsafe_selected": 0,
+      "selected_adaptive": 0,
+      "max_generated": 9
+    },
+    {
+      "vehicle": 1,
+      "fixture": "open_goal_turn",
+      "mode": "fixed_segment_checked",
+      "frames": 30,
+      "obstacle_points": 0,
+      "wall": {
+        "p50_ms": 0.17569999954503146,
+        "p95_ms": 0.21435500043480704,
+        "p99_ms": 0.2351460000681982,
+        "max_ms": 0.23590000000695
+      },
+      "compute": {
+        "p50_ms": 0.1708499999040214,
+        "p95_ms": 0.2097999999023158,
+        "p99_ms": 0.23011999958725937,
+        "max_ms": 0.23069999951985665
+      },
+      "budget_ms": 20.0,
+      "budget_exhausted": 0,
+      "wall_budget_overruns": 0,
+      "selected": 30,
+      "no_plan": 0,
+      "unsafe_selected": 0,
+      "selected_adaptive": 0,
+      "max_generated": 9
+    },
+    {
+      "vehicle": 1,
+      "fixture": "open_goal_turn",
+      "mode": "adaptive",
+      "frames": 30,
+      "obstacle_points": 0,
+      "wall": {
+        "p50_ms": 0.27404999991631485,
+        "p95_ms": 0.2973050002765376,
+        "p99_ms": 0.33413100032703374,
+        "max_ms": 0.34750000031635864
+      },
+      "compute": {
+        "p50_ms": 0.2684999999473803,
+        "p95_ms": 0.2900049999880139,
+        "p99_ms": 0.3272800003196608,
+        "max_ms": 0.3412000005482696
+      },
+      "budget_ms": 20.0,
+      "budget_exhausted": 0,
+      "wall_budget_overruns": 0,
+      "selected": 30,
+      "no_plan": 0,
+      "unsafe_selected": 0,
+      "selected_adaptive": 30,
+      "max_generated": 14
+    },
+    {
+      "vehicle": 1,
+      "fixture": "offset_pillar",
+      "mode": "fixed_sampled",
+      "frames": 30,
+      "obstacle_points": 96,
+      "wall": {
+        "p50_ms": 1.0971000001518405,
+        "p95_ms": 1.2389249996431317,
+        "p99_ms": 1.4849530001265523,
+        "max_ms": 1.5848000002733897
+      },
+      "compute": {
+        "p50_ms": 1.0924500002147397,
+        "p95_ms": 1.2330550004662655,
+        "p99_ms": 1.479660000159129,
+        "max_ms": 1.5800000001036096
+      },
+      "budget_ms": 20.0,
+      "budget_exhausted": 0,
+      "wall_budget_overruns": 0,
+      "selected": 30,
+      "no_plan": 0,
+      "unsafe_selected": 0,
+      "selected_adaptive": 0,
+      "max_generated": 9
+    },
+    {
+      "vehicle": 1,
+      "fixture": "offset_pillar",
+      "mode": "fixed_segment_checked",
+      "frames": 30,
+      "obstacle_points": 96,
+      "wall": {
+        "p50_ms": 0.8343499998773041,
+        "p95_ms": 0.9279500001866835,
+        "p99_ms": 1.0117369998351933,
+        "max_ms": 1.042099999722268
+      },
+      "compute": {
+        "p50_ms": 0.8290499999930034,
+        "p95_ms": 0.9204950002185797,
+        "p99_ms": 1.0041890004777088,
+        "max_ms": 1.0349000003770925
+      },
+      "budget_ms": 20.0,
+      "budget_exhausted": 0,
+      "wall_budget_overruns": 0,
+      "selected": 30,
+      "no_plan": 0,
+      "unsafe_selected": 0,
+      "selected_adaptive": 0,
+      "max_generated": 9
+    },
+    {
+      "vehicle": 1,
+      "fixture": "offset_pillar",
+      "mode": "adaptive",
+      "frames": 30,
+      "obstacle_points": 96,
+      "wall": {
+        "p50_ms": 1.2218500000926724,
+        "p95_ms": 1.767374999826643,
+        "p99_ms": 1.9390440000188394,
+        "max_ms": 2.0076000000699423
+      },
+      "compute": {
+        "p50_ms": 1.211949999742501,
+        "p95_ms": 1.7563799996423768,
+        "p99_ms": 1.9293480003216248,
+        "max_ms": 1.9986000006610993
+      },
+      "budget_ms": 20.0,
+      "budget_exhausted": 0,
+      "wall_budget_overruns": 0,
+      "selected": 30,
+      "no_plan": 0,
+      "unsafe_selected": 0,
+      "selected_adaptive": 30,
+      "max_generated": 13
+    },
+    {
+      "vehicle": 1,
+      "fixture": "narrow_passage",
+      "mode": "fixed_sampled",
+      "frames": 30,
+      "obstacle_points": 240,
+      "wall": {
+        "p50_ms": 0.882499999988795,
+        "p95_ms": 1.0044949999155506,
+        "p99_ms": 1.0058939997816196,
+        "max_ms": 1.0062999999718159
+      },
+      "compute": {
+        "p50_ms": 0.878499999998894,
+        "p95_ms": 1.0006099998008722,
+        "p99_ms": 1.0009130004073086,
+        "max_ms": 1.0010000005422626
+      },
+      "budget_ms": 20.0,
+      "budget_exhausted": 0,
+      "wall_budget_overruns": 0,
+      "selected": 30,
+      "no_plan": 0,
+      "unsafe_selected": 0,
+      "selected_adaptive": 0,
+      "max_generated": 9
+    },
+    {
+      "vehicle": 1,
+      "fixture": "narrow_passage",
+      "mode": "fixed_segment_checked",
+      "frames": 30,
+      "obstacle_points": 240,
+      "wall": {
+        "p50_ms": 0.9570000001986045,
+        "p95_ms": 1.0543700002472174,
+        "p99_ms": 1.1917629998606571,
+        "max_ms": 1.2251999996806262
+      },
+      "compute": {
+        "p50_ms": 0.9523999997327337,
+        "p95_ms": 1.048684999977922,
+        "p99_ms": 1.185762999648432,
+        "max_ms": 1.219199999468401
+      },
+      "budget_ms": 20.0,
+      "budget_exhausted": 0,
+      "wall_budget_overruns": 0,
+      "selected": 30,
+      "no_plan": 0,
+      "unsafe_selected": 0,
+      "selected_adaptive": 0,
+      "max_generated": 9
+    },
+    {
+      "vehicle": 1,
+      "fixture": "narrow_passage",
+      "mode": "adaptive",
+      "frames": 30,
+      "obstacle_points": 240,
+      "wall": {
+        "p50_ms": 1.1337000000821718,
+        "p95_ms": 1.3018500002090148,
+        "p99_ms": 1.357297000440667,
+        "max_ms": 1.3691000003746012
+      },
+      "compute": {
+        "p50_ms": 1.1283499998171465,
+        "p95_ms": 1.2952299999142267,
+        "p99_ms": 1.3504970002395567,
+        "max_ms": 1.3623000004372443
+      },
+      "budget_ms": 20.0,
+      "budget_exhausted": 0,
+      "wall_budget_overruns": 0,
+      "selected": 30,
+      "no_plan": 0,
+      "unsafe_selected": 0,
+      "selected_adaptive": 0,
+      "max_generated": 11
+    },
+    {
+      "vehicle": 1,
+      "fixture": "dead_end",
+      "mode": "fixed_sampled",
+      "frames": 30,
+      "obstacle_points": 220,
+      "wall": {
+        "p50_ms": 0.795750000179396,
+        "p95_ms": 0.9162450000076204,
+        "p99_ms": 0.9400679998634587,
+        "max_ms": 0.9431999997104867
+      },
+      "compute": {
+        "p50_ms": 0.7923499997559702,
+        "p95_ms": 0.9117700001752381,
+        "p99_ms": 0.9350130000711943,
+        "max_ms": 0.9380000001328881
+      },
+      "budget_ms": 20.0,
+      "budget_exhausted": 0,
+      "wall_budget_overruns": 0,
+      "selected": 30,
+      "no_plan": 0,
+      "unsafe_selected": 0,
+      "selected_adaptive": 0,
+      "max_generated": 9
+    },
+    {
+      "vehicle": 1,
+      "fixture": "dead_end",
+      "mode": "fixed_segment_checked",
+      "frames": 30,
+      "obstacle_points": 220,
+      "wall": {
+        "p50_ms": 0.8971000002020446,
+        "p95_ms": 1.0338899999169369,
+        "p99_ms": 1.0697400000935886,
+        "max_ms": 1.0767000003397698
+      },
+      "compute": {
+        "p50_ms": 0.8925500001168984,
+        "p95_ms": 1.027905000182727,
+        "p99_ms": 1.0639370004992088,
+        "max_ms": 1.0711000004448579
+      },
+      "budget_ms": 20.0,
+      "budget_exhausted": 0,
+      "wall_budget_overruns": 0,
+      "selected": 30,
+      "no_plan": 0,
+      "unsafe_selected": 0,
+      "selected_adaptive": 0,
+      "max_generated": 9
+    },
+    {
+      "vehicle": 1,
+      "fixture": "dead_end",
+      "mode": "adaptive",
+      "frames": 30,
+      "obstacle_points": 220,
+      "wall": {
+        "p50_ms": 1.1540499999682652,
+        "p95_ms": 1.55778499979533,
+        "p99_ms": 1.7193660000793898,
+        "max_ms": 1.7323000001852051
+      },
+      "compute": {
+        "p50_ms": 1.1484999999993306,
+        "p95_ms": 1.5465450000192495,
+        "p99_ms": 1.7061310000462981,
+        "max_ms": 1.719500000035623
+      },
+      "budget_ms": 20.0,
+      "budget_exhausted": 0,
+      "wall_budget_overruns": 0,
+      "selected": 30,
+      "no_plan": 0,
+      "unsafe_selected": 0,
+      "selected_adaptive": 0,
+      "max_generated": 11
+    },
+    {
+      "vehicle": 1,
+      "fixture": "dense_8000_points",
+      "mode": "fixed_sampled",
+      "frames": 30,
+      "obstacle_points": 8000,
+      "wall": {
+        "p50_ms": 11.324900000090565,
+        "p95_ms": 11.590965000141296,
+        "p99_ms": 11.817862999969293,
+        "max_ms": 11.903499999789346
+      },
+      "compute": {
+        "p50_ms": 11.31885000040711,
+        "p95_ms": 11.582870000211187,
+        "p99_ms": 11.8112800002109,
+        "max_ms": 11.897700000190525
+      },
+      "budget_ms": 20.0,
+      "budget_exhausted": 0,
+      "wall_budget_overruns": 0,
+      "selected": 30,
+      "no_plan": 0,
+      "unsafe_selected": 0,
+      "selected_adaptive": 0,
+      "max_generated": 9
+    },
+    {
+      "vehicle": 1,
+      "fixture": "dense_8000_points",
+      "mode": "fixed_segment_checked",
+      "frames": 30,
+      "obstacle_points": 8000,
+      "wall": {
+        "p50_ms": 20.203399999445537,
+        "p95_ms": 20.273055000006934,
+        "p99_ms": 20.276578999955746,
+        "max_ms": 20.27799999996205
+      },
+      "compute": {
+        "p50_ms": 20.196299999952316,
+        "p95_ms": 20.265719999952125,
+        "p99_ms": 20.26895300033175,
+        "max_ms": 20.27020000059565
+      },
+      "budget_ms": 20.0,
+      "budget_exhausted": 30,
+      "wall_budget_overruns": 30,
+      "selected": 30,
+      "no_plan": 0,
+      "unsafe_selected": 0,
+      "selected_adaptive": 0,
+      "max_generated": 9
+    },
+    {
+      "vehicle": 1,
+      "fixture": "dense_8000_points",
+      "mode": "adaptive",
+      "frames": 30,
+      "obstacle_points": 8000,
+      "wall": {
+        "p50_ms": 20.209750000049098,
+        "p95_ms": 20.285895000188248,
+        "p99_ms": 20.368021000176668,
+        "max_ms": 20.401400000082504
+      },
+      "compute": {
+        "p50_ms": 20.200850000037462,
+        "p95_ms": 20.278565000035087,
+        "p99_ms": 20.353036999558753,
+        "max_ms": 20.383399999445828
+      },
+      "budget_ms": 20.0,
+      "budget_exhausted": 30,
+      "wall_budget_overruns": 30,
+      "selected": 30,
+      "no_plan": 0,
+      "unsafe_selected": 0,
+      "selected_adaptive": 0,
+      "max_generated": 9
+    }
+  ]
+}

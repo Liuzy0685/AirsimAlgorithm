@@ -920,6 +920,9 @@ def _build_trajectory_params(cfg: Dict[str, Any]):
     family_switch = s.get("family_switch") or {}
     side_lock = s.get("side_lock") or {}
     adaptive_horizon = s.get("adaptive_horizon") or {}
+    adaptive_candidates = s.get("adaptive_candidates") or {}
+    if not isinstance(adaptive_candidates, dict):
+        raise ValueError("adaptive_candidates must be a mapping")
 
     def _nf(d, key, default):
         v = d.get(key, default)
@@ -935,6 +938,13 @@ def _build_trajectory_params(cfg: Dict[str, Any]):
         sample_spacing_m=_f("sample_spacing_m", 0.25),
         planning_hz=_f("planning_hz", 8.0),
         max_compute_ms=_f("max_compute_ms", 20.0),
+        adaptive_candidates_enabled=adaptive_candidates.get("enabled", False),
+        adaptive_max_candidates=adaptive_candidates.get("max_candidates", 18),
+        adaptive_proposals=adaptive_candidates.get("proposals", 4),
+        adaptive_refinements=adaptive_candidates.get("refinements", 2),
+        adaptive_curvature_step=_nf(adaptive_candidates, "curvature_step", .10),
+        adaptive_braking_accel_mps2=_nf(adaptive_candidates, "braking_accel_mps2", .35),
+        adaptive_lateral_accel_mps2=_nf(adaptive_candidates, "lateral_accel_mps2", .40),
         hard_clearance_m=_f("hard_clearance_m", 1.0),
         preferred_clearance_m=_f("preferred_clearance_m", 1.8),
         enable_distance_field_refinement=_b("enable_distance_field_refinement", False),
@@ -1846,6 +1856,7 @@ class AutomaticMode:
         self._traj_last_apply_time: float = -float("inf")
         self._traj_cached_points: list = []
         self._traj_cached_family: Optional[str] = None
+        self._traj_cached_speed_limit: Optional[float] = None
         self._traj_narrow_passage_active: bool = False
         self._traj_force_replan: bool = True
 
@@ -5821,12 +5832,23 @@ class AutomaticMode:
                                 )
                             self._traj_cached_points = list(_sel.points)
                             self._traj_cached_family = _sel.family
+                            self._traj_cached_speed_limit = traj_result.speed_limit_mps
                             self._traj_narrow_passage_active = bool(
                                 getattr(traj_result, "narrow_passage_active", False)
                             )
                             self._traj_force_replan = False
                             self._traj_no_feasible_count = 0
                             self._traj_no_feasible_start = None
+                            if self._traj_params.adaptive_candidates_enabled:
+                                logger.info(
+                                    "trajectory_adaptive generated=%d evaluated=%d adaptive=%d refined=%d "
+                                    "budget_exhausted=%s fallback=%s source=%s curvature=%.4f speed_cap=%s compute_ms=%.3f",
+                                    traj_result.generated, traj_result.evaluated_count,
+                                    traj_result.adaptive_generated, traj_result.refinement_count,
+                                    traj_result.budget_exhausted, traj_result.fallback_reason or "none",
+                                    _sel.generation_source, _sel.curvature, traj_result.speed_limit_mps,
+                                    traj_result.compute_ms,
+                                )
                             logger.info(
                                 "trajectory_plan  family=%s  score=%.3f  "
                                 "clearance_min=%.2f  clear_mean=%.2f  "
@@ -6340,6 +6362,7 @@ class AutomaticMode:
                             is_reverse=_family.startswith("REVERSE_"),
                             goal_xy=(_mission_goal[0], _mission_goal[1]),
                             goal_ned=(_mission_goal[0], _mission_goal[1], _mission_goal[2]),
+                            speed_limit_mps=getattr(self, "_traj_cached_speed_limit", None),
                         )
                         _tracker_ms = (time.perf_counter() - _track_t0) * 1000.0
                         selected_vx = _track.vx
@@ -6361,6 +6384,12 @@ class AutomaticMode:
                             fr.filtered_points_sensor,
                             preserve_centerline=self._traj_narrow_passage_active,
                         )
+                        _speed_cap = getattr(self, "_traj_cached_speed_limit", None)
+                        if _speed_cap is not None:
+                            _speed = math.hypot(selected_vx, selected_vy)
+                            if _speed > _speed_cap and _speed > 0:
+                                selected_vx *= _speed_cap / _speed
+                                selected_vy *= _speed_cap / _speed
                         if dd.minimum_distance_m < self._params.emergency_distance_m:
                             _selected_yaw_rate = 0.0
                         _apf_safety_ms = (time.perf_counter() - _apf_t0) * 1000.0

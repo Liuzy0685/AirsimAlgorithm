@@ -478,6 +478,15 @@ def _local_worker_main(
                 "trajectory_worker  request_id=%d  compute_ms=%.2f",
                 req["request_id"], compute_ms,
             )
+            if params.adaptive_candidates_enabled:
+                wlog.info(
+                    "trajectory_adaptive_worker request_id=%d generated=%d evaluated=%d "
+                    "adaptive=%d refined=%d budget_exhausted=%s fallback=%s source=%s",
+                    req["request_id"], result.generated, result.evaluated_count,
+                    result.adaptive_generated, result.refinement_count,
+                    result.budget_exhausted, result.fallback_reason or "none",
+                    result.selected.generation_source if result.selected else "no_feasible_candidate",
+                )
             path_xy = [
                 (float(wp[0]), float(wp[1]))
                 for wp in global_path if wp is not None and len(wp) >= 2
