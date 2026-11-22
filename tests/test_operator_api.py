@@ -312,6 +312,90 @@ def test_recovery_check_keeps_guard_when_probe_fails(env):
     assert env.m.get(mid)['manual_intervention_required']
 
 
+def recovery_task(env):
+    mid=create(env)
+    env.m.data['missions'][mid].update(state='FAILED',reason='cleanup_unverified',manual_intervention_required=True)
+    env.backend.launch_recovery=lambda m,d,r:NS_RECOVERY(env,m,d,r)
+    return mid
+
+
+def NS_RECOVERY(env,mission,directory,rid):
+    directory.mkdir(parents=True)
+    return SimpleNamespace(pid=456,poll=lambda:env.backend.code)
+
+
+def test_recovery_land_acceptance_is_not_completion_and_replay_is_idempotent(env):
+    mid=recovery_task(env)
+    body=dict(request_id='land-recover',expected_revision=1)
+    reply=env.m.recovery_land(mid,body)
+    assert reply['accepted'] and reply['completed'] is False
+    assert env.m.get(mid)['manual_intervention_required']
+    assert env.m.get(mid)['state']=='LANDING'
+    assert env.m.recovery_land(mid,body)==reply
+    assert len(env.m.recovery_processes)==1
+    assert env.m.operation('land-recover')['state']=='RUNNING'
+    with pytest.raises(OperatorError,match='already executing'):
+        env.m.stop(mid,dict(request_id='stop-during-recovery'))
+    env.backend.code=2
+    env.m.tick()
+    assert env.m.get(mid)['manual_intervention_required']
+    assert env.m.operation('land-recover')['state']=='FAILED'
+
+
+def test_recovery_report_requires_every_vehicle_and_matching_request(env):
+    mid=recovery_task(env)
+    env.m.recovery_land(mid,dict(request_id='recover-all',expected_revision=1))
+    directory=env.m.directory/mid/'recovery'/'recover-all'
+    result=dict(cleanup_verified=True,reason='recovery_landed',mission_id=mid,request_id='recover-all',revision=2,
+        vehicle_results={n:dict(landing_confirmed=True,disarmed=True,api_control_released=True,
+                               cleanup=dict(control_released=True)) for n in env.p.names})
+    atomic_json(directory/'result.json',result)
+    env.backend.code=0
+    env.m.tick()
+    final=env.m.get(mid)
+    assert final['state']=='STOPPED' and not final['manual_intervention_required']
+    assert final['original_failure']['reason']=='cleanup_unverified'
+    assert env.m.operation('recover-all')['state']=='COMPLETED'
+
+
+@pytest.mark.parametrize('change',['wrong_id','missing_vehicle','unverified_release'])
+def test_forged_or_incomplete_recovery_report_cannot_clear_guard(env,change):
+    mid=recovery_task(env)
+    env.m.recovery_land(mid,dict(request_id='recover-bad',expected_revision=1))
+    result=dict(cleanup_verified=True,reason='incomplete',mission_id=mid,request_id='recover-bad',revision=2,
+        vehicle_results={n:dict(landing_confirmed=True,disarmed=True,api_control_released=True,
+                               cleanup=dict(control_released=True)) for n in env.p.names})
+    if change=='wrong_id':result['request_id']='other'
+    if change=='missing_vehicle':result['vehicle_results'].pop(env.p.names[-1])
+    if change=='unverified_release':result['vehicle_results'][env.p.names[-1]]['api_control_released']=False
+    atomic_json(env.m.directory/mid/'recovery'/'recover-bad'/'result.json',result)
+    env.backend.code=0;env.m.tick()
+    assert env.m.get(mid)['manual_intervention_required']
+    assert env.m.operation('recover-bad')['state']=='FAILED'
+
+
+@pytest.mark.parametrize('condition',['flight_disabled','live_controller','wrong_revision','not_failed'])
+def test_recovery_cannot_bypass_permission_ownership_or_version(env,condition):
+    mid=recovery_task(env)
+    revision=1
+    if condition=='flight_disabled':env.p.allow_flight=False
+    if condition=='live_controller':env.m.processes[mid]=SimpleNamespace(poll=lambda:None)
+    if condition=='wrong_revision':revision=2
+    if condition=='not_failed':env.m.data['missions'][mid]['state']='READY'
+    with pytest.raises(OperatorError):env.m.recovery_land(mid,dict(request_id='blocked',expected_revision=revision))
+    assert not env.m.recovery_processes
+
+
+def test_read_only_recovery_check_rechecks_concurrent_start(env):
+    mid=recovery_task(env)
+    original=env.m.probe
+    def raced():
+        states=original();env.m.data['missions'][mid]['state']='LANDING';return states
+    env.m.probe=raced
+    with pytest.raises(OperatorError):env.m.verify_recovery(dict(request_id='race-check'))
+    assert env.m.get(mid)['manual_intervention_required']
+
+
 def test_backend_translates_world_goal_once_and_passes_task_binding(env,monkeypatch):
     mid=create(env)
     mission=env.m.data['missions'][mid]

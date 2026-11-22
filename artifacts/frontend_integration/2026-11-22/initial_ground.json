@@ -1,0 +1,26 @@
+{
+  "Drone1": {
+    "landed": 0,
+    "api": false,
+    "ground": "Ground_6",
+    "timestamp": 1795327944929502976,
+    "normal": [
+      0.0,
+      9.536422216141482e-13,
+      -1.0
+    ],
+    "depth": 0.0
+  },
+  "Drone2": {
+    "landed": 0,
+    "api": false,
+    "ground": "Ground_5",
+    "timestamp": 1795327944929502976,
+    "normal": [
+      -9.536424384545827e-13,
+      -1.1920131453635154e-19,
+      -1.0
+    ],
+    "depth": 0.0
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "vehicles": [
+    "Drone1",
+    "Drone2"
+  ],
+  "fps_cases": [
+    {
+      "requested_fps": 1,
+      "observed_unique_timestamps": 2,
+      "window_s": 1.2413787999976194,
+      "active": [
+        [
+          "Drone1",
+          "third"
+        ]
+      ]
+    },
+    {
+      "requested_fps": 5,
+      "observed_unique_timestamps": 4,
+      "window_s": 1.243544999990263,
+      "active": [
+        [
+          "Drone1",
+          "third"
+        ]
+      ]
+    },
+    {
+      "requested_fps": 10,
+      "observed_unique_timestamps": 11,
+      "window_s": 1.2149888999992982,
+      "active": [
+        [
+          "Drone1",
+          "third"
+        ]
+      ]
+    },
+    {
+      "requested_fps": 20,
+      "observed_unique_timestamps": 13,
+      "window_s": 1.236694000006537,
+      "active": [
+        [
+          "Drone1",
+          "third"
+        ]
+      ]
+    }
+  ],
+  "frames": {
+    "Drone1_first": {
+      "bytes": 41287,
+      "dimensions": [
+        256,
+        144
+      ]
+    },
+    "Drone1_third": {
+      "bytes": 76043,
+      "dimensions": [
+        320,
+        240
+      ]
+    },
+    "Drone2_first": {
+      "bytes": 42679,
+      "dimensions": [
+        256,
+        144
+      ]
+    },
+    "Drone2_third": {
+      "bytes": 77394,
+      "dimensions": [
+        320,
+        240
+      ]
+    }
+  },
+  "browser_tested": false,
+  "status": {
+    "Drone1": {
+      "first": {
+        "status": "online",
+        "active": true,
+        "captured_at_unix_ms": 1795329843667,
+        "error": ""
+      },
+      "third": {
+        "status": "online",
+        "active": true,
+        "captured_at_unix_ms": 1795329843473,
+        "error": ""
+      }
+    },
+    "Drone2": {
+      "first": {
+        "status": "online",
+        "active": true,
+        "captured_at_unix_ms": 1795329843554,
+        "error": ""
+      },
+      "third": {
+        "status": "online",
+        "active": true,
+        "captured_at_unix_ms": 1795329843520,
+        "error": ""
+      }
+    }
+  },
+  "passed": true
+}

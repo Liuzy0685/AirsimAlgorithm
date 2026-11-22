@@ -601,12 +601,15 @@ class SharedFlightSession:
                 # pulse has_collided for one frame. Require a NEW ground event,
                 # an independently verified preflight ground height and normal.
                 verified_ground = False
+                from control.ground_contact import GROUND_OBJECT_NAMES
                 if (self._startup_ground_z is not None and col_ts > self._startup_floor_ts
-                        and col_obj in {"Floor", "Floor_3", "(null)", ""}):
+                        and col_obj in GROUND_OBJECT_NAMES):
                     normal = col.normal
                     nx,ny,nz = float(normal.x_val),float(normal.y_val),float(normal.z_val)
-                    verified_ground = (all(math.isfinite(v) for v in (nx,ny,nz,pz))
+                    depth = float(col.penetration_depth)
+                    verified_ground = (all(math.isfinite(v) for v in (nx,ny,nz,pz,depth))
                         and math.hypot(nx,ny)<=.2 and nz<=-.9
+                        and 0 <= depth <= .02
                         and abs(pz-self._startup_ground_z)<=.15)
                 if verified_ground and not floor_latched:
                     floor_latched=True

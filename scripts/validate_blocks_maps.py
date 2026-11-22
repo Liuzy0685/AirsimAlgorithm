@@ -29,8 +29,8 @@ def server_client():
     return airsim.MultirotorClient(timeout_value=5)
 
 
-def active_map(project):
-    path=Path(project).parent/'Saved/Logs/Blocks.log'
+def active_map(project, *, log_path=None):
+    path=Path(log_path) if log_path else Path(project).parent/'Saved/Logs/Blocks.log'
     text=path.read_text(encoding='utf-8',errors='replace')
     # UE4 writes different map-load records depending on whether a level was
     # opened from the editor, with the console command, or as a PIE world.

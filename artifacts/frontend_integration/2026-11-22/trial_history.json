@@ -1,0 +1,96 @@
+[
+  {
+    "file": "recovery_attempt01_failed.json",
+    "sha256": "3a0da0d9e9353dfa4f9ace52fdcfc60be75a9cddb95a1a08197a097c874e8813",
+    "passed": false,
+    "reason": "recovery_collision: Wall/unknown/new airborne collision; manual intervention required",
+    "fallback_cleanup": {
+      "Drone1": true,
+      "Drone2": true
+    },
+    "ground_after": {
+      "Drone1": {
+        "api": false,
+        "landed": 0
+      },
+      "Drone2": {
+        "api": false,
+        "landed": 1
+      }
+    }
+  },
+  {
+    "file": "recovery_attempt02_failed.json",
+    "sha256": "60fc7cada1495796bccacff5c552e9a56bb4f3ea1ad14dbca147a8b210aa3067",
+    "passed": false,
+    "reason": "recovery_landing_unconfirmed: Drone1 landing was not confirmed",
+    "fallback_cleanup": {
+      "Drone1": true,
+      "Drone2": true
+    },
+    "ground_after": {
+      "Drone1": {
+        "api": false,
+        "landed": 0
+      },
+      "Drone2": {
+        "api": false,
+        "landed": 1
+      }
+    }
+  },
+  {
+    "file": "recovery_attempt03_failed.json",
+    "sha256": "89e43ada72941c33820d6a8cc528a0cb1f75337fc662c2741b068caf0116dbc3",
+    "passed": false,
+    "reason": "recovery_landing_unconfirmed: Drone1 landing was not confirmed",
+    "fallback_cleanup": {
+      "Drone1": true,
+      "Drone2": true
+    },
+    "ground_after": {
+      "Drone1": {
+        "api": false,
+        "landed": 0
+      },
+      "Drone2": {
+        "api": false,
+        "landed": 1
+      }
+    }
+  },
+  {
+    "file": "recovery_attempt04_passed.json",
+    "sha256": "ad19f86d6382a9836253c11b7c80b7faef82600dc4900eafa782f49babbaa1e1",
+    "passed": true,
+    "reason": "recovery_landed",
+    "fallback_cleanup": null,
+    "ground_after": {
+      "Drone1": {
+        "api": false,
+        "landed": 0
+      },
+      "Drone2": {
+        "api": false,
+        "landed": 0
+      }
+    }
+  },
+  {
+    "file": "recovery_airborne.json",
+    "sha256": "46911d8261e127ecb44be482459afa97c7b0c91f737a6e6b35cb4f0634fb9a78",
+    "passed": true,
+    "reason": "recovery_landed",
+    "fallback_cleanup": null,
+    "ground_after": {
+      "Drone1": {
+        "api": false,
+        "landed": 0
+      },
+      "Drone2": {
+        "api": false,
+        "landed": 0
+      }
+    }
+  }
+]

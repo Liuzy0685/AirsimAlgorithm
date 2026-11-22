@@ -77,6 +77,8 @@
           <div class="panel-heading"><div><p class="eyebrow">MISSION LIFECYCLE</p><h2>任务操作</h2></div><span id="operation-state" class="muted">无操作</span></div>
           <div class="lifecycle-actions"><button id="start-mission" class="primary-button" type="button" disabled>请求启动任务</button><button id="stop-mission" class="danger-button" type="button" disabled>请求停止并降落</button><button id="recovery-check" class="secondary-button" type="button" hidden title="只读检查 AirSim 是否已安全落地并释放控制权">安全恢复检查</button></div>
           <p id="request-message" class="message">按钮只表示请求已提交，最终状态以任务 API 回报为准。</p>
+          <button id="recovery-land" class="danger-button" type="button" hidden>请求失败任务恢复降落</button>
+          <div id="vehicle-cleanup" class="preflight-result empty-state">尚无各机清理结果。</div>
           <div id="recovery-notice" class="recovery-notice" hidden></div>
           <div id="operation-log" class="operation-log"><span class="muted">暂无操作记录</span></div>
         </article>

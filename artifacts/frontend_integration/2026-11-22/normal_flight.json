@@ -1,0 +1,236 @@
+{
+  "failure": null,
+  "final": {
+    "applied_formation": {
+      "shape": "line",
+      "spacing_m": 3.0
+    },
+    "applied_revision": 3,
+    "b_control_online": false,
+    "b_status": {
+      "formation": {
+        "shape": "line",
+        "spacing_m": 3.0
+      },
+      "reason": "",
+      "request_id": "7f7c0c726d92419680b07bd86723d260",
+      "revision": 3,
+      "state": "APPLIED"
+    },
+    "config": {
+      "formation": {
+        "shape": "line",
+        "spacing_m": 3.0
+      },
+      "leader": "Drone1",
+      "leader_goal_ned_m": [
+        8.5,
+        -3.0,
+        -2.0
+      ],
+      "map_id": "flying_example",
+      "map_revision": "6ff1ca02e88ea18a1263228bb340cc505de586a2fc7c5f579df00abe9659ed9b",
+      "vehicle_names": [
+        "Drone1",
+        "Drone2"
+      ]
+    },
+    "created_at_unix_ms": 1795328410184,
+    "formation_convergence": {
+      "distinct_frames": 0,
+      "dwell_s": 0.0,
+      "physical_settled": false,
+      "reason": "mission_not_running",
+      "revision": 3,
+      "tracking_error_m": {}
+    },
+    "formation_runtime": {
+      "effective_mode": "holding",
+      "nominal_shape": "line",
+      "reason": "navigation_feedback_unavailable",
+      "received_at_unix_ms": 1795328502069,
+      "revision": 3,
+      "sim_timestamp_ns": 1795328249874008320,
+      "slot_targets_ned_m": {
+        "Drone2": [
+          8.610089337444121,
+          -1.2207032380473493e-06,
+          0.6806056499481201
+        ]
+      },
+      "tracking_error_m": {
+        "Drone2": 0.06732841807811159
+      }
+    },
+    "formation_runtime_stale": false,
+    "manual_intervention_required": false,
+    "mission_id": "2e647eb08a2c496f889cf53fadb5face",
+    "pending_formation": null,
+    "process_id": 29992,
+    "reason": "mission_complete",
+    "requested_formation": {
+      "shape": "line",
+      "spacing_m": 3.0
+    },
+    "revision": 3,
+    "runtime": {
+      "collection_complete": true,
+      "coordination": {
+        "Drone1": {
+          "active_command_id": null,
+          "reason": "controller_status_stale",
+          "sim_timestamp_ns": 0,
+          "snapshot_id": null,
+          "state": "EMERGENCY",
+          "task_id": "2e647eb08a2c496f889cf53fadb5face",
+          "vehicle_name": "Drone1"
+        },
+        "Drone2": {
+          "active_command_id": null,
+          "reason": "controller_status_stale",
+          "sim_timestamp_ns": 0,
+          "snapshot_id": null,
+          "state": "EMERGENCY",
+          "task_id": "2e647eb08a2c496f889cf53fadb5face",
+          "vehicle_name": "Drone2"
+        }
+      },
+      "errors": {},
+      "snapshot_id": 444,
+      "stale": false,
+      "stream_id": "e5bde140-86f1-452c-8815-9928f1b5ce5c",
+      "timestamp_unix_ms": 1795328502162,
+      "vehicles": {
+        "Drone1": {
+          "angular_velocity_body_radps": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "can_arm": false,
+          "landed_state": 0,
+          "linear_velocity_ned_mps": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "orientation_quaternion_xyzw": [
+            0.0,
+            0.0,
+            1.530488731305013e-07,
+            0.9999999403953552
+          ],
+          "pitch_rad": 0.0,
+          "position_ned_m": [
+            8.610090255737305,
+            -3.0000012207030977,
+            0.6806056499481201
+          ],
+          "readiness_available": false,
+          "ready": false,
+          "received_monotonic_seconds": 65769.7614133,
+          "roll_rad": 0.0,
+          "timestamp": 1795328249976010496,
+          "yaw_rad": 3.0609772801615994e-07
+        },
+        "Drone2": {
+          "angular_velocity_body_radps": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "can_arm": false,
+          "landed_state": 1,
+          "linear_velocity_ned_mps": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "orientation_quaternion_xyzw": [
+            0.0,
+            0.0,
+            -0.15791679918766022,
+            0.9874523282051086
+          ],
+          "pitch_rad": 0.0,
+          "position_ned_m": [
+            8.677417755126953,
+            6.074985776649555e-06,
+            0.6806056499481201
+          ],
+          "readiness_available": false,
+          "ready": false,
+          "received_monotonic_seconds": 65769.7614133,
+          "roll_rad": 0.0,
+          "timestamp": 1795328249976010496,
+          "yaw_rad": -0.31716121861316254
+        }
+      }
+    },
+    "state": "COMPLETED",
+    "vehicle_results": {
+      "Drone1": {
+        "airborne": true,
+        "api_control_acquired": true,
+        "api_control_released": true,
+        "armed": true,
+        "cleanup": {
+          "control_released": true,
+          "landing_attempted": true,
+          "landing_confirmed": true,
+          "manual_intervention_required": false,
+          "phase": "CONTROL_RELEASED"
+        },
+        "disarmed": true,
+        "flight_duration_s": 51.1997229999979,
+        "frames_completed": 1023,
+        "landing_confirmed": true,
+        "startup_floor_contact_baseline": false,
+        "success": true,
+        "takeoff_completed": true,
+        "termination_reason": "mission_complete"
+      },
+      "Drone2": {
+        "airborne": true,
+        "api_control_acquired": true,
+        "api_control_released": true,
+        "armed": true,
+        "cleanup": {
+          "control_released": true,
+          "landing_attempted": true,
+          "landing_confirmed": true,
+          "manual_intervention_required": false,
+          "phase": "CONTROL_RELEASED"
+        },
+        "disarmed": true,
+        "flight_duration_s": 49.771953999996185,
+        "frames_completed": 994,
+        "landing_confirmed": true,
+        "startup_floor_contact_baseline": false,
+        "success": false,
+        "takeoff_completed": true,
+        "termination_reason": "coordinated_stop"
+      }
+    }
+  },
+  "minimum_sampled_separation_m": 3.0,
+  "formation_operations": [
+    {
+      "kind": "formation",
+      "mission_id": "2e647eb08a2c496f889cf53fadb5face",
+      "reason": "",
+      "request_id": "2cc368b4cfee478ea845b3a3282e4822",
+      "revision": 2,
+      "state": "APPLIED"
+    },
+    {
+      "kind": "formation",
+      "mission_id": "2e647eb08a2c496f889cf53fadb5face",
+      "reason": "",
+      "request_id": "7f7c0c726d92419680b07bd86723d260",
+      "revision": 3,
+      "state": "APPLIED"
+    }
+  ],
+  "browser_tested": false
+}

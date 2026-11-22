@@ -25,8 +25,11 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class OperatorProfile:
     def __init__(self, settings_json, swarm_config, formation_config, map_manifest,
-                 *, blocks_project=None, allow_flight=False):
+                 *, blocks_project=None, allow_flight=False, engine_log=None):
         self.settings_path = Path(settings_json).resolve()
+        self.swarm_path = Path(swarm_config).resolve()
+        self.formation_path = Path(formation_config).resolve()
+        self.map_path = Path(map_manifest).resolve()
         self.settings = read_json(self.settings_path)
         self.swarm, self.service = load_config(swarm_config)
         self.swarm = copy.deepcopy(self.swarm)
@@ -35,6 +38,7 @@ class OperatorProfile:
         self.formation = load_formation_config(formation_config)
         self.map = OperatorMap(read_json(map_manifest))
         self.blocks_project = Path(blocks_project).resolve() if blocks_project else None
+        self.engine_log = Path(engine_log).resolve() if engine_log else None
         self.allow_flight = allow_flight
         self.names = tuple(m['vehicle_name'] for m in self.swarm['drones'])
         require(self.service.enabled and len(self.names) >= 2, 'invalid_profile', 'Need A service and 2..5 vehicles')
@@ -122,24 +126,8 @@ class AirSimPreflight:
             require(set(client.listVehicles()) == set(p.names), 'runtime_fleet_mismatch', 'Runtime fleet differs', 409)
             require(json.loads(client.getSettingsString()).get('Vehicles') == p.settings['Vehicles'],
                     'runtime_settings_mismatch', 'Runtime vehicle settings differ', 409)
-            require(p.blocks_project is not None, 'map_verification_unavailable', 'Need --blocks-project', 503)
-            require(active_map(p.blocks_project) == '/Game/' + p.map.value['map_id'],
-                    'runtime_map_mismatch', 'Active Blocks map differs', 409)
-            asset = p.blocks_project.parent / 'Content' / (p.map.value['map_id'] + '.umap')
-            require(hashlib.sha256(asset.read_bytes()).hexdigest() == p.map.value.get('asset_sha256'),
-                    'map_asset_changed', 'Re-export map after asset changes', 409)
-            for item in p.map.value.get('obstacles', []):
-                pose = client.simGetObjectPose(item['id'])
-                scale = client.simGetObjectScale(item['id'])
-                actual = [pose.position.x_val, pose.position.y_val, pose.position.z_val]
-                require(all(math.isfinite(v) for v in actual)
-                        and math.dist(actual, item['actor_position_ned_m']) < .03,
-                        'map_geometry_changed', 'Obstacle moved; re-export map', 409)
-                require(math.dist([scale.x_val, scale.y_val, scale.z_val], item['actor_scale']) < .001,
-                        'map_geometry_changed', 'Obstacle scale changed; re-export map', 409)
-                q = [pose.orientation.x_val, pose.orientation.y_val, pose.orientation.z_val, pose.orientation.w_val]
-                require(abs(sum(a*b for a, b in zip(q, item['actor_orientation_xyzw']))) > .99999,
-                        'map_geometry_changed', 'Obstacle rotated; re-export map', 409)
+            from coordination.operator_map_runtime import verify_map
+            verify_map(p, client)
             tf = CoordinateTransformer.from_settings_json(str(p.settings_path), p.names)
             require(tf.validate(client).validated, 'coordinate_validation_failed', 'Coordinate validation failed', 409)
             first = {n: client.getMultirotorState(vehicle_name=n).timestamp for n in p.names}
@@ -181,6 +169,21 @@ class AirSimPreflight:
 class SubprocessMissionBackend:
     def __init__(self, profile):
         self.profile = profile
+
+    def launch_recovery(self, mission, directory, request_id):
+        p = self.profile
+        directory = Path(directory)
+        directory.mkdir(parents=True, exist_ok=False)
+        atomic_json(directory/'request.json', dict(mission_id=mission['mission_id'],request_id=request_id,
+            revision=mission['revision'],settings_json=str(p.settings_path),swarm_config=str(p.swarm_path),
+            formation_config=str(p.formation_path),map_manifest=str(p.map_path),
+            blocks_project=str(p.blocks_project) if p.blocks_project else None,
+            engine_log=str(p.engine_log) if p.engine_log else None,
+            ground_reference=mission.get('_ground_reference',{})))
+        with (directory/'worker.log').open('w',encoding='utf-8') as log:
+            return subprocess.Popen([sys.executable,str(ROOT/'scripts/operator_recovery_runner.py'),
+                '--directory',str(directory)],cwd=ROOT,stdout=log,stderr=log,
+                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform=='win32' else 0)
 
     def launch(self, mission, directory, operator_url):
         directory = Path(directory)

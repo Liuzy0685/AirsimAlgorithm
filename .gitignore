@@ -19,6 +19,7 @@ env/
 # Logs
 logs/
 runs/
+adrone_flight_modes/
 *.log
 
 # OS

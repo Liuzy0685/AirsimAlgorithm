@@ -1,0 +1,3 @@
+*.json -text linguist-generated=true whitespace=cr-at-eol
+*.xml -text linguist-generated=true whitespace=cr-at-eol,-blank-at-eol
+*.png binary
