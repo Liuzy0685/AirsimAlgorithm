@@ -1,0 +1,13 @@
+{
+  "base_path": "D:\\30817\\Adrone\\AirsimAlgorithm-git\\configs\\acceptance\\swarm_2_navigation.yaml",
+  "base_sha256": "8891b293d2e6e078b584ab353688410bacfbb9f1634d6401043284f62e76531f",
+  "trial_path": "D:\\30817\\Adrone\\AirsimAlgorithm-git\\runs\\live_navigation_ab_20261123_06\\2_candidate_cam0\\swarm.yaml",
+  "trial_sha256": "4f97c6c6ddf7780079919f4a67bd119a4ea4698be40ca1e586bcbf56de7b82e2",
+  "features": [
+    "memory",
+    "passage",
+    "recovery",
+    "smoothing"
+  ],
+  "note": "Only local_navigation_hardening differs; settings, formation and safety thresholds are unchanged"
+}
