@@ -1,0 +1,41 @@
+{
+  "case": "pair_03_swept",
+  "observed_final_navigation": {
+    "observation_id": 1795406393591805184,
+    "obstacle_resolution_m": 0.25,
+    "goal_ned_m": [
+      15.362285485811299,
+      -0.047638255311902356,
+      -1.9969979524612427
+    ],
+    "path_available": false,
+    "goal_blocked": false,
+    "tracking_error_m": 4.438568956725742,
+    "route_version": 90,
+    "t": 195.4591873999998,
+    "vehicle": "Drone2",
+    "obstacle_points_count": 124,
+    "obstacle_points_sha256": "36f14d26facd3f601e9614beb1af86b9b764c9ed2efffc63e6ce484548c8a6d7"
+  },
+  "longest_observed_unavailable_span_s": 65.34017140000014,
+  "formation_accepted_ack_count": 874,
+  "formation_rejected_ack_count": 0,
+  "lidar_unavailable_at_gateway_in_drone2_log": false,
+  "observed_stop": "Route unavailable and no_route_progress; failed to reach final formation slot before 180s",
+  "not_proven": [
+    "Exact cause of missing route",
+    "Whether swept geometry caused the failure",
+    "Full router memory not persisted: navigation trace retains point count/hash, not complete cached occupancy"
+  ],
+  "next_checks": [
+    "Capture bounded full planner obstacle memory, actual pose, rounded start cell and transient peer obstacles on no-route",
+    "Replay start-cell occupancy, preferred clearance and escape-path rejection reasons offline",
+    "Reproduce and regression-test before further automatic five-UAV/camera flights"
+  ],
+  "raw_file_sha256": {
+    "flight/runtime/Drone1.log": "bd381b8500c1048f4e36a3aeda06ff318f12590a852eae85618cd2fa889182c2",
+    "flight/runtime/Drone2.log": "79483b695847aef89f9291088da16cd77ba2c48fce4a12abe70e6b543e35e111",
+    "flight/runtime/formation.log": "3f052369b05aa38916b940b697d8f1953634025a9c9d8923b4badc55204b0b00",
+    "flight/runtime/state_service.log": "ee8053966100c65376d15e0b57d596ec80ed740afc5177870082accf84b4ef0b"
+  }
+}

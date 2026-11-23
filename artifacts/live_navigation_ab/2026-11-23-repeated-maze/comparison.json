@@ -1,0 +1,358 @@
+{
+  "evidence_type": "three_additional_serial_matched_pairs_dual_maze",
+  "source_commit": "872027a0735bf8eedf3398cc44886828f5887ec4",
+  "planned_pairs": 3,
+  "completed_cases": 6,
+  "completed_pairs": 3,
+  "cases": [
+    {
+      "features": [
+        "memory",
+        "recovery",
+        "smoothing",
+        "latency_limit",
+        "passage"
+      ],
+      "summary_sha256": "d3ecc320a638e47a58e03e90c2af842efc1a889f7c0969fc4ab61a4dba7314f3",
+      "passed": true,
+      "flight_duration_s": 137.13699350000024,
+      "collision_count": 0,
+      "minimum_pair_distance_m": 2.289716892298074,
+      "actual_ground_verified": true,
+      "reported_cleanup_verified": true,
+      "termination": {
+        "Drone1": "mission_complete",
+        "Drone2": "coordinated_stop"
+      },
+      "pair": 1,
+      "geometry": "swept",
+      "source_commit": "872027a0735bf8eedf3398cc44886828f5887ec4",
+      "total_path_m": 48.119088427825346,
+      "maximum_reported_goal_dwell_s": {
+        "Drone1": 65.4,
+        "Drone2": 7.45
+      },
+      "sampled_horizontal_acceleration": {
+        "Drone1": {
+          "samples": 676,
+          "median_mps2": 8.127732714103851e-06,
+          "p95_mps2": 0.05501929368906458,
+          "maximum_mps2": 0.30566944853608474,
+          "skipped_pairs": 185
+        },
+        "Drone2": {
+          "samples": 676,
+          "median_mps2": 0.07665922401526228,
+          "p95_mps2": 0.18972059898167276,
+          "maximum_mps2": 0.3537565500894866,
+          "skipped_pairs": 185
+        }
+      }
+    },
+    {
+      "features": [
+        "memory",
+        "recovery",
+        "smoothing",
+        "latency_limit",
+        "passage"
+      ],
+      "summary_sha256": "fb1069070fc4523164b82dd3c65c227a8b42485110762a7583576af8af51392f",
+      "passed": true,
+      "flight_duration_s": 135.57145839999976,
+      "collision_count": 0,
+      "minimum_pair_distance_m": 2.276410911419294,
+      "actual_ground_verified": true,
+      "reported_cleanup_verified": true,
+      "termination": {
+        "Drone1": "mission_complete",
+        "Drone2": "coordinated_stop"
+      },
+      "pair": 1,
+      "geometry": "radial",
+      "source_commit": "872027a0735bf8eedf3398cc44886828f5887ec4",
+      "total_path_m": 48.25034194294457,
+      "maximum_reported_goal_dwell_s": {
+        "Drone1": 63.02,
+        "Drone2": 7.51
+      },
+      "sampled_horizontal_acceleration": {
+        "Drone1": {
+          "samples": 668,
+          "median_mps2": 2.253298471904859e-05,
+          "p95_mps2": 0.053113948079244834,
+          "maximum_mps2": 0.3074228870693124,
+          "skipped_pairs": 184
+        },
+        "Drone2": {
+          "samples": 666,
+          "median_mps2": 0.06997045316992043,
+          "p95_mps2": 0.19751055031145792,
+          "maximum_mps2": 0.28577418794689863,
+          "skipped_pairs": 186
+        }
+      }
+    },
+    {
+      "features": [
+        "memory",
+        "recovery",
+        "smoothing",
+        "latency_limit",
+        "passage"
+      ],
+      "summary_sha256": "bb7e04bbdf6169c89df5db4694ec9d78a83f15a5f5da500e88993dcbe0a75249",
+      "passed": true,
+      "flight_duration_s": 133.3412226999999,
+      "collision_count": 0,
+      "minimum_pair_distance_m": 2.2740568308048235,
+      "actual_ground_verified": true,
+      "reported_cleanup_verified": true,
+      "termination": {
+        "Drone1": "mission_complete",
+        "Drone2": "coordinated_stop"
+      },
+      "pair": 2,
+      "geometry": "swept",
+      "source_commit": "872027a0735bf8eedf3398cc44886828f5887ec4",
+      "total_path_m": 48.150380767183606,
+      "maximum_reported_goal_dwell_s": {
+        "Drone1": 60.55,
+        "Drone2": 7.46
+      },
+      "sampled_horizontal_acceleration": {
+        "Drone1": {
+          "samples": 658,
+          "median_mps2": 1.4236879864979893e-05,
+          "p95_mps2": 0.0552767040262649,
+          "maximum_mps2": 0.3036622186893537,
+          "skipped_pairs": 187
+        },
+        "Drone2": {
+          "samples": 655,
+          "median_mps2": 0.0793350165659646,
+          "p95_mps2": 0.20962720327404957,
+          "maximum_mps2": 0.3264711464807982,
+          "skipped_pairs": 190
+        }
+      }
+    },
+    {
+      "features": [
+        "memory",
+        "recovery",
+        "smoothing",
+        "latency_limit",
+        "passage"
+      ],
+      "summary_sha256": "745291f76868c7deca8c45d522bfe4a7fb7f8d1d35ef34758362cfeaa9bf87ed",
+      "passed": true,
+      "flight_duration_s": 141.59162070000002,
+      "collision_count": 0,
+      "minimum_pair_distance_m": 2.250869574616419,
+      "actual_ground_verified": true,
+      "reported_cleanup_verified": true,
+      "termination": {
+        "Drone1": "mission_complete",
+        "Drone2": "coordinated_stop"
+      },
+      "pair": 2,
+      "geometry": "radial",
+      "source_commit": "872027a0735bf8eedf3398cc44886828f5887ec4",
+      "total_path_m": 48.29751781193616,
+      "maximum_reported_goal_dwell_s": {
+        "Drone1": 63.93,
+        "Drone2": 8.14
+      },
+      "sampled_horizontal_acceleration": {
+        "Drone1": {
+          "samples": 700,
+          "median_mps2": 3.5389502978492375e-05,
+          "p95_mps2": 0.06163353849341876,
+          "maximum_mps2": 0.26538650281056575,
+          "skipped_pairs": 185
+        },
+        "Drone2": {
+          "samples": 697,
+          "median_mps2": 0.07003417853603525,
+          "p95_mps2": 0.19650241950547234,
+          "maximum_mps2": 0.3124150081745365,
+          "skipped_pairs": 188
+        }
+      }
+    },
+    {
+      "features": [
+        "memory",
+        "recovery",
+        "smoothing",
+        "latency_limit",
+        "passage"
+      ],
+      "summary_sha256": "1014c3c64df249e285b42e80e5cfad161321bb0d2ac40fa1dc6749666a6c24d4",
+      "passed": true,
+      "flight_duration_s": 135.2564180999998,
+      "collision_count": 0,
+      "minimum_pair_distance_m": 2.2509005830575988,
+      "actual_ground_verified": true,
+      "reported_cleanup_verified": true,
+      "termination": {
+        "Drone1": "mission_complete",
+        "Drone2": "coordinated_stop"
+      },
+      "pair": 3,
+      "geometry": "radial",
+      "source_commit": "872027a0735bf8eedf3398cc44886828f5887ec4",
+      "total_path_m": 48.50455294791027,
+      "maximum_reported_goal_dwell_s": {
+        "Drone1": 59.45,
+        "Drone2": 8.19
+      },
+      "sampled_horizontal_acceleration": {
+        "Drone1": {
+          "samples": 667,
+          "median_mps2": 3.922084612619137e-05,
+          "p95_mps2": 0.06441148814647217,
+          "maximum_mps2": 0.26902551639844285,
+          "skipped_pairs": 196
+        },
+        "Drone2": {
+          "samples": 665,
+          "median_mps2": 0.057231853178010196,
+          "p95_mps2": 0.1793535309671414,
+          "maximum_mps2": 0.2978828797390927,
+          "skipped_pairs": 198
+        }
+      }
+    },
+    {
+      "features": [
+        "memory",
+        "recovery",
+        "smoothing",
+        "latency_limit",
+        "passage"
+      ],
+      "summary_sha256": "57e5ecd70024c4dab1cc7d894ff94f80b18fdd4546dfdc8e41d0c98e4cbc034b",
+      "passed": false,
+      "flight_duration_s": 180.31158680000044,
+      "collision_count": 0,
+      "minimum_pair_distance_m": 2.7380529427475464,
+      "actual_ground_verified": true,
+      "reported_cleanup_verified": true,
+      "termination": {
+        "Drone1": "time_limit",
+        "Drone2": "time_limit"
+      },
+      "pair": 3,
+      "geometry": "swept",
+      "source_commit": "872027a0735bf8eedf3398cc44886828f5887ec4",
+      "total_path_m": 43.60123243458652,
+      "maximum_reported_goal_dwell_s": {
+        "Drone1": 101.86,
+        "Drone2": 8.69
+      },
+      "sampled_horizontal_acceleration": {
+        "Drone1": {
+          "samples": 885,
+          "median_mps2": 3.6338084296272277e-07,
+          "p95_mps2": 0.050597104602474734,
+          "maximum_mps2": 0.3081666315372649,
+          "skipped_pairs": 206
+        },
+        "Drone2": {
+          "samples": 884,
+          "median_mps2": 0.036745349157544425,
+          "p95_mps2": 0.19371708246098357,
+          "maximum_mps2": 0.35027298541027685,
+          "skipped_pairs": 207
+        }
+      }
+    }
+  ],
+  "pairs": [
+    {
+      "pair": 1,
+      "order": [
+        "swept",
+        "radial"
+      ],
+      "radial_s": 135.57145839999976,
+      "swept_s": 137.13699350000024,
+      "radial_passed": true,
+      "swept_passed": true,
+      "relative_change": 0.011547674698471067,
+      "conditions_verified": {
+        "non_treatment_config": true,
+        "geometry": true,
+        "source": true,
+        "runtime_settings": true,
+        "formation": true
+      }
+    },
+    {
+      "pair": 2,
+      "order": [
+        "swept",
+        "radial"
+      ],
+      "radial_s": 141.59162070000002,
+      "swept_s": 133.3412226999999,
+      "radial_passed": true,
+      "swept_passed": true,
+      "relative_change": -0.05826897071459347,
+      "conditions_verified": {
+        "non_treatment_config": true,
+        "geometry": true,
+        "source": true,
+        "runtime_settings": true,
+        "formation": true
+      }
+    },
+    {
+      "pair": 3,
+      "order": [
+        "radial",
+        "swept"
+      ],
+      "radial_s": 135.2564180999998,
+      "swept_s": 180.31158680000044,
+      "radial_passed": true,
+      "swept_passed": false,
+      "relative_change": null,
+      "conditions_verified": {
+        "non_treatment_config": true,
+        "geometry": true,
+        "source": true,
+        "runtime_settings": true,
+        "formation": true
+      }
+    }
+  ],
+  "all_passed": false,
+  "all_cleanup_verified": true,
+  "collision_count": 0,
+  "minimum_pair_distance_m": 2.250869574616419,
+  "suite_failure": "Acceptance/safety failure; no further automatic launch",
+  "all_planned_executed": true,
+  "driver_completed_without_failure": false,
+  "limitations": [
+    "Only this two-UAV maze scenario; no added frontend camera streams",
+    "Run-order seed only, no AirSim physics randomization seed",
+    "Three new pairs, earlier exploratory pilot excluded from aggregate; descriptive evidence only",
+    "No statistical or universal safety/performance claim; no comparison against original baseline",
+    "Sampled acceleration and pairwise separation are not continuous-time dynamics/safety bounds",
+    "Maximum logged goal dwell is not total physical hover or exact formation-wait duration"
+  ],
+  "time_comparison_conclusion": "blocked_by_task_failure",
+  "success_counts": {
+    "radial": {
+      "passed": 3,
+      "attempted": 3
+    },
+    "swept": {
+      "passed": 2,
+      "attempted": 3
+    }
+  }
+}
