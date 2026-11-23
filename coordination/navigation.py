@@ -3,7 +3,7 @@
 An engineering adaptation of multi-route/subgoal planning, not a reproduction
 of RAPTOR or a complete-map/continuous-time convergence guarantee.
 """
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 import heapq
 import math
 import time
@@ -97,6 +97,8 @@ class CommittedGridRouter:
         self.last_plan=-math.inf;self.route_version=0
         self.path_available=False;self.goal_blocked=False
         self.escaping=False
+        self.capture_next=False;self.captured_diagnostic=None
+        self.last_route_reason='not_planned';self.search_diagnostics=[];self.escape_diagnostic={}
 
     def _escape_path(self,position,goal,points):
         """Exit a preferred-margin pocket without moving toward its surfaces.
@@ -104,23 +106,32 @@ class CommittedGridRouter:
         The raw-point final gateway remains authoritative. Cell half-diagonal
         accounts for quantization; the minimum is set above its hard clearance.
         """
-        if not len(points):return []
+        self.escape_diagnostic=dict(rejected={},accepted=0)
+        def reject(reason):
+            counts=self.escape_diagnostic['rejected'];counts[reason]=counts.get(reason,0)+1
+        if not len(points):reject('no_points');return []
         current=float(np.linalg.norm(points-np.asarray(position[:2]),axis=1).min())
         minimum=self.minimum_clearance_m+self.cfg.resolution_m/math.sqrt(2.)
-        if current<minimum or current>self.cfg.clearance_m+self.cfg.resolution_m*2:return []
+        self.escape_diagnostic.update(nearest_m=current,minimum_m=minimum)
+        if current<minimum:reject('inside_minimum_buffer');return []
+        if current>self.cfg.clearance_m+self.cfg.resolution_m*2:reject('outside_escape_band');return []
         candidates=[]
         for radius in (.8,1.2,1.6):
             for i in range(24):
                 angle=i*math.pi/12
                 end=(position[0]+radius*math.cos(angle),position[1]+radius*math.sin(angle))
                 clearance=float(np.linalg.norm(points-np.asarray(end),axis=1).min())
-                if clearance<max(current+.15,self.cfg.clearance_m+self.cfg.resolution_m/math.sqrt(2.)):continue
+                if clearance<max(current+.15,self.cfg.clearance_m+self.cfg.resolution_m/math.sqrt(2.)):
+                    reject('endpoint_clearance');continue
                 # All nearby surfaces must be nonapproaching on this straight
                 # escape, not just clear at the two endpoints.
                 near=points[np.linalg.norm(points-np.asarray(position[:2]),axis=1)<self.cfg.clearance_m+.8]
-                if len(near) and np.any((near-np.asarray(position[:2]))@(np.asarray(end)-position[:2])>.01):continue
+                if len(near) and np.any((near-np.asarray(position[:2]))@(np.asarray(end)-position[:2])>.01):
+                    reject('approaching_surface');continue
                 if segment_clear(position,end,points,minimum):
                     candidates.append((math.dist(end,goal[:2])+.2*radius,end))
+                else:reject('segment_clearance')
+        self.escape_diagnostic['accepted']=len(candidates)
         if not candidates:return []
         return [tuple(position[:2]),min(candidates,key=lambda x:x[0])[1]]
 
@@ -180,6 +191,12 @@ class CommittedGridRouter:
     def _search(self,start,goal,points,penalty=None):
         h=self.cfg.resolution_m
         s=tuple(round(x/h) for x in start[:2]);g=tuple(round(x/h) for x in goal[:2])
+        report=dict(start_cell=s,goal_cell=g,penalized=bool(penalty),expanded=0)
+        self.search_diagnostics=self.search_diagnostics[-1:]
+        self.search_diagnostics.append(report)
+        def finish(reason,path=None):
+            report['reason']=reason
+            return [] if path is None else path
         margin=round(5./h)
         lo=tuple(min(a,b)-margin for a,b in zip(s,g));hi=tuple(max(a,b)+margin for a,b in zip(s,g))
         radius=self.cfg.clearance_m+h/math.sqrt(2.)
@@ -188,11 +205,13 @@ class CommittedGridRouter:
         blocked=set()
         for index,(x,y) in enumerate(points):
             if self.hardening.enabled and self.hardening.recovery and index%128==0 and self.clock()>self._search_deadline:
-                self.search_timed_out=True;return []
+                self.search_timed_out=True;return finish('inflation_budget')
             ix,iy=round(x/h),round(y/h)
             if not lo[0]-n<=ix<=hi[0]+n or not lo[1]-n<=iy<=hi[1]+n:continue
             blocked.update((ix+i,iy+j) for i,j in stencil)
-        if s in blocked or g in blocked:return []
+        report.update(start_blocked=s in blocked,goal_blocked=g in blocked,blocked_cells=len(blocked))
+        if s in blocked:return finish('start_blocked')
+        if g in blocked:return finish('goal_cell_blocked')
         opened=[(math.dist(s,g),0.,s)];cost={s:0.};parent={};expanded=0
         deadline=min(self.clock()+.06,self._search_deadline)
         while opened and expanded<self.cfg.max_expansions:
@@ -203,10 +222,11 @@ class CommittedGridRouter:
                 while u in parent:u=parent[u];path.append(u)
                 path=[(x*h,y*h) for x,y in reversed(path)]
                 path[0]=tuple(start[:2]);path[-1]=tuple(goal[:2])
-                return path
+                return finish('found',path)
             expanded+=1
+            report['expanded']=expanded
             if expanded%100==0 and self.clock()>deadline:
-                self.search_timed_out=True;return []
+                self.search_timed_out=True;return finish('search_budget')
             for dx,dy in ((1,0),(-1,0),(0,1),(0,-1),(1,1),(1,-1),(-1,1),(-1,-1)):
                 v=(u[0]+dx,u[1]+dy)
                 if (not lo[0]<=v[0]<=hi[0] or not lo[1]<=v[1]<=hi[1] or v in blocked
@@ -215,11 +235,44 @@ class CommittedGridRouter:
                 if self.hardening.enabled and self.hardening.recovery and self.failed_cells and self.failed_cells.get(v,-math.inf)>self.clock():c+=3.
                 if c<cost.get(v,math.inf):
                     cost[v]=c;parent[v]=u;heapq.heappush(opened,(c+math.dist(v,g),c,v))
-        return []
+        return finish('expansion_limit' if opened else 'no_grid_path')
 
     def waypoint(self,position,goal,*,temporary_obstacles=()):
+        if not self.capture_next:
+            return self._waypoint_impl(position,goal,temporary_obstacles=temporary_obstacles)
+        self.capture_next=False
+        points=self.obstacles(position)
+        now=self.clock()
+        # Own arrays/copies: the background writer must never see later updates.
+        snapshot=dict(schema_version=1,recorded_monotonic_s=now,navigation_config=asdict(self.cfg),
+            hardening_config=asdict(self.hardening),minimum_clearance_m=self.minimum_clearance_m,
+            position=list(position),goal=list(goal),static_obstacles=points.copy(),
+            temporary_obstacles=np.asarray(temporary_obstacles,float).reshape(-1,2).copy(),
+            path_before=list(self.path),goal_before=self.goal,
+            last_plan_age_s=now-self.last_plan if math.isfinite(self.last_plan) else None,
+            last_plan_monotonic_s=self.last_plan if math.isfinite(self.last_plan) else None,
+            escaping_before=self.escaping,route_version_before=self.route_version,
+            failed_cells=[(x,y,t) for (x,y),t in self.failed_cells.items() if t>now],
+            travel_history=list(self.travel_history),
+            static_memory=[(x,y,now-t,self.memory.free_votes.get((x,y),0)) for (x,y),t in self.memory.cells.items()],
+            dynamic_memory=[(x,y,now-t) for (x,y),t in self.memory.dynamic.items()],
+            legacy_memory=[(x,y,now-t) for (x,y),t in self.cells.items()],last_scan_id=self.memory.last_scan,
+            replay_scope='Frozen observed geometry and router state; not wall-clock scheduling or flight control')
+        result=self._waypoint_impl(position,goal,temporary_obstacles=temporary_obstacles,_points=points)
+        snapshot['decision_monotonic_s']=self._decision_monotonic
+        snapshot['outcome']=dict(waypoint=result,path_available=self.path_available,goal_blocked=self.goal_blocked,
+            route_version=self.route_version,escaping=self.escaping,reason=self.last_route_reason,
+            search_timed_out=self.search_timed_out,searches=[dict(row) for row in self.search_diagnostics],
+            escape=dict(self.escape_diagnostic))
+        self.captured_diagnostic=snapshot
+        return result
+
+    def _waypoint_impl(self,position,goal,*,temporary_obstacles=(),_points=None):
         if any(not math.isfinite(v) for v in (*position,*goal)):raise ValueError('invalid route endpoints')
-        points=self.obstacles(position);now=self.clock()
+        points=self.obstacles(position) if _points is None else _points
+        now=self.clock();self.search_diagnostics=[];self.escape_diagnostic={}
+        self._decision_monotonic=now
+        self.last_route_reason='cached_route'
         if self.hardening.enabled:
             self.search_timed_out=False
             self._search_deadline=now+.08 if self.hardening.recovery else math.inf
@@ -230,16 +283,19 @@ class CommittedGridRouter:
         if (math.dist(position,goal)<.15 and
                 segment_clear(position,goal,points,self.minimum_clearance_m+self.cfg.resolution_m/math.sqrt(2.))):
             self.path=[];self.path_available=True;self.goal_blocked=False;self.escaping=False
+            self.last_route_reason='at_goal'
             return tuple(goal)
         transient=np.asarray(temporary_obstacles,float).reshape(-1,2)
         if not np.all(np.isfinite(transient)):raise ValueError('invalid temporary obstacles')
         if len(transient):points=np.vstack((points,transient))
         self.goal_blocked=not segment_clear(goal,goal,points,self.cfg.clearance_m)
         if math.dist(position[:2],goal[:2])>self.cfg.max_range_m or self.goal_blocked:
+            self.last_route_reason='goal_blocked' if self.goal_blocked else 'goal_out_of_range'
             self.path_available=False;return tuple(position)
         if segment_clear(position,goal,points,self.cfg.clearance_m):
             self.path=[];self.goal=tuple(goal);self.path_available=True
             self.escaping=False
+            self.last_route_reason='direct'
             return tuple(goal)
         if self.escaping and self.path and math.dist(position[:2],self.path[-1])<.25:
             self.path=[];self.escaping=False;self.last_plan=-math.inf
@@ -273,8 +329,12 @@ class CommittedGridRouter:
                 self.escaping=bool(self.path)
             self.route_version+=1
             usable=bool(self.path)
+            self.last_route_reason=('escape' if self.escaping else 'grid_route') if usable else (
+                self.search_diagnostics[-1]['reason'] if self.search_diagnostics else 'no_route')
         self.path_available=bool(usable)
-        if not usable:return tuple(position)
+        if not usable:
+            if self.last_route_reason=='cached_route':self.last_route_reason='waiting_to_replan'
+            return tuple(position)
         chosen=self.path[0]
         for point in self.path[1:]:
             if math.dist(position[:2],point)>self.cfg.waypoint_distance_m:break

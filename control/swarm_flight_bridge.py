@@ -21,7 +21,7 @@ class FormationPermitExpired(VelocityCommandRejected):
 
 
 class SwarmFlightBridge:
-    def __init__(self, session, config, cfg, params):
+    def __init__(self, session, config, cfg, params, *, trace_directory=None):
         if not session._owns_lock:
             raise RuntimeError("swarm gateway requires the per-vehicle OS control lock")
         self.session, self.cfg, self.params = session, cfg, params
@@ -68,6 +68,10 @@ class SwarmFlightBridge:
         if self.hardening.enabled and not self.navigation_cfg.enabled:
             raise ValueError('local navigation hardening requires navigation.enabled')
         self.router=CommittedGridRouter(self.navigation_cfg,hardening=self.hardening)
+        from coordination.navigation_trace import NavigationTraceRecorder
+        self.trace_recorder=(NavigationTraceRecorder(trace_directory,self.name)
+            if trace_directory is not None and self.navigation_cfg.enabled and self.hardening.diagnostics else None)
+        self._no_route_since=None
         self.diagnostics=RuntimeDiagnostics()
         self.progress_guard=ProgressGuard(self.hardening)
         self.motion_limiter=MotionLimiter(self.hardening.acceleration_mps2)
@@ -300,7 +304,21 @@ class SwarmFlightBridge:
             logging.getLogger('swarm_navigation').info('peer_endpoint_staging vehicle=%s peer=%s mission_goal=%s planning_goal=%s',
                 self.name,staging_peer,goal,planning_goal)
         self._staging_peer=staging_peer
+        now=time.monotonic()
+        if (self.trace_recorder is not None and self._no_route_since is not None
+                and now-self._no_route_since>=2. and self.trace_recorder.ready(now)):
+            self.router.capture_next=True
         waypoint=self.router.waypoint(position,planning_goal,temporary_obstacles=transient) if self.points_world is not None else position
+        if self.router.path_available:self._no_route_since=None
+        elif self._no_route_since is None:self._no_route_since=now
+        capture=self.router.captured_diagnostic
+        if capture is not None:
+            self.router.captured_diagnostic=None
+            capture.update(vehicle=self.name,mission_goal=list(goal),planning_goal=list(planning_goal),
+                scan_id=self._last_lidar_id,gateway_scan_id=self._gateway_scan_id,
+                points_request_started_monotonic_s=self.points_at,
+                dispatch_reason=self._last_dispatch_source,progress_reason=self.progress_guard.reason,
+                current_observed_feedback=self._feedback_points)
         self._route_transients=transient
         if self.hardening.enabled and self.hardening.recovery:
             expected=(self._navigation_command_available and not self.leader_goal_hold
@@ -310,6 +328,10 @@ class SwarmFlightBridge:
                 self.router.note_stall(position,self.progress_guard.reason)
                 self.router.path_available=False
                 waypoint=position
+        if capture is not None:
+            capture.update(bridge_path_available=self.router.path_available,
+                bridge_progress_reason=self.progress_guard.reason,bridge_waypoint=list(waypoint))
+            self.trace_recorder.submit(capture,now)
         if self.hardening.enabled:
             self.diagnostics.record(route_ms=(time.perf_counter()-route_started)*1000)
         self._navigation_waypoint=waypoint
@@ -625,7 +647,8 @@ class SwarmFlightBridge:
             self._diagnostic_at=now
             payload=dict(vehicle=self.name,**self.diagnostics.summary(),passage_state=self.passage.state,
                 passage_peer=self.passage.peer,progress_reason=self.progress_guard.reason,
-                search_timed_out=self.router.search_timed_out,navigation_motion=self._navigation_motion)
+                search_timed_out=self.router.search_timed_out,navigation_motion=self._navigation_motion,
+                route_reason=self.router.last_route_reason)
             logging.getLogger('navigation_runtime').info('navigation_runtime %s',json.dumps(payload,allow_nan=False))
 
     def _guard_motion_impl(self, api, args, kwargs):
@@ -765,3 +788,5 @@ class SwarmFlightBridge:
     def close(self):
         self.authority.release(self.name, self.controller_id)
         self.link.close()
+        if self.trace_recorder is not None and not self.trace_recorder.close():
+            logging.getLogger('navigation_trace').warning('diagnostic writer did not finish before timeout')

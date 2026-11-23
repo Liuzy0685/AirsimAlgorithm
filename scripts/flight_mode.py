@@ -351,7 +351,8 @@ def _run_auto(args: argparse.Namespace) -> int:
                 if not config.get("coordination", {}).get("enabled", True):
                     raise ValueError("state service requires coordination.enabled")
                 from control.swarm_flight_bridge import SwarmFlightBridge
-                bridge = SwarmFlightBridge(session, config, service_cfg, params)
+                trace_directory=Path(args.log_file).parent/'navigation_traces' if args.log_file else None
+                bridge = SwarmFlightBridge(session, config, service_cfg, params,trace_directory=trace_directory)
                 bridge.start()
 
         auto = AutomaticMode(
