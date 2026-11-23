@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "recorded_monotonic_s": 0.30000000000000004,
+  "navigation_config": {
+    "enabled": true,
+    "run_legacy_diagnostics": false,
+    "independent_goals": false,
+    "resolution_m": 0.25,
+    "clearance_m": 1.1,
+    "obstacle_ttl_s": 8.0,
+    "replan_interval_s": 0.8,
+    "waypoint_distance_m": 2.0,
+    "max_range_m": 40.0,
+    "max_expansions": 12000,
+    "adaptive_slots": false,
+    "maintain_heading": true,
+    "trail_fallback": true,
+    "max_slot_shift_m": 4.0,
+    "leader_wait_error_m": 5.0,
+    "leader_resume_error_m": 2.0,
+    "feedback_max_age_s": 1.5
+  },
+  "hardening_config": {
+    "enabled": true,
+    "memory": true,
+    "recovery": true,
+    "smoothing": true,
+    "latency_limit": null,
+    "latency_clearance_mode": "radial",
+    "passage": true,
+    "diagnostics": true,
+    "free_confirmations": 3,
+    "max_memory_cells": 8000,
+    "clearing_rays": 48,
+    "stall_window_s": 6.0,
+    "stall_displacement_m": 0.2,
+    "stall_progress_m": 0.15,
+    "failure_ttl_s": 30.0,
+    "acceleration_mps2": 0.35,
+    "braking_mps2": 0.35,
+    "passage_wait_s": 8.0
+  },
+  "minimum_clearance_m": 0.95,
+  "position": [
+    0.0,
+    0.0,
+    -2.0
+  ],
+  "goal": [
+    4.0,
+    0.0,
+    -2.0
+  ],
+  "static_obstacles": [
+    [
+      2.0,
+      0.0
+    ]
+  ],
+  "temporary_obstacles": [],
+  "path_before": [],
+  "goal_before": null,
+  "last_plan_age_s": null,
+  "last_plan_monotonic_s": null,
+  "escaping_before": false,
+  "route_version_before": 0,
+  "failed_cells": [],
+  "travel_history": [],
+  "static_memory": [
+    [
+      8,
+      0,
+      0.20000000000000004,
+      0
+    ]
+  ],
+  "dynamic_memory": [],
+  "legacy_memory": [],
+  "last_scan_id": 1,
+  "replay_scope": "Frozen observed geometry and router state; not wall-clock scheduling or flight control",
+  "decision_monotonic_s": 0.4,
+  "outcome": {
+    "waypoint": [
+      0.0,
+      0.0,
+      -2.0
+    ],
+    "path_available": false,
+    "goal_blocked": false,
+    "route_version": 1,
+    "escaping": false,
+    "reason": "inflation_budget",
+    "search_timed_out": true,
+    "searches": [
+      {
+        "start_cell": [
+          0,
+          0
+        ],
+        "goal_cell": [
+          16,
+          0
+        ],
+        "penalized": false,
+        "expanded": 0,
+        "reason": "inflation_budget"
+      }
+    ],
+    "escape": {
+      "rejected": {
+        "outside_escape_band": 1
+      },
+      "accepted": 0,
+      "nearest_m": 2.0,
+      "minimum_m": 1.1267766952966367
+    }
+  },
+  "capture_trigger": "synthetic_fixture",
+  "source_file_sha256": {
+    "coordination/navigation.py": "e0953b957729acff208c14ac7d9e00e0293d63a3ae69509c356b5f009b8fc01f",
+    "coordination/navigation_hardening.py": "5a31075f511ad61c5aec086fbda5c5c5ae1d290e21daed4bbcae3a669cb06c9c",
+    "control/swarm_flight_bridge.py": "b6f34db2326d6951ef47a0a71021fccfdc41b8f063cf4241f0671a3310824612"
+  }
+}

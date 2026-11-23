@@ -1,0 +1,99 @@
+{
+  "input_sha256": "c48dae54486edc4702ddc857358f363452934aa54a9bd1057bf93cd8f27f772a",
+  "trigger": "synthetic_fixture",
+  "source_checks": {
+    "coordination/navigation.py": true,
+    "coordination/navigation_hardening.py": true,
+    "control/swarm_flight_bridge.py": true
+  },
+  "recorded_outcome": {
+    "waypoint": [
+      0.0,
+      0.0,
+      -2.0
+    ],
+    "path_available": false,
+    "goal_blocked": false,
+    "route_version": 1,
+    "escaping": false,
+    "reason": "inflation_budget",
+    "search_timed_out": true,
+    "searches": [
+      {
+        "start_cell": [
+          0,
+          0
+        ],
+        "goal_cell": [
+          16,
+          0
+        ],
+        "penalized": false,
+        "expanded": 0,
+        "reason": "inflation_budget"
+      }
+    ],
+    "escape": {
+      "rejected": {
+        "outside_escape_band": 1
+      },
+      "accepted": 0,
+      "nearest_m": 2.0,
+      "minimum_m": 1.1267766952966367
+    }
+  },
+  "replay": {
+    "waypoint": [
+      1.25,
+      -1.25,
+      -2.0
+    ],
+    "path_available": true,
+    "goal_blocked": false,
+    "reason": "grid_route",
+    "searches": [
+      {
+        "start_cell": [
+          0,
+          0
+        ],
+        "goal_cell": [
+          16,
+          0
+        ],
+        "penalized": false,
+        "expanded": 116,
+        "start_blocked": false,
+        "goal_blocked": false,
+        "blocked_cells": 89,
+        "reason": "found"
+      },
+      {
+        "start_cell": [
+          0,
+          0
+        ],
+        "goal_cell": [
+          16,
+          0
+        ],
+        "penalized": true,
+        "expanded": 95,
+        "start_blocked": false,
+        "goal_blocked": false,
+        "blocked_cells": 89,
+        "reason": "found"
+      }
+    ],
+    "escape": {},
+    "search_timed_out": false,
+    "limitation": "Frozen geometry only; actual CPU deadlines and later observations are not replayed"
+  },
+  "geometry_matches": {
+    "path_available": false,
+    "goal_blocked": true,
+    "reason": false,
+    "waypoint": false
+  },
+  "runtime_timeout_not_reproduced": true
+}
