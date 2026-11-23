@@ -10,6 +10,19 @@ import uuid
 
 import numpy as np
 
+TRACE_SOURCES=('coordination/navigation.py','coordination/navigation_hardening.py','control/swarm_flight_bridge.py')
+
+
+def source_verification(snapshot):
+    """Only inspect known source paths, never paths supplied by a JSON file."""
+    recorded=snapshot.get('source_file_sha256',{})
+    root=Path(__file__).resolve().parents[1]
+    checks={}
+    for name in TRACE_SOURCES:
+        data=(root/name).read_bytes();lf=data.replace(b'\r\n',b'\n')
+        checks[name]=recorded.get(name) in {hashlib.sha256(v).hexdigest() for v in (data,lf,lf.replace(b'\n',b'\r\n'))}
+    return checks
+
 
 class NavigationTraceRecorder:
     def __init__(self,directory,vehicle,*,max_records=6,interval_s=5.):
@@ -48,7 +61,7 @@ class NavigationTraceRecorder:
     def _write(self,index,payload):
         sources={}
         root=Path(__file__).resolve().parents[1]
-        for name in ('coordination/navigation.py','coordination/navigation_hardening.py','control/swarm_flight_bridge.py'):
+        for name in TRACE_SOURCES:
             sources[name]=hashlib.sha256((root/name).read_bytes()).hexdigest()
         document=dict(payload,source_file_sha256=sources)
         data=json.dumps(document,ensure_ascii=False,allow_nan=False,default=self._encode,separators=(',',':'))

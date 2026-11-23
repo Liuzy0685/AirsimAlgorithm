@@ -72,6 +72,7 @@ class SwarmFlightBridge:
         self.trace_recorder=(NavigationTraceRecorder(trace_directory,self.name)
             if trace_directory is not None and self.navigation_cfg.enabled and self.hardening.diagnostics else None)
         self._no_route_since=None
+        self._trace_initial_pending=self.trace_recorder is not None
         self.diagnostics=RuntimeDiagnostics()
         self.progress_guard=ProgressGuard(self.hardening)
         self.motion_limiter=MotionLimiter(self.hardening.acceleration_mps2)
@@ -305,8 +306,9 @@ class SwarmFlightBridge:
                 self.name,staging_peer,goal,planning_goal)
         self._staging_peer=staging_peer
         now=time.monotonic()
-        if (self.trace_recorder is not None and self._no_route_since is not None
-                and now-self._no_route_since>=2. and self.trace_recorder.ready(now)):
+        initial_trace=self._trace_initial_pending and math.dist(position,goal)>self.cfg.formation_tolerance_m
+        if (self.trace_recorder is not None and self.trace_recorder.ready(now)
+                and (initial_trace or (self._no_route_since is not None and now-self._no_route_since>=2.))):
             self.router.capture_next=True
         waypoint=self.router.waypoint(position,planning_goal,temporary_obstacles=transient) if self.points_world is not None else position
         if self.router.path_available:self._no_route_since=None
@@ -314,7 +316,9 @@ class SwarmFlightBridge:
         capture=self.router.captured_diagnostic
         if capture is not None:
             self.router.captured_diagnostic=None
+            self._trace_initial_pending=False
             capture.update(vehicle=self.name,mission_goal=list(goal),planning_goal=list(planning_goal),
+                capture_trigger='initial_route' if initial_trace else 'persistent_no_route',
                 scan_id=self._last_lidar_id,gateway_scan_id=self._gateway_scan_id,
                 points_request_started_monotonic_s=self.points_at,
                 dispatch_reason=self._last_dispatch_source,progress_reason=self.progress_guard.reason,

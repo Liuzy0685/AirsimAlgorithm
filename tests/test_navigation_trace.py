@@ -9,7 +9,7 @@ import pytest
 
 from coordination.navigation import NavigationConfig,CommittedGridRouter
 from coordination.navigation_hardening import HardeningConfig
-from coordination.navigation_trace import NavigationTraceRecorder,replay_snapshot
+from coordination.navigation_trace import NavigationTraceRecorder,replay_snapshot,source_verification
 
 
 def recorded_router(*,temporary=(),last_plan=-math.inf):
@@ -95,6 +95,7 @@ def test_writer_is_bounded_nonblocking_and_keeps_replayable_geometry(tmp_path,mo
     files=list(tmp_path.glob('*.json'));assert len(files)==2
     document=json.loads(files[0].read_text(encoding='utf-8'))
     assert document['source_file_sha256']
+    assert all(source_verification(document).values())
     assert not replay_snapshot(document)['path_available']
 
 
@@ -132,3 +133,38 @@ def test_bridge_records_only_persistent_no_route(monkeypatch):
     assert len(captures)==1
     assert captures[0]['vehicle']==bridge.name
     assert captures[0]['outcome']['searches'][0]['start_blocked']
+
+
+def test_source_verification_does_not_accept_missing_or_forged_hashes():
+    assert not any(source_verification({}).values())
+    assert not any(source_verification({'source_file_sha256':{'../../untrusted':'fake'}}).values())
+
+
+def test_initial_live_route_sample_is_distinct_from_failure_and_only_once():
+    from test_swarm_wiring import bridge_fixture
+    bridge,_,_=bridge_fixture()
+    bridge.navigation_cfg=NavigationConfig(enabled=True,independent_goals=True)
+    bridge.router=CommittedGridRouter(bridge.navigation_cfg)
+    own=bridge.link.snapshot().states[bridge.name]
+    bridge.points_world=np.array([(100.,100.,-2.)])
+    captures=[]
+    bridge.trace_recorder=NS(ready=lambda now:True,submit=lambda data,now:captures.append(data))
+    bridge._trace_initial_pending=True
+    goal=(own.position_ned_m[0]+4.,own.position_ned_m[1],own.position_ned_m[2])
+    bridge.route_goal(own,goal);bridge.route_goal(own,goal)
+    assert len(captures)==1
+    assert captures[0]['capture_trigger']=='initial_route'
+    assert captures[0]['outcome']['path_available']
+
+
+def test_frozen_replay_does_not_pretend_to_reproduce_real_cpu_timeout():
+    clock=NS(now=0.)
+    def advancing():clock.now+=.1;return clock.now
+    router=CommittedGridRouter(NavigationConfig(enabled=True,resolution_m=.25,clearance_m=1.1),
+        clock=advancing,hardening=HardeningConfig(enabled=True))
+    router.observe([(2.,0.)],scan_id=1);router.capture_next=True
+    router.waypoint((0.,0.,-2.),(4.,0.,-2.))
+    snapshot=router.captured_diagnostic
+    assert snapshot['outcome']['search_timed_out'] and not snapshot['outcome']['path_available']
+    replay=replay_snapshot(snapshot)
+    assert not replay['search_timed_out'] and replay['path_available']
