@@ -8,7 +8,7 @@ import pytest
 
 from coordination.navigation import CommittedGridRouter, NavigationConfig, segment_clear
 from coordination.navigation_hardening import (HardeningConfig, ObservedStaticMemory,
-    ProgressGuard, MotionLimiter, PassageAdvisor, RuntimeDiagnostics, latency_speed_cap, stop_category)
+    ProgressGuard, MotionLimiter, PassageAdvisor, RuntimeDiagnostics, latency_speed_cap, stopping_speed_cap, swept_free_distance, stop_category)
 
 
 def cfg(**kwargs):
@@ -218,6 +218,61 @@ def test_motion_policies_can_be_isolated_without_changing_gate(monkeypatch,smoot
 @pytest.mark.parametrize('bad',['true',1,0,[],{}])
 def test_invalid_latency_limit_switch_rejected(bad):
     with pytest.raises(ValueError):cfg(latency_limit=bad)
+
+
+@pytest.mark.parametrize('dimensions',[2,3])
+def test_swept_distance_ignores_safe_side_and_rear_but_not_forward_points(dimensions):
+    point=lambda x,y:(x,y) if dimensions==2 else (x,y,0.)
+    origin=point(0.,0.);heading=point(1.,0.)
+    assert math.isinf(swept_free_distance([point(0.,1.1),point(-1.1,0.)],origin,heading,1.05))
+    assert swept_free_distance([point(2.,0.)],origin,heading,1.05)==pytest.approx(.95)
+    assert swept_free_distance([point(-1.,0.)],origin,heading,1.05)==0.
+
+
+@pytest.mark.parametrize('age',[0.,.1,.5])
+def test_swept_braking_distance_respects_buffered_cloud(age):
+    rng=np.random.default_rng(381)
+    points=rng.uniform(-5.,5.,(500,2))
+    points=points[np.linalg.norm(points,axis=1)>1.2]
+    direction=np.array((.6,.8))
+    distance=swept_free_distance(points,(0.,0.),direction,1.05)
+    speed=stopping_speed_cap(distance,age,.35,2.)
+    travel=speed*age+speed*speed/(2*.35)
+    assert travel<=distance+1e-10
+    assert segment_clear((0.,0.),direction*max(0.,travel-1e-9),points,1.05-1e-9)
+
+
+def test_swept_limiter_rechecks_heading_after_smoothing(monkeypatch):
+    import time
+    from test_swarm_wiring import bridge_fixture
+    bridge,_,_=bridge_fixture()
+    bridge.hardening=cfg(passage=False,latency_clearance_mode='swept')
+    bridge.navigation_cfg=NavigationConfig(enabled=True)
+    bridge.router=CommittedGridRouter(bridge.navigation_cfg,hardening=bridge.hardening)
+    bridge.router.path_available=True
+    own=bridge.link.snapshot().states[bridge.name]
+    x,y,z=own.position_ned_m
+    bridge._navigation_waypoint=(x+3.,y,z)
+    # Route tangent is parallel to this return; the changed heading approaches it.
+    bridge.points_world=np.array([(x,y+1.1,z)])
+    bridge.points_at=time.monotonic()
+    monkeypatch.setattr(bridge.motion_limiter,'limit',lambda *args:(0.,.35))
+    result=bridge._navigation_velocity(own,0.,'trajectory',bridge.link.command())
+    assert 0<math.hypot(*result[:2])<.2
+    assert bridge._navigation_motion['post_smoothing_cap_mps']<.2
+
+
+@pytest.mark.parametrize('points',[None,np.empty((0,3))])
+def test_swept_policy_never_treats_missing_raw_cloud_as_free(points):
+    from test_swarm_wiring import bridge_fixture
+    bridge,_,_=bridge_fixture()
+    bridge.points_world=points
+    assert bridge._swept_speed_cap((0.,0.,0.),np.empty((0,2)),(.35,0.),.1,.35)==(0.,0.)
+
+
+@pytest.mark.parametrize('mode',['',True,'fast',1,[]])
+def test_invalid_latency_clearance_mode_rejected(mode):
+    with pytest.raises(ValueError):cfg(latency_clearance_mode=mode)
 
 
 def test_passage_tie_break_matches_existing_yield_policy_without_circular_priority():

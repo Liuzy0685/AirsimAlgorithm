@@ -6,7 +6,7 @@ import logging
 import json
 from coordination.navigation import NavigationConfig,CommittedGridRouter
 from coordination.navigation_hardening import (HardeningConfig, RuntimeDiagnostics,
-    ProgressGuard, MotionLimiter, PassageAdvisor, latency_speed_cap, stop_category)
+    ProgressGuard, MotionLimiter, PassageAdvisor, latency_speed_cap, stopping_speed_cap, swept_free_distance, stop_category)
 
 from control.command_authority import CommandAuthority
 from control.safety_filter import SafetyFilter
@@ -375,6 +375,8 @@ class SwarmFlightBridge:
         wx,wy=(speed*dx/length,speed*dy/length) if length>1e-8 else (0.,0.)
         source='passage_retreat' if self.hardening.enabled and self.passage.state=='BLOCKED_TIMEOUT' else 'navigation_route'
         cap=speed
+        final_cap=None
+        free_distance=None
         clearance=None
         if self.hardening.enabled and self.hardening.latency_limit_enabled:
             age=max(0.,time.monotonic()-self.points_at)
@@ -387,11 +389,20 @@ class SwarmFlightBridge:
             if self.points_world is not None and len(self.points_world):
                 clearance=min(clearance,float(np.linalg.norm(self.points_world-np.asarray(own),axis=1).min()))
             else:clearance=0.
-            cap=latency_speed_cap(clearance,self.router.minimum_clearance_m,age,
-                self.hardening.braking_mps2,speed)
+            if self.hardening.latency_clearance_mode=='swept':
+                cap,free_distance=self._swept_speed_cap(own,points,(wx,wy),age,speed)
+            else:
+                cap=latency_speed_cap(clearance,self.router.minimum_clearance_m,age,
+                    self.hardening.braking_mps2,speed)
             if speed>cap and speed>0:wx,wy=wx*cap/speed,wy*cap/speed
         if self.hardening.enabled and self.hardening.smoothing:
             wx,wy=self.motion_limiter.limit((wx,wy),own_state.linear_velocity_ned_mps[:2],time.monotonic())
+            # The smoothed heading can differ from the requested route tangent.
+            # Re-evaluate its stopping corridor, before the existing final gates.
+            if self.hardening.latency_limit_enabled and self.hardening.latency_clearance_mode=='swept':
+                output=math.hypot(wx,wy)
+                final_cap,free_distance=self._swept_speed_cap(own,points,(wx,wy),age,output)
+                if output>final_cap and output>0:wx,wy=wx*final_cap/output,wy*final_cap/output
         if self.hardening.enabled and (self.hardening.smoothing or self.hardening.latency_limit_enabled):
             from coordination.navigation import segment_clear
             end=(own[0]+wx*.5,own[1]+wy*.5)
@@ -400,12 +411,23 @@ class SwarmFlightBridge:
         if self.hardening.enabled:
             self._navigation_motion=dict(requested_mps=speed,latency_cap_mps=cap,
                 output_mps=math.hypot(wx,wy),clearance_m=clearance if clearance is not None and math.isfinite(clearance) else None,
+                free_distance_m=free_distance if free_distance is not None and math.isfinite(free_distance) else None,
+                latency_clearance_mode=self.hardening.latency_clearance_mode,
+                post_smoothing_cap_mps=final_cap,
                 latency_limit_enabled=self.hardening.latency_limit_enabled,smoothing_enabled=self.hardening.smoothing)
         c,s=math.cos(own_state.yaw_rad),math.sin(own_state.yaw_rad)
         hold_vz=max(-self.params.max_vertical_speed_mps,min(self.params.max_vertical_speed_mps,
             self.params.target_z_ned-own_state.position_ned_m[2]))
         self.adopted_command=command
         return wx*c+wy*s,-wx*s+wy*c,hold_vz,source
+
+    def _swept_speed_cap(self,own,points,velocity,age,speed):
+        if speed<1e-9:return 0.,0.
+        if self.points_world is None or not len(self.points_world):return 0.,0.
+        radius=self.router.minimum_clearance_m+.1
+        distance=min(swept_free_distance(points,own[:2],velocity,radius),
+            swept_free_distance(self.points_world,own,(*velocity,0.),radius))
+        return stopping_speed_cap(distance,age,self.hardening.braking_mps2,speed),distance
 
     def tick(self):
         self.adopted_command = None
@@ -448,6 +470,7 @@ class SwarmFlightBridge:
 
     def select(self, vx, vy, vz, source, own_state):
         self.adopted_command = None
+        self._navigation_motion=None
         if self.navigation_cfg.enabled:
             command=self.link.command() if self.follower else None
             self._waiting_for_command=self.follower and command is None

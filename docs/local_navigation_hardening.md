@@ -21,6 +21,12 @@
 
 `latency_limit` 可单独控制新增延迟限速。旧 YAML 未填写或填写 `null` 时仍跟随 `smoothing`，保持原有行为。试验生成工具总是明确填写两项：`--features smoothing` 只开平滑，`--features latency_limit` 只开延迟限速，两项一起列出才同时开启。它们均为最终安全门控之前的可选策略，关闭其中一项不会关闭网关、碰撞或点云时效检查。每秒运行诊断增加 `navigation_motion`，显示当次请求速度、延迟限速上限、平滑后速度与净空；等待或本周期未进行导航速度决策时为 `null`，不能沿用上次决策解释当前等待。
 
+`latency_clearance_mode` 默认 `radial`，保持最近障碍距离的原算法；试验可选 `swept`，将已观测二维障碍和原始三维回波按“硬净空 + 0.1米”缓冲，计算当前行进方向首次进入缓冲区的距离，再限制名义延迟加制动距离。安全缓冲以外的侧方/后方回波不会直接耗尽前向制动距离；起点已在缓冲内仍停止，缺少原始点云也停止。平滑改变方向后重新计算该方向的限制，并保留短段净空、最终原始点云、CPA 和时效检查。它未建模全部跟踪误差、转弯动力学和动态障碍，不是完整的安全制动控制器。`navigation_motion.free_distance_m=null` 表示该次没有有限的方向交点（或未使用该算法），不能解释为已证实任意远处可通行。
+
+```powershell
+python scripts/prepare_navigation_trial.py --base configs/acceptance/swarm_2_navigation.yaml --output runs/trial/swept_2.yaml --features memory recovery smoothing latency_limit passage --latency-clearance-mode swept
+```
+
 以下命令只生成试验副本，不启动仿真、不发送飞行命令，也不覆盖原配置：
 
 ```powershell

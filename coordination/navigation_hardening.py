@@ -18,6 +18,7 @@ class HardeningConfig:
     smoothing: bool = True
     # None preserves existing YAML behavior: smoothing used to enable both.
     latency_limit: bool | None = None
+    latency_clearance_mode: str = 'radial'
     passage: bool = True
     diagnostics: bool = True
     free_confirmations: int = 3
@@ -37,6 +38,8 @@ class HardeningConfig:
                 raise ValueError(f'{name} must be boolean')
         if self.latency_limit is not None and type(self.latency_limit) is not bool:
             raise ValueError('latency_limit must be boolean or null')
+        if self.latency_clearance_mode not in ('radial','swept'):
+            raise ValueError('latency_clearance_mode must be radial or swept')
         for name, lower, upper in (('free_confirmations', 2, 10), ('max_memory_cells', 100, 8000),
                                    ('clearing_rays', 1, 64)):
             value = getattr(self, name)
@@ -214,10 +217,48 @@ def latency_speed_cap(clearance, hard_clearance, age, acceleration, max_speed):
 
     It is not an observed-free-space certificate or a full braking model.
     """
-    if not math.isfinite(age) or age < 0 or math.isnan(clearance):
+    return stopping_speed_cap(clearance-hard_clearance-.1,age,acceleration,max_speed)
+
+
+def stopping_speed_cap(free_distance, age, acceleration, max_speed):
+    """Speed whose nominal latency + braking travel fits the given distance."""
+    if (not math.isfinite(age) or age < 0 or math.isnan(free_distance)
+            or not math.isfinite(acceleration) or acceleration<=0
+            or not math.isfinite(max_speed) or max_speed<0):
         return 0.
-    margin = max(0., clearance-hard_clearance-.1)
+    margin = max(0., free_distance)
     return min(max_speed, max(0., -acceleration*age + math.sqrt((acceleration*age)**2 + 2*acceleration*margin)))
+
+
+def swept_free_distance(points, position, direction, radius):
+    """First entry along a ray into buffered measured points (2-D or 3-D).
+
+    Side/behind points outside the buffer do not consume forward braking
+    distance. Starting inside any buffer remains a stop. Empty points return
+    infinity; the caller must require a valid raw cloud and final safety gate.
+    This is a local geometry heuristic, not an observed-free-space certificate.
+    """
+    origin=np.asarray(position,float)
+    heading=np.asarray(direction,float)
+    cloud=np.asarray(points,float)
+    if (origin.ndim!=1 or len(origin) not in (2,3) or heading.shape!=origin.shape
+            or not np.all(np.isfinite(origin)) or not np.all(np.isfinite(heading))
+            or not math.isfinite(radius) or radius<=0):
+        raise ValueError('invalid swept geometry')
+    if cloud.size==0:return math.inf
+    if cloud.ndim!=2 or cloud.shape[1]!=len(origin) or not np.all(np.isfinite(cloud)):
+        raise ValueError('invalid swept points')
+    norm=float(np.linalg.norm(heading))
+    if norm<1e-9:return 0.
+    relative=cloud-origin
+    distances2=np.einsum('ij,ij->i',relative,relative)
+    if np.any(distances2<=radius*radius):return 0.
+    along=relative@(heading/norm)
+    cross2=np.maximum(0.,distances2-along*along)
+    intersects=(along>0)&(cross2<=radius*radius)
+    if not np.any(intersects):return math.inf
+    entries=along[intersects]-np.sqrt(np.maximum(0.,radius*radius-cross2[intersects]))
+    return max(0.,float(entries.min()))
 
 
 class MotionLimiter:
