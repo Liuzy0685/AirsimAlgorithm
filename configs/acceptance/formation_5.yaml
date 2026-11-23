@@ -5,7 +5,7 @@ formation:
   - Drone3
   - Drone4
   - Drone5
-  shape: line
+  shape: vee
   spacing_m: 3.0
   max_snapshot_age_s: 0.5
   max_sim_skew_s: 0.5
@@ -14,4 +14,6 @@ formation:
   recovery_gain: 0.5
   max_recovery_speed_mps: 0.35
   recovery_tolerance_m: 0.25
+  transition_dwell_s: 1.0
+  min_switch_interval_s: 2.0
   allow_legacy_readiness: true
