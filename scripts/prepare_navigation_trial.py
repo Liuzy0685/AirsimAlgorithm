@@ -22,10 +22,10 @@ def prepare(base, output, features):
     config,_=load_config(base)
     if not config.get('navigation',{}).get('enabled'):
         raise ValueError('trial requires an existing navigation.enabled baseline')
-    if set(features)-{'memory','recovery','smoothing','passage'}:
+    if set(features)-{'memory','recovery','smoothing','latency_limit','passage'}:
         raise ValueError('unknown trial feature')
     policy=asdict(HardeningConfig(enabled=True))
-    for name in ('memory','recovery','smoothing','passage'):
+    for name in ('memory','recovery','smoothing','latency_limit','passage'):
         policy[name]=name in features
     config['local_navigation_hardening']=policy
     output.parent.mkdir(parents=True,exist_ok=True)
@@ -41,7 +41,7 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--base',type=Path,required=True)
     parser.add_argument('--output',type=Path,required=True)
-    parser.add_argument('--features',nargs='*',choices=('memory','recovery','smoothing','passage'),default=[])
+    parser.add_argument('--features',nargs='*',choices=('memory','recovery','smoothing','latency_limit','passage'),default=[])
     args=parser.parse_args()
     try:print(json.dumps(prepare(args.base,args.output,args.features),ensure_ascii=False))
     except ValueError as exc:parser.error(str(exc))

@@ -82,6 +82,7 @@ def test_trial_generator_changes_only_policy_not_shared_settings_or_thresholds(t
     policy=result.pop('local_navigation_hardening')
     assert result==yaml.safe_load(before)
     assert policy['memory'] and policy['smoothing'] and not policy['passage']
+    assert policy['latency_limit'] is False
     assert base.read_bytes()==before
 
 

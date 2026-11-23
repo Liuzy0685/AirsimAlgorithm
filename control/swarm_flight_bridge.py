@@ -75,6 +75,7 @@ class SwarmFlightBridge:
             {m['vehicle_name']:m.get('yield_priority',0.) for m in config['drones']})
         self._last_dispatch_source='';self._accepted_speed=0.;self._last_guard_velocity=(0.,0.,0.)
         self._last_gateway_at=None;self._diagnostic_at=-math.inf
+        self._navigation_motion=None
         self._last_guard_start=None
         self._route_transients=[]
         self._navigation_waypoint=None
@@ -325,6 +326,7 @@ class SwarmFlightBridge:
         return tuple(p-o for p,o in zip(waypoint,offset))
 
     def _navigation_velocity(self,own_state,vz,source,command=None):
+        self._navigation_motion=None
         # A complete, checked grid route owns local recovery in this opt-in
         # mode. Never launch a blind forward probe when the route is blocked.
         if source=='vertical_escape':return None
@@ -372,7 +374,9 @@ class SwarmFlightBridge:
         length=math.hypot(dx,dy)
         wx,wy=(speed*dx/length,speed*dy/length) if length>1e-8 else (0.,0.)
         source='passage_retreat' if self.hardening.enabled and self.passage.state=='BLOCKED_TIMEOUT' else 'navigation_route'
-        if self.hardening.enabled and self.hardening.smoothing:
+        cap=speed
+        clearance=None
+        if self.hardening.enabled and self.hardening.latency_limit_enabled:
             age=max(0.,time.monotonic()-self.points_at)
             clearance=float(np.linalg.norm(points-np.asarray(own[:2]),axis=1).min()) if len(points) else math.inf
             # An open map may have no returns in the horizontal planning slab
@@ -386,11 +390,17 @@ class SwarmFlightBridge:
             cap=latency_speed_cap(clearance,self.router.minimum_clearance_m,age,
                 self.hardening.braking_mps2,speed)
             if speed>cap and speed>0:wx,wy=wx*cap/speed,wy*cap/speed
+        if self.hardening.enabled and self.hardening.smoothing:
             wx,wy=self.motion_limiter.limit((wx,wy),own_state.linear_velocity_ned_mps[:2],time.monotonic())
+        if self.hardening.enabled and (self.hardening.smoothing or self.hardening.latency_limit_enabled):
             from coordination.navigation import segment_clear
             end=(own[0]+wx*.5,own[1]+wy*.5)
             if not segment_clear(own,end,points,self.router.minimum_clearance_m):
                 wx=wy=0.;source='navigation_smooth_blocked'
+        if self.hardening.enabled:
+            self._navigation_motion=dict(requested_mps=speed,latency_cap_mps=cap,
+                output_mps=math.hypot(wx,wy),clearance_m=clearance if clearance is not None and math.isfinite(clearance) else None,
+                latency_limit_enabled=self.hardening.latency_limit_enabled,smoothing_enabled=self.hardening.smoothing)
         c,s=math.cos(own_state.yaw_rad),math.sin(own_state.yaw_rad)
         hold_vz=max(-self.params.max_vertical_speed_mps,min(self.params.max_vertical_speed_mps,
             self.params.target_z_ned-own_state.position_ned_m[2]))
@@ -592,7 +602,7 @@ class SwarmFlightBridge:
             self._diagnostic_at=now
             payload=dict(vehicle=self.name,**self.diagnostics.summary(),passage_state=self.passage.state,
                 passage_peer=self.passage.peer,progress_reason=self.progress_guard.reason,
-                search_timed_out=self.router.search_timed_out)
+                search_timed_out=self.router.search_timed_out,navigation_motion=self._navigation_motion)
             logging.getLogger('navigation_runtime').info('navigation_runtime %s',json.dumps(payload,allow_nan=False))
 
     def _guard_motion_impl(self, api, args, kwargs):

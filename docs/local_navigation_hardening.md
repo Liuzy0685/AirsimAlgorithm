@@ -19,6 +19,8 @@
 
 新的运动策略由 swarm YAML 顶层 `local_navigation_hardening` 控制。现有共享 acceptance 配置、settings 和编队 YAML 不修改，缺省为关闭。主开关打开后，`memory`、`recovery`、`smoothing`、`passage` 可独立关闭，便于逐项定位收益与退步。只有 `navigation.enabled` 的多机栅格导航分支接受这些策略；上一轮短轨迹候选改动仍由其独立配置控制。
 
+`latency_limit` 可单独控制新增延迟限速。旧 YAML 未填写或填写 `null` 时仍跟随 `smoothing`，保持原有行为。试验生成工具总是明确填写两项：`--features smoothing` 只开平滑，`--features latency_limit` 只开延迟限速，两项一起列出才同时开启。它们均为最终安全门控之前的可选策略，关闭其中一项不会关闭网关、碰撞或点云时效检查。每秒运行诊断增加 `navigation_motion`，显示当次请求速度、延迟限速上限、平滑后速度与净空；等待或本周期未进行导航速度决策时为 `null`，不能沿用上次决策解释当前等待。
+
 以下命令只生成试验副本，不启动仿真、不发送飞行命令，也不覆盖原配置：
 
 ```powershell
@@ -27,7 +29,7 @@ python scripts/prepare_navigation_trial.py --base configs/acceptance/swarm_2_nav
 # 逐项启用，例如先检查稳定记忆
 python scripts/prepare_navigation_trial.py --base configs/acceptance/swarm_2_navigation.yaml --output runs/trial/memory_2.yaml --features memory
 # 集成试验
-python scripts/prepare_navigation_trial.py --base configs/acceptance/swarm_2_navigation.yaml --output runs/trial/all_2.yaml --features memory recovery smoothing passage
+python scripts/prepare_navigation_trial.py --base configs/acceptance/swarm_2_navigation.yaml --output runs/trial/all_2.yaml --features memory recovery smoothing latency_limit passage
 ```
 
 五机使用同样流程，将输入换为 `swarm_5_navigation.yaml`。生成副本保留所有原有飞行、安全、传感器和队形参数，记录原文件及副本 SHA256；B 仍使用相应原编队 YAML。实际验收时只替换原验收命令的 `--swarm-config`，保留对应的 `--settings-json`、`--formation-config` 和地图。对照开启相同日志，用于比较策略本身；它不是字节完全不变的旧发布版本性能测量。

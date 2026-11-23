@@ -178,6 +178,48 @@ def test_speed_cap_reduces_with_latency_and_respects_braking_equation():
     assert latency_speed_cap(.9,.9,.1,.35,2.)==0.
 
 
+@pytest.mark.parametrize('smoothing',[False,True])
+def test_legacy_smoothing_yaml_keeps_combined_policy(smoothing):
+    assert cfg(smoothing=smoothing).latency_limit_enabled is smoothing
+
+
+@pytest.mark.parametrize('smoothing',[False,True])
+@pytest.mark.parametrize('latency_limit',[False,True])
+def test_motion_policies_can_be_isolated_without_changing_gate(monkeypatch,smoothing,latency_limit):
+    import time
+    from test_swarm_wiring import bridge_fixture
+    import control.swarm_flight_bridge as module
+    bridge,_,_=bridge_fixture()
+    bridge.hardening=cfg(passage=False,smoothing=smoothing,latency_limit=latency_limit)
+    bridge.navigation_cfg=NavigationConfig(enabled=True)
+    bridge.router=CommittedGridRouter(bridge.navigation_cfg,hardening=bridge.hardening)
+    bridge.router.path_available=True
+    own=bridge.link.snapshot().states[bridge.name]
+    x,y,z=own.position_ned_m
+    bridge._navigation_waypoint=(x+3.,y,z)
+    bridge.points_world=np.array([(x,y+1.1,z)])
+    bridge.points_at=time.monotonic()
+    calls=[]
+    def cap(*args):
+        calls.append('cap')
+        return .1
+    def smooth(desired,*args):
+        calls.append('smooth')
+        return desired
+    monkeypatch.setattr(module,'latency_speed_cap',cap)
+    monkeypatch.setattr(bridge.motion_limiter,'limit',smooth)
+    bridge._navigation_velocity(own,0.,'trajectory',bridge.link.command())
+    assert ('cap' in calls) is latency_limit
+    assert ('smooth' in calls) is smoothing
+    assert bridge.cfg.snapshot_max_age_s==.6
+    assert bridge._navigation_motion['latency_limit_enabled'] is latency_limit
+
+
+@pytest.mark.parametrize('bad',['true',1,0,[],{}])
+def test_invalid_latency_limit_switch_rejected(bad):
+    with pytest.raises(ValueError):cfg(latency_limit=bad)
+
+
 def test_passage_tie_break_matches_existing_yield_policy_without_circular_priority():
     a=PassageAdvisor(cfg(),'Drone1',{})
     b=PassageAdvisor(cfg(),'Drone2',{})

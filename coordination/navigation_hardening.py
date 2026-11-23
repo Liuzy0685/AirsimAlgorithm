@@ -16,6 +16,8 @@ class HardeningConfig:
     memory: bool = True
     recovery: bool = True
     smoothing: bool = True
+    # None preserves existing YAML behavior: smoothing used to enable both.
+    latency_limit: bool | None = None
     passage: bool = True
     diagnostics: bool = True
     free_confirmations: int = 3
@@ -33,17 +35,24 @@ class HardeningConfig:
         for name in ('enabled', 'memory', 'recovery', 'smoothing', 'passage', 'diagnostics'):
             if type(getattr(self, name)) is not bool:
                 raise ValueError(f'{name} must be boolean')
+        if self.latency_limit is not None and type(self.latency_limit) is not bool:
+            raise ValueError('latency_limit must be boolean or null')
         for name, lower, upper in (('free_confirmations', 2, 10), ('max_memory_cells', 100, 8000),
                                    ('clearing_rays', 1, 64)):
             value = getattr(self, name)
             if type(value) is not int or not lower <= value <= upper:
                 raise ValueError(f'invalid {name}')
+
         for name, lower, upper in (('stall_window_s', 2., 30.), ('stall_displacement_m', .05, 1.),
                 ('stall_progress_m', .05, 1.), ('failure_ttl_s', 5., 120.),
                 ('acceleration_mps2', .05, 2.), ('braking_mps2', .05, 2.), ('passage_wait_s', 2., 30.)):
             value = getattr(self, name)
             if type(value) not in (int, float) or not math.isfinite(value) or not lower <= value <= upper:
                 raise ValueError(f'invalid {name}')
+
+    @property
+    def latency_limit_enabled(self):
+        return self.smoothing if self.latency_limit is None else self.latency_limit
 
 
 def stop_category(reason):
