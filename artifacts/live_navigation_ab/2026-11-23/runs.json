@@ -1,0 +1,106 @@
+[
+  {
+    "case": "baseline",
+    "source_commit": "49b9b09",
+    "control_source_ref_checks": {
+      "control/swarm_flight_bridge.py": true,
+      "coordination/navigation_hardening.py": true,
+      "coordination/navigation.py": true,
+      "flight_modes/automatic_mode.py": true
+    },
+    "passed": true,
+    "flight_duration_s": 115.83739190000006,
+    "minimum_pair_separation_m": 2.271436289213817,
+    "collisions": 0,
+    "total_path_m": 49.48119875016215,
+    "cleanup_verified": true,
+    "termination_reason": {
+      "Drone1": "mission_complete",
+      "Drone2": "coordinated_stop"
+    },
+    "raw_log_sha256": {
+      "Drone1.log": "2f75ff23ccfc0a013a352053db4b18aec28803230a1be3f1393a4b18e1ac1683",
+      "Drone2.log": "27ca1f8ab1a06af16d6126924045884e8abd9618f90eaa2524b4a1d21b44bd9a",
+      "formation.log": "97a0d74a9b960398c0f354eaa350feea1c713725687dda67588453622a8815c0",
+      "state_service.log": "ee8053966100c65376d15e0b57d596ec80ed740afc5177870082accf84b4ef0b"
+    }
+  },
+  {
+    "case": "all_features",
+    "source_commit": "49b9b09",
+    "control_source_ref_checks": {
+      "control/swarm_flight_bridge.py": true,
+      "coordination/navigation_hardening.py": true,
+      "coordination/navigation.py": true,
+      "flight_modes/automatic_mode.py": true
+    },
+    "passed": true,
+    "flight_duration_s": 143.0028281,
+    "minimum_pair_separation_m": 2.2766061222742087,
+    "collisions": 0,
+    "total_path_m": 48.092684378527366,
+    "cleanup_verified": true,
+    "termination_reason": {
+      "Drone1": "mission_complete",
+      "Drone2": "coordinated_stop"
+    },
+    "raw_log_sha256": {
+      "Drone1.log": "f54624b286d7ad050cdaa3ae68f6691816980cbf13e5421e3b31ffcc735ba4c0",
+      "Drone2.log": "868b412b0f6f5a382f21cdf5500ab13d4876bfdf6f8f26694c96f7f916b60dc1",
+      "formation.log": "e1a343b24d999ec291017c0387a3f3acb449c033373f751c88c6330931e34ce0",
+      "state_service.log": "ee8053966100c65376d15e0b57d596ec80ed740afc5177870082accf84b4ef0b"
+    }
+  },
+  {
+    "case": "without_smoothing",
+    "source_commit": "49b9b09",
+    "control_source_ref_checks": {
+      "control/swarm_flight_bridge.py": true,
+      "coordination/navigation_hardening.py": true,
+      "coordination/navigation.py": true,
+      "flight_modes/automatic_mode.py": true
+    },
+    "passed": true,
+    "flight_duration_s": 115.48430409999992,
+    "minimum_pair_separation_m": 2.2736269336250183,
+    "collisions": 0,
+    "total_path_m": 49.52415741431869,
+    "cleanup_verified": true,
+    "termination_reason": {
+      "Drone1": "mission_complete",
+      "Drone2": "coordinated_stop"
+    },
+    "raw_log_sha256": {
+      "Drone1.log": "035a94fc51cbe8569d131a214c73360daec027b2959a688fd4f84eb440ea594a",
+      "Drone2.log": "dc2c5f0e3603157a16dcb81ad3759f2580bf9c207bdf766f78a581a2a6b17556",
+      "formation.log": "f0a9c6bfb8bfa24fd8681fa8a29785cb1732a7c8d368468b05a40c0fdea1ae5f",
+      "state_service.log": "ee8053966100c65376d15e0b57d596ec80ed740afc5177870082accf84b4ef0b"
+    }
+  },
+  {
+    "case": "pre_fix_timeout",
+    "source_commit": "1f13608",
+    "control_source_ref_checks": {
+      "control/swarm_flight_bridge.py": true,
+      "coordination/navigation_hardening.py": true,
+      "coordination/navigation.py": true,
+      "flight_modes/automatic_mode.py": true
+    },
+    "passed": false,
+    "flight_duration_s": 180.18182820000038,
+    "minimum_pair_separation_m": 2.7050066063204077,
+    "collisions": 0,
+    "total_path_m": 54.16886285087581,
+    "cleanup_verified": true,
+    "termination_reason": {
+      "Drone1": "time_limit",
+      "Drone2": "time_limit"
+    },
+    "raw_log_sha256": {
+      "Drone1.log": "4298a0b480875c06b53e041979451c0c246db092920b92ed4f6a5794d55ae557",
+      "Drone2.log": "1e9d1c607b81859e87c33bcb7f47b38951860ac186b111d2c0deebe726ca6bbf",
+      "formation.log": "b9fcd37892e9bdfb272f9be6e9ec2c0ddbc7e3751bb64fc8607734c4726c5564",
+      "state_service.log": "b4c845ccbf4c65a456985424f41fe1e5b76a5213c5e9a66fa7f5bbac8dfa58c3"
+    }
+  }
+]
