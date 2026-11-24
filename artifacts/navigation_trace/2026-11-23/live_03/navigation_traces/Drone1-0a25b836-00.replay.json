@@ -1,0 +1,111 @@
+{
+  "input_sha256": "642ec9b1df9bfcd774924b7e41faba5062e623750eeedbc040eb3c8cb5df45b3",
+  "trigger": "initial_route",
+  "source_checks": {
+    "coordination/navigation.py": true,
+    "coordination/navigation_hardening.py": true,
+    "control/swarm_flight_bridge.py": true
+  },
+  "recorded_outcome": {
+    "waypoint": [
+      2.5,
+      -3.0,
+      -2.0
+    ],
+    "path_available": true,
+    "goal_blocked": false,
+    "route_version": 1,
+    "escaping": false,
+    "reason": "grid_route",
+    "search_timed_out": false,
+    "searches": [
+      {
+        "start_cell": [
+          2,
+          -12
+        ],
+        "goal_cell": [
+          62,
+          -12
+        ],
+        "penalized": false,
+        "expanded": 655,
+        "start_blocked": false,
+        "goal_blocked": false,
+        "blocked_cells": 1724,
+        "reason": "found"
+      },
+      {
+        "start_cell": [
+          2,
+          -12
+        ],
+        "goal_cell": [
+          62,
+          -12
+        ],
+        "penalized": true,
+        "expanded": 688,
+        "start_blocked": false,
+        "goal_blocked": false,
+        "blocked_cells": 1724,
+        "reason": "found"
+      }
+    ],
+    "escape": {}
+  },
+  "replay": {
+    "waypoint": [
+      2.5,
+      -3.0,
+      -2.0
+    ],
+    "path_available": true,
+    "goal_blocked": false,
+    "reason": "grid_route",
+    "searches": [
+      {
+        "start_cell": [
+          2,
+          -12
+        ],
+        "goal_cell": [
+          62,
+          -12
+        ],
+        "penalized": false,
+        "expanded": 655,
+        "start_blocked": false,
+        "goal_blocked": false,
+        "blocked_cells": 1724,
+        "reason": "found"
+      },
+      {
+        "start_cell": [
+          2,
+          -12
+        ],
+        "goal_cell": [
+          62,
+          -12
+        ],
+        "penalized": true,
+        "expanded": 688,
+        "start_blocked": false,
+        "goal_blocked": false,
+        "blocked_cells": 1724,
+        "reason": "found"
+      }
+    ],
+    "escape": {},
+    "search_timed_out": false,
+    "limitation": "Frozen geometry only; actual CPU deadlines and later observations are not replayed"
+  },
+  "geometry_matches": {
+    "path_available": true,
+    "goal_blocked": true,
+    "reason": true,
+    "waypoint": true
+  },
+  "runtime_timeout_not_reproduced": false
+}

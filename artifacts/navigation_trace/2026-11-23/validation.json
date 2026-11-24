@@ -1,0 +1,66 @@
+{
+  "evidence_type": "diagnostic_instrumentation_validation",
+  "live_cases": [
+    {
+      "case": 1,
+      "source_commit": "7f37cea",
+      "passed": true,
+      "flight_duration_s": 115.0157008999995,
+      "collision_count": 0,
+      "minimum_pair_distance_m": 2.255689890798994,
+      "actual_ground_verified": true,
+      "reported_cleanup_verified": true,
+      "diagnostic_files": 0
+    },
+    {
+      "case": 2,
+      "source_commit": "7f37cea",
+      "passed": true,
+      "flight_duration_s": 115.50050160000046,
+      "collision_count": 0,
+      "minimum_pair_distance_m": 2.2784087099731374,
+      "actual_ground_verified": true,
+      "reported_cleanup_verified": true,
+      "diagnostic_files": 0
+    },
+    {
+      "case": 3,
+      "source_commit": "d7ba2f6",
+      "passed": true,
+      "flight_duration_s": 117.2886354000002,
+      "collision_count": 0,
+      "minimum_pair_distance_m": 2.272766585773747,
+      "actual_ground_verified": true,
+      "reported_cleanup_verified": true,
+      "diagnostic_files": 2
+    }
+  ],
+  "live_replays": [
+    {
+      "file": "Drone1-0a25b836-00.json",
+      "trigger": "initial_route",
+      "matches": {
+        "path_available": true,
+        "goal_blocked": true,
+        "reason": true,
+        "waypoint": true
+      },
+      "recorded_timeout": false
+    },
+    {
+      "file": "Drone2-9463714a-00.json",
+      "trigger": "initial_route",
+      "matches": {
+        "path_available": true,
+        "goal_blocked": true,
+        "reason": true,
+        "waypoint": true
+      },
+      "recorded_timeout": false
+    }
+  ],
+  "persistent_no_route_observed": false,
+  "prior_failed_case_reproduced": false,
+  "prior_failure_fixed": false,
+  "scope": "Initial-route replay validates the diagnostic chain; synthetic cases validate classifications, not the prior AirSim failure. No behavior fix or performance gain claim."
+}

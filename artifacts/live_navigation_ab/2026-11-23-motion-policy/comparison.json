@@ -1,0 +1,192 @@
+{
+  "evidence_type": "serial_dual_uav_exploratory_policy_isolation",
+  "cases": {
+    "smoothing_only": {
+      "features": [
+        "memory",
+        "recovery",
+        "smoothing",
+        "passage"
+      ],
+      "summary_sha256": "450e82895a990072bc84185d4f79d53c5e952108d6a225432bc9669197a9af16",
+      "passed": true,
+      "flight_duration_s": 124.81323969999994,
+      "collision_count": 0,
+      "minimum_pair_distance_m": 2.2530113769569304,
+      "actual_ground_verified": true,
+      "reported_cleanup_verified": true,
+      "termination": {
+        "Drone1": "mission_complete",
+        "Drone2": "coordinated_stop"
+      },
+      "source_commit": "1dcd791",
+      "latency_clearance_mode": "radial",
+      "total_path_m": 49.34536627859116,
+      "source_manifest_sha256": "2bc01a1e0b8d3e0c8d29cf92a3025dcbb8572617087eefad780f3bff616ee46a",
+      "sampled_horizontal_acceleration_at_cruise_altitude": {
+        "Drone1": {
+          "samples": 616,
+          "median_mps2": 3.501226750011903e-05,
+          "p95_mps2": 0.08617592273601028,
+          "maximum_mps2": 0.2691354976762223,
+          "skipped_pairs": 176
+        },
+        "Drone2": {
+          "samples": 614,
+          "median_mps2": 0.06327323562964267,
+          "p95_mps2": 0.21322682212087488,
+          "maximum_mps2": 0.35310998942736066,
+          "skipped_pairs": 178
+        }
+      }
+    },
+    "latency_only": {
+      "features": [
+        "memory",
+        "recovery",
+        "latency_limit",
+        "passage"
+      ],
+      "summary_sha256": "1a49061d4cbaf60209a3e01a87767aa7eba2406c8f676fa914b963980e6b460e",
+      "passed": true,
+      "flight_duration_s": 115.61392749999959,
+      "collision_count": 0,
+      "minimum_pair_distance_m": 2.2764686604576783,
+      "actual_ground_verified": true,
+      "reported_cleanup_verified": true,
+      "termination": {
+        "Drone1": "mission_complete",
+        "Drone2": "coordinated_stop"
+      },
+      "source_commit": "1dcd791",
+      "latency_clearance_mode": "radial",
+      "total_path_m": 49.43321443562879,
+      "source_manifest_sha256": "2bc01a1e0b8d3e0c8d29cf92a3025dcbb8572617087eefad780f3bff616ee46a",
+      "sampled_horizontal_acceleration_at_cruise_altitude": {
+        "Drone1": {
+          "samples": 572,
+          "median_mps2": 5.597422677683457e-05,
+          "p95_mps2": 0.06832713375487291,
+          "maximum_mps2": 0.30672539731237286,
+          "skipped_pairs": 177
+        },
+        "Drone2": {
+          "samples": 570,
+          "median_mps2": 0.03727276660479449,
+          "p95_mps2": 0.17205374756052003,
+          "maximum_mps2": 0.3517011750676478,
+          "skipped_pairs": 179
+        }
+      }
+    },
+    "combined_radial": {
+      "features": [
+        "memory",
+        "recovery",
+        "smoothing",
+        "latency_limit",
+        "passage"
+      ],
+      "summary_sha256": "fa8899a2d79a97ff54663678a6902939d7f23ec0fbf4bc0c190ef72d9546d931",
+      "passed": true,
+      "flight_duration_s": 146.18198630000006,
+      "collision_count": 0,
+      "minimum_pair_distance_m": 2.2444863111434263,
+      "actual_ground_verified": true,
+      "reported_cleanup_verified": true,
+      "termination": {
+        "Drone1": "mission_complete",
+        "Drone2": "coordinated_stop"
+      },
+      "source_commit": "172f017",
+      "latency_clearance_mode": "radial",
+      "total_path_m": 47.96724391611404,
+      "source_manifest_sha256": "93c90bdd203ced196435bf38fb6dc15356d9ad0054cce87ac789372c8e7742e5",
+      "sampled_horizontal_acceleration_at_cruise_altitude": {
+        "Drone1": {
+          "samples": 719,
+          "median_mps2": 2.4459381146510184e-05,
+          "p95_mps2": 0.05301493496487366,
+          "maximum_mps2": 0.3022140456848706,
+          "skipped_pairs": 180
+        },
+        "Drone2": {
+          "samples": 716,
+          "median_mps2": 0.07214374305646311,
+          "p95_mps2": 0.18336134735389845,
+          "maximum_mps2": 0.2484365570250395,
+          "skipped_pairs": 183
+        }
+      }
+    },
+    "combined_swept": {
+      "features": [
+        "memory",
+        "recovery",
+        "smoothing",
+        "latency_limit",
+        "passage"
+      ],
+      "summary_sha256": "181fa680af833b48d4235ff93ad1f50c3801e338a39d5bfae987464d7a60a182",
+      "passed": true,
+      "flight_duration_s": 129.1206648000002,
+      "collision_count": 0,
+      "minimum_pair_distance_m": 2.2716282452204952,
+      "actual_ground_verified": true,
+      "reported_cleanup_verified": true,
+      "termination": {
+        "Drone1": "mission_complete",
+        "Drone2": "coordinated_stop"
+      },
+      "source_commit": "172f017",
+      "latency_clearance_mode": "swept",
+      "total_path_m": 48.339909139558145,
+      "source_manifest_sha256": "93c90bdd203ced196435bf38fb6dc15356d9ad0054cce87ac789372c8e7742e5",
+      "sampled_horizontal_acceleration_at_cruise_altitude": {
+        "Drone1": {
+          "samples": 638,
+          "median_mps2": 1.1672343748031593e-05,
+          "p95_mps2": 0.05672008150452593,
+          "maximum_mps2": 0.3136664706397693,
+          "skipped_pairs": 181
+        },
+        "Drone2": {
+          "samples": 637,
+          "median_mps2": 0.07482045583504067,
+          "p95_mps2": 0.20748326652400442,
+          "maximum_mps2": 0.35682412203747793,
+          "skipped_pairs": 182
+        }
+      }
+    }
+  },
+  "matched_conditions": {
+    "isolated_policies": {
+      "map": true,
+      "settings": true,
+      "formation": true,
+      "source": true,
+      "non_treatment_config": true,
+      "extra_cameras": true
+    },
+    "clearance_geometry": {
+      "map": true,
+      "settings": true,
+      "formation": true,
+      "source": true,
+      "non_treatment_config": true,
+      "extra_cameras": true
+    }
+  },
+  "all_landed_released": true,
+  "geometry_duration_relative_change": -0.11671288598436458,
+  "limitations": [
+    "One trial per policy; no randomized repeated comparison or statistical superiority claim",
+    "Isolated-policy and geometry pairs use different source commits; compare within each matched pair",
+    "Navigation decisions are sampled about once per second, not duration fractions or full frame counts",
+    "No added camera streams; built-in UE subwindows unchanged; only this dual-UAV maze case",
+    "Nominal braking heuristic does not certify observed free space or actual vehicle braking",
+    "Window P95 maxima and legacy hover counters are not global percentiles or actual hovering",
+    "Acceleration is finite-difference of sampled measured velocities at z=-2 +/-0.2m using simulator time; not command acceleration, jerk, or a dynamics bound"
+  ]
+}

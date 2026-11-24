@@ -142,6 +142,15 @@ class TrajectoryPlannerParams:
     planning_hz: float = 8.0
     max_compute_ms: float = 20.0
 
+    # Bounded, deterministic adaptation; disabled for legacy programmatic callers.
+    adaptive_candidates_enabled: bool = False
+    adaptive_max_candidates: int = 18  # fixed + rejoin + adaptive + fine search
+    adaptive_proposals: int = 4
+    adaptive_refinements: int = 2
+    adaptive_curvature_step: float = 0.10
+    adaptive_braking_accel_mps2: float = 0.35
+    adaptive_lateral_accel_mps2: float = 0.40
+
     hard_clearance_m: float = 1.0
     preferred_clearance_m: float = 1.8
 
@@ -240,6 +249,34 @@ class TrajectoryPlannerParams:
         "unknown_penalty": 0.5,
     })
 
+    def __post_init__(self):
+        for name, upper in (("adaptive_max_candidates", 32), ("adaptive_proposals", 8),
+                            ("adaptive_refinements", 4)):
+            value = getattr(self, name)
+            if type(value) is not int or not 0 <= value <= upper:
+                raise ValueError(f"invalid {name}")
+        if self.adaptive_max_candidates < 11:
+            raise ValueError("adaptive_max_candidates must leave room for fixed/rejoin candidates")
+        for name in ("adaptive_curvature_step", "adaptive_braking_accel_mps2",
+                     "adaptive_lateral_accel_mps2"):
+            value = getattr(self, name)
+            if type(value) not in (int, float) or not math.isfinite(value) or value <= 0:
+                raise ValueError(f"invalid {name}")
+        if self.adaptive_curvature_step > .45:
+            raise ValueError("adaptive_curvature_step exceeds curvature search range")
+        if self.adaptive_candidates_enabled and (
+            not math.isfinite(self.max_compute_ms) or not 0 < self.max_compute_ms <= 1000
+            or not math.isfinite(self.sample_spacing_m) or not .05 <= self.sample_spacing_m <= 1.
+        ):
+            raise ValueError("adaptive planning needs finite positive time and sampling budgets")
+        if type(self.adaptive_candidates_enabled) is not bool:
+            raise ValueError("adaptive_candidates_enabled must be a boolean")
+        if self.adaptive_candidates_enabled:
+            for name in ("horizon_m", "min_horizon_m", "mid_horizon_m", "max_horizon_m"):
+                value = getattr(self, name)
+                if not math.isfinite(value) or not .2 <= value <= 20.:
+                    raise ValueError(f"invalid {name} for bounded adaptive sampling")
+
 
 # ── candidate ──
 
@@ -275,6 +312,7 @@ class TrajectoryCandidate:
     path_deviation_m: float = float("inf")
     total_score: float = -float("inf")
     direct_opposite_switch: bool = False  # penalised LEFT↔RIGHT flip (sec 5)
+    generation_source: str = "fixed"
 
     # body-frame command direction of the first segment
     command_vx_body: float = 0.0
@@ -295,6 +333,7 @@ class TrajectoryMemory:
 
     previous_family: Optional[str] = None
     previous_score: float = -float("inf")
+    previous_curvature: float = 0.0
     previous_global_path_version: int = 0
     previous_points: List[Tuple[float, float]] = field(default_factory=list)
     history: List[str] = field(default_factory=list)
@@ -321,6 +360,7 @@ class TrajectoryMemory:
         """Forget the last trajectory (used on Recovery exit)."""
         self.previous_family = None
         self.previous_score = -float("inf")
+        self.previous_curvature = 0.0
         self.previous_points = []
         self.history = []
         self.current_family_held_since = -float("inf")
@@ -359,6 +399,16 @@ class TrajectoryPlanResult:
     min_distance_m: float = float("inf")
     # Whether the selected straight command is protected by the passage hold.
     narrow_passage_active: bool = False
+    budget_exhausted: bool = False
+    evaluated_count: int = 0
+    adaptive_generated: int = 0
+    refinement_count: int = 0
+    fallback_reason: str = ""
+    speed_limit_mps: Optional[float] = None
+
+
+class _PlanningDeadline(Exception):
+    """Cooperative cancellation; never publish a partially evaluated candidate."""
 
 
 # ── generator backend (deterministic now; diffusion later) ──
@@ -428,11 +478,13 @@ class LocalTrajectoryPlanner:
         memory: Optional[TrajectoryMemory] = None,
         generator: Optional[TrajectoryGeneratorBackend] = None,
         clock: Optional[Callable[[], float]] = None,
+        compute_clock: Optional[Callable[[], float]] = None,
     ) -> None:
         self.params = params or TrajectoryPlannerParams()
         self._memory = memory or TrajectoryMemory()
         self._generator = generator or DeterministicTrajectoryGenerator()
         self._clock = clock if clock is not None else time.monotonic
+        self._compute_clock = compute_clock if compute_clock is not None else time.perf_counter
 
     # ── public API ──
 
@@ -461,10 +513,14 @@ class LocalTrajectoryPlanner:
             side_hint: optional preferred lateral side (-1/0/+1) — a *soft*
                 bonus only, never a hard constraint.
         """
-        import time as _time_module
-        t0 = _time_module.perf_counter()
+        t0 = self._compute_clock()
         p = self.params
         result = TrajectoryPlanResult()
+        deadline = t0 + p.max_compute_ms / 1000. if p.adaptive_candidates_enabled else math.inf
+
+        def check_budget():
+            if self._compute_clock() >= deadline:
+                raise _PlanningDeadline()
 
         # ── adaptive horizon + front clearance (sec 6/8) ──
         min_distance = distance_field.distance_at(
@@ -483,7 +539,19 @@ class LocalTrajectoryPlanner:
             "horizon_m": horizon_m,
             "front_clear_m": front_clear_m,
         }
-        raw = self._generator.generate(p, **ctx)
+        try:
+            raw = self._generator.generate(p, **ctx)
+        except (ArithmeticError, ValueError, RuntimeError):
+            if not p.adaptive_candidates_enabled:
+                raise
+            raw = DeterministicTrajectoryGenerator().generate(p, **ctx)
+            result.fallback_reason = "generator_error_fixed"
+        if p.adaptive_candidates_enabled:
+            raw = raw[:p.adaptive_max_candidates]
+            # Prefer a safe incumbent / straight route before spending time on
+            # optional alternatives. Every incumbent is regenerated and checked.
+            raw.sort(key=lambda c: (c[0] != self._memory.previous_family,
+                                    c[0] != STRAIGHT))
         result.generated = len(raw)
 
         path_xy = _path_to_xy(global_path)
@@ -495,16 +563,86 @@ class LocalTrajectoryPlanner:
             side_hint = family_side(self._memory.previous_family)
 
         candidates: List[TrajectoryCandidate] = []
-        for family, points, curv, is_reverse in raw:
+        def evaluate(item, source="fixed"):
+            family, points, curv, is_reverse = item
+            if p.adaptive_candidates_enabled:
+                check_budget()
             cand = self.evaluate_candidate(
-                family, points, curv, is_reverse,
-                drone_position_ned, yaw_rad, goal_unit, path_xy, distance_field,
-                unknown_query, prev_points, side_hint,
+                family, points, curv, is_reverse, drone_position_ned, yaw_rad,
+                goal_unit, path_xy, distance_field, unknown_query, prev_points,
+                side_hint, check_budget=check_budget if p.adaptive_candidates_enabled else None,
+                previous_clearance_checked=p.adaptive_candidates_enabled,
             )
+            if p.adaptive_candidates_enabled:
+                check_budget()
+            cand.generation_source = source
             candidates.append(cand)
 
+        try:
+            if p.adaptive_candidates_enabled and prev_points:
+                check_budget()
+                if hasattr(distance_field, "trajectory_clearances"):
+                    previous_clearance = distance_field.trajectory_clearances(
+                        prev_points, check_budget=check_budget)[0]
+                else:
+                    previous_clearance = distance_field.trajectory_min_clearance(prev_points)
+                if not previous_clearance >= p.hard_clearance_m:
+                    prev_points = []
+                check_budget()
+            for item in raw:
+                evaluate(item)
+            if p.adaptive_candidates_enabled:
+                # Fixed candidates always run first. Optional work cannot erase
+                # an already checked fallback, and is capped in count and time.
+                adaptive_available = True
+                try:
+                    seeds = self._adaptive_curvatures(ctx, candidates, distance_field, check_budget)
+                except (ArithmeticError, ValueError, TypeError, RuntimeError):
+                    # A proposal-generation failure must not erase the fixed
+                    # candidates that already passed this frame's checks.
+                    seeds = []
+                    adaptive_available = False
+                    result.fallback_reason = "adaptive_seed_error_fixed"
+                seen = {round(c.curvature, 6) for c in candidates if not c.is_reverse}
+                for curvature, source in seeds[:p.adaptive_proposals]:
+                    if result.generated >= p.adaptive_max_candidates:
+                        break
+                    if round(curvature, 6) in seen:
+                        continue
+                    check_budget()
+                    seen.add(round(curvature, 6))
+                    result.generated += 1
+                    result.adaptive_generated += 1
+                    evaluate(self._curved_candidate(curvature, ctx), source)
+                valid_forward = [c for c in candidates if c.valid and not c.is_reverse]
+                if valid_forward and adaptive_available:
+                    seed = max(valid_forward, key=lambda c: c.total_score).curvature
+                    for i in range(p.adaptive_refinements):
+                        if result.generated >= p.adaptive_max_candidates:
+                            break
+                        step = p.adaptive_curvature_step / (1 + i // 2)
+                        curvature = max(-_CURVATURE_MAX, min(_CURVATURE_MAX,
+                            seed + step * (-1 if i % 2 == 0 else 1)))
+                        if round(curvature, 6) in seen:
+                            continue
+                        check_budget()
+                        seen.add(round(curvature, 6))
+                        result.generated += 1
+                        result.refinement_count += 1
+                        evaluate(self._curved_candidate(curvature, ctx), "refined")
+        except _PlanningDeadline:
+            result.budget_exhausted = True
+        result.evaluated_count = len(candidates)
+        if p.adaptive_candidates_enabled:
+            if result.budget_exhausted:
+                result.fallback_reason = "budget_best_checked" if any(c.valid for c in candidates) else "budget_no_feasible_candidate"
+            elif not any(c.valid for c in candidates):
+                result.fallback_reason = "no_feasible_candidate"
+            elif not result.fallback_reason and not any(c.valid and c.generation_source != "fixed" for c in candidates):
+                result.fallback_reason = "fixed_candidates"
+
         # ── distance-field refinement (optional, default off) ──
-        if p.enable_distance_field_refinement:
+        if p.enable_distance_field_refinement and not p.adaptive_candidates_enabled:
             for cand in candidates:
                 if cand.valid:
                     self._refine_candidate(cand, distance_field)
@@ -531,7 +669,7 @@ class LocalTrajectoryPlanner:
 
         if not valid_cands:
             result.escape_hint = self._build_escape_hint(candidates)
-            result.compute_ms = (_time_module.perf_counter() - t0) * 1000.0
+            result.compute_ms = (self._compute_clock() - t0) * 1000.0
             return result  # no feasible trajectory → dispatcher falls back
 
         best = max(valid_cands, key=lambda c: c.total_score)
@@ -573,7 +711,7 @@ class LocalTrajectoryPlanner:
         # the short-cut that can drive deeper into a U-shaped obstacle.
         if reverse_hold_exhausted:
             result.escape_hint = self._build_escape_hint(candidates)
-            result.compute_ms = (_time_module.perf_counter() - t0) * 1000.0
+            result.compute_ms = (self._compute_clock() - t0) * 1000.0
             return result
 
         if reverse_hold:
@@ -676,7 +814,18 @@ class LocalTrajectoryPlanner:
 
         # ── command derivation (execute first segment) ──
         cmd_vx, cmd_vy = self._command_from_candidate(best)
+        if p.adaptive_candidates_enabled:
+            clearance_speed = math.sqrt(2 * p.adaptive_braking_accel_mps2 *
+                                        max(0., best.min_clearance_m - p.hard_clearance_m))
+            turn_speed = math.sqrt(p.adaptive_lateral_accel_mps2 / max(abs(best.curvature), 1e-9))
+            result.speed_limit_mps = min(p.forward_speed_mps, clearance_speed, turn_speed)
+            magnitude = math.hypot(cmd_vx, cmd_vy)
+            if magnitude > result.speed_limit_mps:
+                scale = result.speed_limit_mps / magnitude
+                cmd_vx, cmd_vy = cmd_vx * scale, cmd_vy * scale
         result.selected = best
+        if p.adaptive_candidates_enabled and best.generation_source == "fixed" and not result.fallback_reason:
+            result.fallback_reason = "fixed_best_checked"
         result.command_vx = cmd_vx
         result.command_vy = cmd_vy
         result.command_vz = 0.0
@@ -689,6 +838,7 @@ class LocalTrajectoryPlanner:
         elif self._memory.current_family_held_since == -float("inf"):
             self._memory.current_family_held_since = now
         self._memory.record(best.family, best.total_score, global_path_version, best.points)
+        self._memory.previous_curvature = best.curvature
         if result.narrow_passage_active:
             if not self._memory.narrow_passage_active:
                 self._memory.narrow_passage_started_at = now
@@ -708,8 +858,51 @@ class LocalTrajectoryPlanner:
             self._memory.reverse_hold_started_at = -float("inf")
             self._memory.reverse_hold_start_position = None
 
-        result.compute_ms = (_time_module.perf_counter() - t0) * 1000.0
+        result.compute_ms = (self._compute_clock() - t0) * 1000.0
         return result
+
+    def _curved_candidate(self, curvature, ctx):
+        # Keep the established family protocol used by recovery / telemetry.
+        # The family describes a band; its curvature is no longer fixed.
+        if abs(curvature) < 1e-7:
+            family = STRAIGHT
+        elif abs(curvature) < .325:
+            family = SOFT_LEFT if curvature < 0 else SOFT_RIGHT
+        elif abs(curvature) < .675:
+            family = LEFT if curvature < 0 else RIGHT
+        else:
+            family = HARD_LEFT if curvature < 0 else HARD_RIGHT
+        px, py = ctx["drone_position_ned"][:2]
+        points = _body_to_world(_arc_points(curvature, ctx["horizon_m"],
+            self.params.sample_spacing_m), px, py, ctx["yaw_rad"])
+        return family, points, curvature, False
+
+    def _adaptive_curvatures(self, ctx, candidates, distance_field, check_budget):
+        """Goal, observed obstacle gradient and last chosen curve seed the search.
+
+        These are proposals, never clearance certificates. No unseen layout or
+        simulator map is queried, and no free-space assumption is introduced.
+        """
+        check_budget()
+        px, py = ctx["drone_position_ned"][:2]
+        dx, dy = ctx["goal_xy"][0] - px, ctx["goal_xy"][1] - py
+        angle = math.atan2(dy, dx) - ctx["yaw_rad"]
+        angle = math.atan2(math.sin(angle), math.cos(angle))
+        goal = max(-_CURVATURE_MAX, min(_CURVATURE_MAX, angle / ctx["horizon_m"]))
+        forward = [c for c in candidates if c.valid and not c.is_reverse]
+        seed = max(forward, key=lambda c: c.total_score).curvature if forward else goal
+        seeds = [(goal, "adaptive_goal"), ((goal + seed) / 2, "adaptive_goal"),
+                 (self._memory.previous_curvature, "adaptive_history")]
+        if hasattr(distance_field, "gradient_at"):
+            c, s = math.cos(ctx["yaw_rad"]), math.sin(ctx["yaw_rad"])
+            probe = min(1.5, ctx["horizon_m"] / 2)
+            check_budget()
+            gx, gy = distance_field.gradient_at(px + probe * c, py + probe * s)
+            check_budget()
+            if math.isfinite(gx) and math.isfinite(gy):
+                seeds.insert(0, (max(-_CURVATURE_MAX, min(_CURVATURE_MAX,
+                    goal + .45 * (gy * c - gx * s))), "adaptive_obstacle"))
+        return seeds
 
     # ── evaluation ──
 
@@ -727,6 +920,8 @@ class LocalTrajectoryPlanner:
         unknown_query: Optional[Callable[[float, float], bool]] = None,
         previous_points: Optional[List[Tuple[float, float]]] = None,
         side_hint: int = 0,
+        check_budget=None,
+        previous_clearance_checked=False,
     ) -> TrajectoryCandidate:
         """Score one candidate.  Returns a ``TrajectoryCandidate`` (possibly invalid)."""
         p = self.params
@@ -740,12 +935,30 @@ class LocalTrajectoryPlanner:
             cand.valid = False
             cand.invalid_reason = "empty_trajectory"
             return cand
+        if not math.isfinite(curvature) or any(not math.isfinite(v) for point in points for v in point):
+            cand.valid = False
+            cand.invalid_reason = "nonfinite_trajectory"
+            return cand
 
         # ── whole-trajectory clearance ──
-        cand.min_clearance_m = distance_field.trajectory_min_clearance(points)
-        cand.mean_clearance_m = distance_field.trajectory_mean_clearance(points)
+        if p.adaptive_candidates_enabled and hasattr(distance_field, "trajectory_clearances"):
+            cand.min_clearance_m, cand.mean_clearance_m = distance_field.trajectory_clearances(
+                points, check_budget=check_budget)
+        else:
+            cand.min_clearance_m = distance_field.trajectory_min_clearance(points)
+            cand.mean_clearance_m = distance_field.trajectory_mean_clearance(points)
+            if p.adaptive_candidates_enabled:
+                # Distance to a set is 1-Lipschitz: this lower bound covers
+                # each entire segment even for custom distance-field backends.
+                for a, b in zip(points, points[1:]):
+                    if check_budget is not None:
+                        check_budget()
+                    lower = min(distance_field.distance_at(*a), distance_field.distance_at(*b)) - math.dist(a, b) / 2
+                    cand.min_clearance_m = min(cand.min_clearance_m, lower)
+        if check_budget is not None:
+            check_budget()
 
-        if cand.min_clearance_m < p.hard_clearance_m:
+        if not cand.min_clearance_m >= p.hard_clearance_m or not cand.mean_clearance_m >= 0:
             cand.valid = False
             cand.invalid_reason = "clearance"
             return cand
@@ -787,7 +1000,10 @@ class LocalTrajectoryPlanner:
 
         cand.clearance = _clamp01(cand.min_clearance_m / p.preferred_clearance_m)
         cand.smoothness = _clamp01(1.0 - abs(curvature) / _CURVATURE_MAX)
-        cand.consistency = self._geometric_consistency(points, previous_points, distance_field)
+        cand.consistency = self._geometric_consistency(points, previous_points, distance_field,
+                                                      previous_clearance_checked)
+        if check_budget is not None:
+            check_budget()
 
         cand.curvature_penalty = _clamp01(abs(curvature) / _CURVATURE_MAX)
         cand.reverse_penalty = 1.0 if is_reverse else 0.0
@@ -830,6 +1046,7 @@ class LocalTrajectoryPlanner:
         points: List[Tuple[float, float]],
         previous_points: Optional[List[Tuple[float, float]]],
         distance_field,
+        previous_clearance_checked=False,
     ) -> float:
         """Overlap consistency: how similar the first ~2 m are to the previous plan.
 
@@ -841,7 +1058,7 @@ class LocalTrajectoryPlanner:
         if not previous_points or len(previous_points) < 2:
             return 0.0
         # Previous plan blocked by a new obstacle → no consistency bonus.
-        if distance_field.trajectory_min_clearance(previous_points) < p.hard_clearance_m:
+        if not previous_clearance_checked and distance_field.trajectory_min_clearance(previous_points) < p.hard_clearance_m:
             return 0.0
         n = min(len(points), len(previous_points))
         mean_dist = sum(
@@ -976,10 +1193,10 @@ def _histogram(items: Iterable[str]) -> Dict[str, int]:
 def _candidate_by_family(
     candidates: List[TrajectoryCandidate], family: str,
 ) -> Optional[TrajectoryCandidate]:
-    for c in candidates:
-        if c.family == family:
-            return c
-    return None
+    # Adaptive curves can share a family band with a fixed curve. Keeping the
+    # first match would discard a better checked curve during hysteresis.
+    return max((c for c in candidates if c.family == family),
+               key=lambda c: c.total_score, default=None)
 
 
 def _candidate_is_narrow_passage(

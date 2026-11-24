@@ -1,0 +1,30 @@
+{
+  "recorded_utc": "2026-11-22T16:55:07.192558+00:00",
+  "parent_commit": "a3d300c9640800815f8c384248a3163b099faf69",
+  "full_regression_passed": 1709,
+  "focused_final_passed": 66,
+  "unique_passing_tests": 1710,
+  "testing_note": "Full collection preceded the final open-map regression; the final fix and additional case passed the 66-test focused run. Counts overlap.",
+  "frontend_node_syntax_check": "passed; no browser acceptance performed",
+  "acceptance_settings_formation_and_swarm_unchanged": true,
+  "flight_validation": "not run; no universal-superiority claim",
+  "cpu_benchmark_source_hashes_verified": true,
+  "source_sha256_lf": {
+    "README.md": "8ab8226c786a64b7ac29805426b6b420b90349397f7135adfd325f1487a533b8",
+    "control/swarm_flight_bridge.py": "114e1989d96f40900aa7783cf8d1c45eee49ee5da772359213fb13ec8c1699ad",
+    "coordination/navigation.py": "c75620c93aed2ed2503717bee97752af1dc90a7e24f5a8c8948c8c3b848fe11c",
+    "coordination/navigation_hardening.py": "333c9ffa8a44655a703d57e5211f58e2eaa90f89c53149f377be936a59a35522",
+    "coordination/runtime_config.py": "b2771417c36755d7201e52d2324e794071d0d2aa78207f1df5b115ecbadfb21f",
+    "docs/local_navigation_hardening.md": "7af8583e0a7248aef2bc24d9cc9ffee2f07fcf67120961ac6a40357d1c3c03bd",
+    "flight_modes/automatic_mode.py": "ef4f5c2003a994d0939430b298a3f15e20dbed39cb5eff5895fe9f5df2051d8a",
+    "frontend/static/app.js": "2ab66dbf3b4a387c2dd3812e49a881089a3f025aafce127c232f660af736aed3",
+    "scripts/benchmark_navigation_hardening.py": "42b1a40e8d2b2d3212268d00e6343fbb40d3373fed6034e58dc04a74fc64185c",
+    "scripts/camera_service.py": "99083840b2341d3258a9000c25d1117c6a5382865236644e84a40d2a40ad73e6",
+    "scripts/compare_navigation_trials.py": "a65895249ec89bb8840a620613ac10fd927c84ca870cc692e993b7c21e38c47e",
+    "scripts/prepare_navigation_trial.py": "0489bae6308c602ec39f6ff111cbf88f35ee4b7fa8bef375a7cbf2c3343c2d16",
+    "scripts/summarize_navigation_runtime.py": "239316a0c1e567b1e7843c07a46f8388708911f06351252e3e90167111154c39",
+    "tests/test_camera_budget.py": "496a05203dbf5bee5677b4d98306887d2713a6f1abf286ba0cfa3f74e91f2b8f",
+    "tests/test_navigation_hardening.py": "02bc63d81a9a4fa9cbcbccf50275148fc151b38db70638d2578955c0551dad3c",
+    "tests/test_navigation_trial_tools.py": "3a2b00fbb2a19bd61e81089b4762f79b0d1207e5d724b3b92be18479266acd4d"
+  }
+}

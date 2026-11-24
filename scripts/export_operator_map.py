@@ -1,4 +1,4 @@
-"""Export measured cylinder render-mesh AABBs from a landed Blocks instance.
+"""Export selected static render-mesh AABBs from a landed Blocks instance.
 
 This is a partial display/endpoint map, not a collision-complete navigation map.
 No scene asset, vehicle pose or user settings are changed.
@@ -20,7 +20,7 @@ from scripts.validate_blocks_maps import active_map
 
 
 def export(client, project, map_id, bounds, *, asset_path=None, allow_no_cylinders=False,
-           reference_objects=(), engine_log=None):
+           reference_objects=(), engine_log=None,actor_prefixes=('Cylinder',),clip_to_bounds=False):
     project=Path(project)
     asset_path=asset_path or '/Game/'+map_id
     descriptor=OperatorMap(dict(map_id=map_id,asset_path=asset_path,frame='world_ned',units='m',
@@ -31,8 +31,12 @@ def export(client, project, map_id, bounds, *, asset_path=None, allow_no_cylinde
         require(client.getMultirotorState(vehicle_name=name).landed_state==0
                 and not client.isApiControlEnabled(vehicle_name=name),
                 'vehicle_not_released','Export only with landed, API-released vehicles')
-    names=[n for n in client.simListSceneObjects() if n.lower().startswith('cylinder')]
-    require(bool(names) or allow_no_cylinders,'no_cylinders','No cylinder actors found; explicit partial-map opt-in required')
+    require(isinstance(actor_prefixes,(tuple,list)) and actor_prefixes
+            and all(isinstance(p,str) and p and p.isascii() and p.replace('_','').isalnum() for p in actor_prefixes),
+            'invalid_prefixes','Need explicit static actor name prefixes')
+    prefixes=tuple(p.lower() for p in actor_prefixes)
+    names=[n for n in client.simListSceneObjects() if n.lower().startswith(prefixes)]
+    require(bool(names) or allow_no_cylinders,'no_cylinders','No selected static actors found; explicit empty partial-map opt-in required')
     references=[]
     for name in reference_objects:
         pose=client.simGetObjectPose(name);scale=client.simGetObjectScale(name)
@@ -75,6 +79,7 @@ def export(client, project, map_id, bounds, *, asset_path=None, allow_no_cylinde
         lo,hi=ned.min(axis=0),ned.max(axis=0)
         require(np.all(lo<=position+.03) and np.all(hi>=position-.03),
                 'mesh_frame_mismatch','Actor is outside measured mesh bounds')
+        if clip_to_bounds and (hi[0]<bounds[0] or lo[0]>bounds[1] or hi[1]<bounds[2] or lo[1]>bounds[3]):continue
         obstacles.append(dict(id=name,shape='aabb',min_ned_m=lo.tolist(),max_ned_m=hi.tolist(),
             geometry_source='measured_render_mesh_aabb',actor_position_ned_m=position.tolist(),
             actor_scale=[scale.x_val,scale.y_val,scale.z_val],
@@ -84,6 +89,9 @@ def export(client, project, map_id, bounds, *, asset_path=None, allow_no_cylinde
         obstacles=sorted(obstacles,key=lambda x:x['id']),reference_objects=references,
         unreal_origin_cm=origin.tolist() if origin is not None else None,
         asset_sha256=hashlib.sha256(descriptor.asset_file(project).read_bytes()).hexdigest())
+    if prefixes!=('cylinder',):
+        value.update(coverage='partial_selected_static_render_meshes_not_collision_complete',
+            geometry_selection=dict(actor_prefixes=list(actor_prefixes),intersect_editing_extent=clip_to_bounds))
     OperatorMap(value)
     return value
 
@@ -96,6 +104,8 @@ def main():
     parser.add_argument('--allow-no-cylinders',action='store_true',help='Explicit partial-map export; never certifies free space')
     parser.add_argument('--reference-objects',nargs='*',default=[])
     parser.add_argument('--engine-log')
+    parser.add_argument('--actor-prefixes',nargs='+',default=['Cylinder'],help='Explicit static actor classes to display/check; Ground remains a reference, not a horizontal obstacle.')
+    parser.add_argument('--clip-to-bounds',action='store_true',help='Keep complete AABBs intersecting the editing extent, not only their clipped portions.')
     parser.add_argument('--bounds',type=float,nargs=4,required=True,metavar=('XMIN','XMAX','YMIN','YMAX'))
     parser.add_argument('--output',required=True)
     args=parser.parse_args()
@@ -104,7 +114,8 @@ def main():
     client=airsim.MultirotorClient(timeout_value=10)
     try:
         value=export(client,args.blocks_project,args.map_id,args.bounds,asset_path=args.asset_path,
-            allow_no_cylinders=args.allow_no_cylinders,reference_objects=args.reference_objects,engine_log=args.engine_log)
+            allow_no_cylinders=args.allow_no_cylinders,reference_objects=args.reference_objects,engine_log=args.engine_log,
+            actor_prefixes=args.actor_prefixes,clip_to_bounds=args.clip_to_bounds)
         atomic_json(args.output,value)
         print(f'Exported {len(value["obstacles"])} measured AABBs; coverage is partial',flush=True)
     finally:

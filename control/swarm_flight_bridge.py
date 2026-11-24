@@ -3,7 +3,10 @@ import math
 import time
 import numpy as np
 import logging
+import json
 from coordination.navigation import NavigationConfig,CommittedGridRouter
+from coordination.navigation_hardening import (HardeningConfig, RuntimeDiagnostics,
+    ProgressGuard, MotionLimiter, PassageAdvisor, latency_speed_cap, stopping_speed_cap, swept_free_distance, stop_category)
 
 from control.command_authority import CommandAuthority
 from control.safety_filter import SafetyFilter
@@ -18,7 +21,7 @@ class FormationPermitExpired(VelocityCommandRejected):
 
 
 class SwarmFlightBridge:
-    def __init__(self, session, config, cfg, params):
+    def __init__(self, session, config, cfg, params, *, trace_directory=None):
         if not session._owns_lock:
             raise RuntimeError("swarm gateway requires the per-vehicle OS control lock")
         self.session, self.cfg, self.params = session, cfg, params
@@ -61,7 +64,25 @@ class SwarmFlightBridge:
                         or any(type(member.get(k)) not in (int, float) or not math.isfinite(member[k])
                                for k in ('goal_x','goal_y','target_z'))):
                     raise ValueError('independent goals require finite settings-relative XYZ targets')
-        self.router=CommittedGridRouter(self.navigation_cfg)
+        self.hardening=HardeningConfig(**config.get('local_navigation_hardening',{}))
+        if self.hardening.enabled and not self.navigation_cfg.enabled:
+            raise ValueError('local navigation hardening requires navigation.enabled')
+        self.router=CommittedGridRouter(self.navigation_cfg,hardening=self.hardening)
+        from coordination.navigation_trace import NavigationTraceRecorder
+        self.trace_recorder=(NavigationTraceRecorder(trace_directory,self.name)
+            if trace_directory is not None and self.navigation_cfg.enabled and self.hardening.diagnostics else None)
+        self._no_route_since=None
+        self._trace_initial_pending=self.trace_recorder is not None
+        self.diagnostics=RuntimeDiagnostics()
+        self.progress_guard=ProgressGuard(self.hardening)
+        self.motion_limiter=MotionLimiter(self.hardening.acceleration_mps2)
+        self.passage=PassageAdvisor(self.hardening,self.name,
+            {m['vehicle_name']:m.get('yield_priority',0.) for m in config['drones']})
+        self._last_dispatch_source='';self._accepted_speed=0.;self._last_guard_velocity=(0.,0.,0.)
+        self._last_gateway_at=None;self._diagnostic_at=-math.inf
+        self._navigation_motion=None
+        self._last_guard_start=None
+        self._route_transients=[]
         self._navigation_waypoint=None
         self._navigation_goal=None
         self._navigation_command_available=False
@@ -139,6 +160,7 @@ class SwarmFlightBridge:
 
     def update_lidar(self, frame, points_sensor=None, *, navigation=True):
         """Use the measured sensor pose, including mounting offset/rotation."""
+        processing_started=time.perf_counter()
         if type(getattr(frame,'raw_timestamp_ns',None)) is not int or frame.raw_timestamp_ns<0:
             self.fail('invalid_lidar_timestamp_at_gateway')
         from transforms.lidar_to_local_ned import sensor_to_local_ned
@@ -176,15 +198,28 @@ class SwarmFlightBridge:
                 own=np.asarray(snap.states[self.name].position_ned_m)
                 p=world
                 p=p[(np.abs(p[:,2]-own[2])<.65)&(np.linalg.norm(p[:,:2]-own[:2],axis=1)<self.navigation_cfg.max_range_m)]
+                observed=p.copy();dynamic_regions=[]
                 for name,state in snap.states.items():
                     if name!=self.name:
+                        skew=abs(frame.raw_timestamp_ns-state.timestamp)/1e9
+                        radius=.8+min(.7,math.sqrt(sum(v*v for v in state.linear_velocity_ned_mps))*skew)
+                        if skew<=self.cfg.snapshot_max_age_s:
+                            dynamic_regions.append((*state.position_ned_m[:2],radius))
                         p=p[np.linalg.norm(p-np.asarray(state.position_ned_m),axis=1)>.8]
-                self.router.observe(p[:,:2])
+                if self.hardening.enabled and self.hardening.memory:
+                    origin=np.array([pose['position'][k] for k in ('x','y','z')])+np.asarray(self.mode._swarm_spawn_offsets[self.name])
+                    planar=observed[np.abs(observed[:,2]-origin[2])<.10]
+                    self.router.observe(observed[:,:2],origin=origin[:2],scan_id=frame.raw_timestamp_ns,
+                        dynamic_regions=dynamic_regions,clearing_points=planar[:,:2])
+                else:self.router.observe(p[:,:2])
                 h=self.navigation_cfg.resolution_m
                 coarse=np.unique(np.rint(p[:,:2]/h)*h,axis=0)
                 if len(coarse)>512:
                     coarse=coarse[np.argsort(np.linalg.norm(coarse-own[:2],axis=1))[:512]]
                 self._feedback_points=coarse.tolist()
+        if self.hardening.enabled:
+            self.diagnostics.record(**{'navigation_memory_update_ms' if navigation else 'lidar_transform_ms':
+                (time.perf_counter()-processing_started)*1000})
 
     def _refresh_gateway_scan(self):
         if self.raw_lidar_supplier is None:return
@@ -206,6 +241,7 @@ class SwarmFlightBridge:
 
     def route_goal(self,own_state,requested_goal):
         if not self.navigation_cfg.enabled:return requested_goal
+        route_started=time.perf_counter()
         offset=self.mode._swarm_spawn_offsets[self.name]
         position=tuple(p+o for p,o in zip(own_state.position_ned_m,offset))
         goal=tuple(p+o for p,o in zip(requested_goal,offset))
@@ -269,7 +305,39 @@ class SwarmFlightBridge:
             logging.getLogger('swarm_navigation').info('peer_endpoint_staging vehicle=%s peer=%s mission_goal=%s planning_goal=%s',
                 self.name,staging_peer,goal,planning_goal)
         self._staging_peer=staging_peer
+        now=time.monotonic()
+        initial_trace=self._trace_initial_pending and math.dist(position,goal)>self.cfg.formation_tolerance_m
+        if (self.trace_recorder is not None and self.trace_recorder.ready(now)
+                and (initial_trace or (self._no_route_since is not None and now-self._no_route_since>=2.))):
+            self.router.capture_next=True
         waypoint=self.router.waypoint(position,planning_goal,temporary_obstacles=transient) if self.points_world is not None else position
+        if self.router.path_available:self._no_route_since=None
+        elif self._no_route_since is None:self._no_route_since=now
+        capture=self.router.captured_diagnostic
+        if capture is not None:
+            self.router.captured_diagnostic=None
+            self._trace_initial_pending=False
+            capture.update(vehicle=self.name,mission_goal=list(goal),planning_goal=list(planning_goal),
+                capture_trigger='initial_route' if initial_trace else 'persistent_no_route',
+                scan_id=self._last_lidar_id,gateway_scan_id=self._gateway_scan_id,
+                points_request_started_monotonic_s=self.points_at,
+                dispatch_reason=self._last_dispatch_source,progress_reason=self.progress_guard.reason,
+                current_observed_feedback=self._feedback_points)
+        self._route_transients=transient
+        if self.hardening.enabled and self.hardening.recovery:
+            expected=(self._navigation_command_available and not self.leader_goal_hold
+                      and not self._leader_waiting and math.dist(position,goal)>self.cfg.formation_tolerance_m)
+            if self.progress_guard.update(time.monotonic(),position,goal,expected=expected,
+                    reason=self._last_dispatch_source,commanded_speed=self._accepted_speed):
+                self.router.note_stall(position,self.progress_guard.reason)
+                self.router.path_available=False
+                waypoint=position
+        if capture is not None:
+            capture.update(bridge_path_available=self.router.path_available,
+                bridge_progress_reason=self.progress_guard.reason,bridge_waypoint=list(waypoint))
+            self.trace_recorder.submit(capture,now)
+        if self.hardening.enabled:
+            self.diagnostics.record(route_ms=(time.perf_counter()-route_started)*1000)
         self._navigation_waypoint=waypoint
         event=(self.router.route_version,self.router.path_available,self.router.goal_blocked,self.router.escaping)
         if event!=self._last_route_log:
@@ -284,6 +352,7 @@ class SwarmFlightBridge:
         return tuple(p-o for p,o in zip(waypoint,offset))
 
     def _navigation_velocity(self,own_state,vz,source,command=None):
+        self._navigation_motion=None
         # A complete, checked grid route owns local recovery in this opt-in
         # mode. Never launch a blind forward probe when the route is blocked.
         if source=='vertical_escape':return None
@@ -300,16 +369,91 @@ class SwarmFlightBridge:
             elif worst<self.navigation_cfg.leader_resume_error_m:self._leader_waiting=False
             if self.leader_goal_hold or self._leader_waiting:return 0.,0.,vz,'leader_waiting_for_formation'
         own=tuple(p+o for p,o in zip(own_state.position_ned_m,self.mode._swarm_spawn_offsets[self.name]))
+        waypoint=self._navigation_waypoint
+        points=None
+        if self.hardening.enabled:
+            points=self.router.obstacles(own)
+            if self.hardening.passage:
+                direction=np.asarray(waypoint[:2])-own[:2]
+                length=float(np.linalg.norm(direction))
+                narrow=False
+                if length>1e-6 and len(points):
+                    direction/=length;relative=points-np.asarray(own[:2])
+                    ahead=relative@direction
+                    side=relative[:,0]*direction[1]-relative[:,1]*direction[0]
+                    near=(ahead>=0)&(ahead<=3.)&(np.abs(side)<=self.safety.safety_distance_m+1.)
+                    narrow=bool(np.any(near&(side>.5)) and np.any(near&(side<-.5)))
+                snapshot=self.link.snapshot()
+                intents=self.link.peer_navigation(self.navigation_cfg.feedback_max_age_s)
+                peers={n:(s.position_ned_m,s.linear_velocity_ned_mps,intents.get(n,{}).get('goal_ned_m')) for n,s in snapshot.states.items()
+                       if n!=self.name} if snapshot else {}
+                wait,retreat=self.passage.update(time.monotonic(),own,waypoint,peers,narrow=narrow,
+                    safety_distance=self.safety.safety_distance_m)
+                if wait:
+                    back=self.router.verified_retreat(own,temporary_obstacles=self._route_transients) if retreat else None
+                    if back is None:return 0.,0.,vz,'passage_timeout_no_verified_retreat' if retreat else 'passage_wait'
+                    waypoint=back
+        self._navigation_waypoint=waypoint
         dx,dy=(self._navigation_waypoint[i]-own[i] for i in (0,1))
         speed=min(self.params.forward_speed_mps,.7*math.hypot(dx,dy))
         if command is not None and command.mode=='velocity':speed=min(speed,math.hypot(*command.desired_velocity_ned_mps[:2]))
         length=math.hypot(dx,dy)
         wx,wy=(speed*dx/length,speed*dy/length) if length>1e-8 else (0.,0.)
+        source='passage_retreat' if self.hardening.enabled and self.passage.state=='BLOCKED_TIMEOUT' else 'navigation_route'
+        cap=speed
+        final_cap=None
+        free_distance=None
+        clearance=None
+        if self.hardening.enabled and self.hardening.latency_limit_enabled:
+            age=max(0.,time.monotonic()-self.points_at)
+            clearance=float(np.linalg.norm(points-np.asarray(own[:2]),axis=1).min()) if len(points) else math.inf
+            # An open map may have no returns in the horizontal planning slab
+            # while a valid raw cloud still measures the ground. Empty 2-D
+            # memory is not itself a zero-clearance obstacle or a free-space
+            # certificate. Use the current raw 3-D distance as another cap;
+            # missing raw data stays a stop and is rejected by the final gate.
+            if self.points_world is not None and len(self.points_world):
+                clearance=min(clearance,float(np.linalg.norm(self.points_world-np.asarray(own),axis=1).min()))
+            else:clearance=0.
+            if self.hardening.latency_clearance_mode=='swept':
+                cap,free_distance=self._swept_speed_cap(own,points,(wx,wy),age,speed)
+            else:
+                cap=latency_speed_cap(clearance,self.router.minimum_clearance_m,age,
+                    self.hardening.braking_mps2,speed)
+            if speed>cap and speed>0:wx,wy=wx*cap/speed,wy*cap/speed
+        if self.hardening.enabled and self.hardening.smoothing:
+            wx,wy=self.motion_limiter.limit((wx,wy),own_state.linear_velocity_ned_mps[:2],time.monotonic())
+            # The smoothed heading can differ from the requested route tangent.
+            # Re-evaluate its stopping corridor, before the existing final gates.
+            if self.hardening.latency_limit_enabled and self.hardening.latency_clearance_mode=='swept':
+                output=math.hypot(wx,wy)
+                final_cap,free_distance=self._swept_speed_cap(own,points,(wx,wy),age,output)
+                if output>final_cap and output>0:wx,wy=wx*final_cap/output,wy*final_cap/output
+        if self.hardening.enabled and (self.hardening.smoothing or self.hardening.latency_limit_enabled):
+            from coordination.navigation import segment_clear
+            end=(own[0]+wx*.5,own[1]+wy*.5)
+            if not segment_clear(own,end,points,self.router.minimum_clearance_m):
+                wx=wy=0.;source='navigation_smooth_blocked'
+        if self.hardening.enabled:
+            self._navigation_motion=dict(requested_mps=speed,latency_cap_mps=cap,
+                output_mps=math.hypot(wx,wy),clearance_m=clearance if clearance is not None and math.isfinite(clearance) else None,
+                free_distance_m=free_distance if free_distance is not None and math.isfinite(free_distance) else None,
+                latency_clearance_mode=self.hardening.latency_clearance_mode,
+                post_smoothing_cap_mps=final_cap,
+                latency_limit_enabled=self.hardening.latency_limit_enabled,smoothing_enabled=self.hardening.smoothing)
         c,s=math.cos(own_state.yaw_rad),math.sin(own_state.yaw_rad)
         hold_vz=max(-self.params.max_vertical_speed_mps,min(self.params.max_vertical_speed_mps,
             self.params.target_z_ned-own_state.position_ned_m[2]))
         self.adopted_command=command
-        return wx*c+wy*s,-wx*s+wy*c,hold_vz,'navigation_route'
+        return wx*c+wy*s,-wx*s+wy*c,hold_vz,source
+
+    def _swept_speed_cap(self,own,points,velocity,age,speed):
+        if speed<1e-9:return 0.,0.
+        if self.points_world is None or not len(self.points_world):return 0.,0.
+        radius=self.router.minimum_clearance_m+.1
+        distance=min(swept_free_distance(points,own[:2],velocity,radius),
+            swept_free_distance(self.points_world,own,(*velocity,0.),radius))
+        return stopping_speed_cap(distance,age,self.hardening.braking_mps2,speed),distance
 
     def tick(self):
         self.adopted_command = None
@@ -352,6 +496,7 @@ class SwarmFlightBridge:
 
     def select(self, vx, vy, vz, source, own_state):
         self.adopted_command = None
+        self._navigation_motion=None
         if self.navigation_cfg.enabled:
             command=self.link.command() if self.follower else None
             self._waiting_for_command=self.follower and command is None
@@ -391,6 +536,8 @@ class SwarmFlightBridge:
         return vx,vy,vz,"formation_velocity"
 
     def expects_navigation_progress(self, own_state):
+        if self.hardening.enabled and stop_category(self._last_dispatch_source) in ('traffic_wait','formation_wait','command_unavailable'):
+            return False
         if self.navigation_cfg.enabled and not self.follower and self._leader_waiting:return False
         if not self.follower: return not self.leader_goal_hold
         command=self.link.command()
@@ -402,11 +549,19 @@ class SwarmFlightBridge:
         return math.dist(world,command.target_position_ned_m)>self.cfg.formation_tolerance_m
 
     def report_dispatch(self, source, *, avoiding=False):
+        self._accepted_speed=math.hypot(*self._last_guard_velocity[:2])
+        if self.hardening.enabled and self.hardening.smoothing:
+            self.motion_limiter.accept(self._last_guard_velocity[:2])
+        if self.hardening.enabled and self._last_gateway_at is not None:
+            self.diagnostics.record(source,dispatch_return_ms=(time.monotonic()-self._last_gateway_at)*1000)
         if self._gateway_refined:
             avoiding=True
             source='gateway_peer_velocity_refinement'
         if self.navigation_cfg.enabled and source=='inter_uav_orca' and not avoiding:
             source=self._navigation_source or source
+        self._last_dispatch_source=source
+        if source=='gateway_peer_velocity_refinement' and self._accepted_speed<.05:
+            self._last_dispatch_source='inter_uav_yield'
         conflict = avoiding or source in {"inter_uav_yield", "inter_uav_orca_fallback_hold", "formation_rejected"}
         if conflict:
             self._conflict_active = True
@@ -444,12 +599,63 @@ class SwarmFlightBridge:
             self.link.report("FORMATION_RECOVERING" if recovering else "NORMAL",source,command)
 
     def fail(self, reason):
+        if self.hardening.enabled:self.diagnostics.record(reason)
         self._unverified_emergency = True
         self.last_rejection_reason = reason
         self.link.report("EMERGENCY", reason, self.adopted_command)
         raise VelocityCommandRejected(reason)
 
     def guard_motion(self, api, args, kwargs):
+        if not self.hardening.enabled:return self._guard_motion_impl(api,args,kwargs)
+        started=time.perf_counter()
+        now=time.monotonic()
+        if self._last_guard_start is not None:
+            self.diagnostics.record(dispatch_interval_ms=(now-self._last_guard_start)*1000)
+        self._last_guard_start=now
+        try:
+            result=self._guard_motion_impl(api,args,kwargs)
+            self._last_gateway_at=time.monotonic()
+            snap=self.link.snapshot()
+            worker=getattr(self.mode,'_perception_worker',None)
+            self.diagnostics.record(gateway_ms=(time.perf_counter()-started)*1000,
+                sensor_age_ms=(self._last_gateway_at-self.points_at)*1000,
+                state_age_ms=(self._last_gateway_at-snap.timestamp)*1000 if snap else None,
+                lidar_rpc_ms=getattr(worker,'lidar_rpc_ms',None),
+                perception_ms=getattr(worker,'processing_ms',None))
+            self._emit_runtime_diagnostics()
+            # Instrumentation is real work too. It must not extend the exact
+            # snapshot/scan deadlines checked by the original safety decision.
+            if self.link.snapshot() is None:self.fail('authoritative_snapshot_unavailable')
+            remaining=min(self._gate_state_deadline-time.monotonic(),
+                          self.points_at+self.cfg.snapshot_max_age_s-time.monotonic())
+            if self.adopted_command is not None:
+                permit=self.link.permitted_command(self.adopted_command.lifecycle.command_id)
+                if permit is None:raise FormationPermitExpired('formation_expired_before_dispatch')
+                remaining=min(remaining,permit[1])
+            values,keywords=result;values=list(values);keywords=dict(keywords)
+            duration=values[3] if len(values)>3 else keywords['duration']
+            duration=min(duration,remaining)
+            if duration<=0 or not self.session._owns_lock:self.fail('dispatch_deadline_elapsed')
+            if len(values)>3:values[3]=duration
+            else:keywords['duration']=duration
+            self._last_gateway_at=time.monotonic()
+            return tuple(values),keywords
+        except VelocityCommandRejected as exc:
+            self.diagnostics.record(str(exc),gateway_ms=(time.perf_counter()-started)*1000)
+            self._emit_runtime_diagnostics()
+            raise
+
+    def _emit_runtime_diagnostics(self):
+        now=time.monotonic()
+        if self.hardening.diagnostics and now-self._diagnostic_at>=1.:
+            self._diagnostic_at=now
+            payload=dict(vehicle=self.name,**self.diagnostics.summary(),passage_state=self.passage.state,
+                passage_peer=self.passage.peer,progress_reason=self.progress_guard.reason,
+                search_timed_out=self.router.search_timed_out,navigation_motion=self._navigation_motion,
+                route_reason=self.router.last_route_reason)
+            logging.getLogger('navigation_runtime').info('navigation_runtime %s',json.dumps(payload,allow_nan=False))
+
+    def _guard_motion_impl(self, api, args, kwargs):
         self._gateway_refined = False
         if api != "moveByVelocityAsync":
             self.fail(f"unverified_cruise_api:{api}")
@@ -551,10 +757,12 @@ class SwarmFlightBridge:
         duration = min(duration, remaining)
         if duration <= 0 or not self.session._owns_lock:
             self.fail('dispatch_deadline_elapsed')
+        self._gate_state_deadline=snap.timestamp+self.cfg.snapshot_max_age_s
         if len(values) > 3:
             values[3] = duration
         else:
             kwargs = dict(kwargs, duration=duration)
+        self._last_guard_velocity=velocity
         return tuple(values), kwargs
 
     def cache_cleanup_lidar(self, frame):
@@ -584,3 +792,5 @@ class SwarmFlightBridge:
     def close(self):
         self.authority.release(self.name, self.controller_id)
         self.link.close()
+        if self.trace_recorder is not None and not self.trace_recorder.close():
+            logging.getLogger('navigation_trace').warning('diagnostic writer did not finish before timeout')

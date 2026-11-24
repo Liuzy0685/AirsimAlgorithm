@@ -132,6 +132,8 @@ python scripts/launch_swarm.py --settings-json "C:\path\to\settings.json" --with
 
 基于 B 的 `f5b48b9`，新增可选的障碍反馈、承诺路线、槽位联合调整、领航历史路径跟随与原队形恢复，
 使用独立的 `swarm_2_navigation.yaml` / `swarm_5_navigation.yaml`，保留原安全门控与控制网关。
+
+FlyingExampleMap 的默认五机终点 `(30.5,-6,-2)` 在已测资产中位于方块内部，需先使用新版地图清单做端点预检；不要因前端未显示圆柱体就认定该地图无障碍。排查与命令见 [五机零 XY 说明](docs/flying_example_five_no_motion_20261124.md)。
 协议、复现参数和本轮实测结果见 [A/B 障碍感知导航与恢复](docs/A_B_障碍感知导航与恢复.md)。
 
 前端任务入口由独立 `scripts/operator_api.py` 提供，支持真实地图元数据、任务校验、初始队形设置、
@@ -195,10 +197,11 @@ export AIRSIM_PYTHONCLIENT_PATH="<AirSim源码>/PythonClient"
 
 - **CBMBA A\***：全局路径规划，从旧 JS 项目纯 Python 移植（`planners/cbmba_astar.py`）。
 - **APF（人工势场）**：反应式避障（`planners/improved_potential_field.py`）。
-- **局部轨迹规划**：确定性轨迹生成 + 跟踪（`local_trajectory_planner.py` / `trajectory_tracker.py`）。
+- **局部轨迹规划**：固定候选回退 + 有预算的自适应曲率候选、有限细化及跟踪（`local_trajectory_planner.py` / `trajectory_tracker.py`）；启用范围、时限和离线对照见[自适应局部轨迹说明](docs/adaptive_local_trajectories.md)。
 - **恢复机制**：卡死（XY 位移 < 0.15m 持续 ≥2.5s）与震荡（vy 符号翻转）检测 → 后退/侧移脱困（`local_recovery.py` / `recovery_commander.py`）。
 - **目标终止**：`goal_termination.py`。
 - **多进程调度**：CBMBA/轨迹/建图以多进程 worker 运行，感知以线程运行（`process_workers.py`）。
+- **局部导航对照改进**：可独立启用观测记忆、停滞重规划、运动限速和平滑、窄通道让行建议；相机服务具有全局采集预算。启用方法、资源取舍和待验收范围见[六方面改进与 A/B 验证](docs/local_navigation_hardening.md)。
 
 ---
 

@@ -471,6 +471,23 @@
     if (!state.telemetryFrame || state.telemetryFrame.status === "OFFLINE" || !Object.keys(state.telemetryFrame.drones || {}).length) renderTelemetry(frame, true);
   }
 
+  function coordinationReasonText(reason) {
+    const labels = {
+      passage_wait: "窄通道让行，等待优先无人机通过",
+      passage_timeout_no_verified_retreat: "通道等待超时，尚无安全退让路线",
+      passage_retreat: "沿已检查的历史路线退让",
+      navigation_blocked: "暂未找到可行局部路线",
+      navigation_smooth_blocked: "平滑后的运动未通过净空检查，保持等待",
+      leader_waiting_for_formation: "领航机等待编队跟上",
+      formation_wait: "等待有效编队命令",
+      lidar_unavailable_at_gateway: "点云不可用或已过期",
+      authoritative_snapshot_unavailable: "权威状态不可用或已过期",
+      formation_expired_before_dispatch: "编队命令在派发前已过期",
+      final_velocity_lidar_clearance: "最终速度未通过点云净空检查",
+    };
+    return labels[reason] ? `${labels[reason]}（${reason}）` : (reason || "");
+  }
+
   function renderTelemetry(frame, fromRuntime = false) {
     if (!frame) return;
     if (!fromRuntime) state.telemetryFrame = frame;
@@ -499,7 +516,7 @@
       const badgeText = stale ? "过期" : (drone.valid ? "有效" : "失效");
       const reasonLines = [
         drone.active_command_id ? `当前命令：${drone.active_command_id}` : "",
-        drone.coordination_reason || "",
+        coordinationReasonText(drone.coordination_reason),
         drone.validity_reason || "",
       ].filter(Boolean).slice(0, 2);
       card.innerHTML = `<div class="drone-card-head"><span class="drone-name">${escapeHtml(name)}</span><span class="badge ${stale || !drone.valid ? "invalid" : "valid"}">${badgeText}</span></div><div class="drone-values"><div>位置 NED<strong>${formatVector(drone.position_ned_m)}</strong></div><div>速度 NED<strong>${formatVector(drone.linear_velocity_ned_mps)} m/s</strong></div><div>仿真时间<strong>${drone.sim_timestamp_ns == null ? "—" : escapeHtml(`${drone.sim_timestamp_ns} ns`)}</strong></div><div>采集时间<strong>${escapeHtml(collectedAt)}</strong></div><div>数据时效<strong>${escapeHtml(formatAge(drone.received_at_unix_ms))}</strong></div><div>协调/避障<strong>${escapeHtml(drone.coordination_state || "未知")}</strong></div></div><div class="drone-reasons">${reasonLines.map((line) => `<p class="reason" title="${escapeHtml(line)}">${escapeHtml(line)}</p>`).join("")}</div>`;
@@ -632,7 +649,8 @@
         const node = card.querySelector("[data-camera-time]");
         const capturedAt = Number(item?.captured_at_unix_ms);
         const ageMs = Number.isFinite(capturedAt) ? Math.max(0, Date.now() - capturedAt) : Infinity;
-        const stale = ageMs > 3000;
+        const budgetFps = Number(item?.effective_fps_limit);
+        const stale = ageMs > (budgetFps > 0 ? Math.max(3000, Math.min(30000, 3000 / budgetFps)) : 3000);
         if (!node) return;
         if (item?.status === "offline") node.textContent = `断流 · ${item.error || "相机采集失败"}`;
         else if (item?.active && !item?.captured_at_unix_ms) node.textContent = "采集中 · 等待第一帧";
@@ -644,7 +662,11 @@
       const activeCount = selected.filter(({ vehicle, view }) => cameras?.[vehicle]?.[view]?.active).length;
       const offlineCount = selected.filter(({ vehicle, view }) => cameras?.[vehicle]?.[view]?.status === "offline").length;
       const statusText = offlineCount ? `${offlineCount} 路断流` : `${activeCount}/${selected.length} 路采集中`;
-      $("camera-service-status").textContent = `${statusText}${fpsLabel}`;
+      const limits = selected.map(({ vehicle, view }) => cameras?.[vehicle]?.[view])
+        .filter((item) => item?.active && item?.throttled)
+        .map((item) => Number(item.effective_fps_limit)).filter((value) => Number.isFinite(value) && value > 0);
+      const budgetLabel = limits.length ? ` · 单路预算上限 ${Math.min(...limits).toFixed(1)} FPS` : "";
+      $("camera-service-status").textContent = `${statusText}${fpsLabel}${budgetLabel}`;
     } catch (error) {
       state.cameraServiceOnline = false;
       document.querySelectorAll(".camera-time").forEach((node) => { node.textContent = `图像服务离线 · ${error.message}`; });

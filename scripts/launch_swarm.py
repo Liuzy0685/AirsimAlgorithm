@@ -33,6 +33,7 @@ def _parse_args():
                         help="Delay between process launches in seconds.")
     parser.add_argument("--with-formation", action="store_true", help="Also start B's formation runner.")
     parser.add_argument("--formation-config", default=str(ROOT / "configs/formation.yaml"))
+    parser.add_argument('--map-manifest',help='Optional offline known-map endpoint check before any flight control; does not replace runtime map/sensor verification.')
     parser.add_argument("--log-dir", help="Explicit run output directory for reproducible acceptance runs.")
     parser.add_argument("--stop-file", help="Cooperative fleet stop request file.")
     return parser.parse_args()
@@ -155,6 +156,14 @@ def main() -> int:
         return 2
     creationflags = subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0
     try:
+        if getattr(args,'map_manifest',None):
+            from scripts.check_mission_endpoints import check
+            import json
+            endpoint_report=check(args.settings_json,config_path,args.formation_config,args.map_manifest)
+            (log_dir/'endpoint_preflight.json').write_text(json.dumps(endpoint_report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+            if not endpoint_report['valid']:
+                print('ERROR: endpoint preflight rejected: '+endpoint_report.get('message',endpoint_report['reason']),file=sys.stderr)
+                return 2
         if service_cfg.enabled:
             from control.takeoff_preflight import verify_fleet_takeoff
             import json

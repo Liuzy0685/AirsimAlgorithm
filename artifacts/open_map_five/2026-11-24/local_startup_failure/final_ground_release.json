@@ -1,0 +1,38 @@
+{
+  "cleanup_verified": true,
+  "proof": {
+    "Drone1": "prior explicit recovery disarm acknowledgement; no subsequent arm operations",
+    "Drone2": "initially disarmed; original controller failed before arm; recovery never arms",
+    "Drone3": "initially disarmed; original controller failed before arm; recovery never arms",
+    "Drone4": "initially disarmed; original controller failed before arm; recovery never arms",
+    "Drone5": "prior explicit recovery disarm acknowledgement; no subsequent arm operations"
+  },
+  "states": {
+    "Drone1": {
+      "landed_confirmed": true,
+      "api_control_released": true,
+      "disarm_proof": "prior explicit recovery disarm acknowledgement; no subsequent arm operations"
+    },
+    "Drone2": {
+      "landed_confirmed": true,
+      "api_control_released": true,
+      "disarm_proof": "initially disarmed; original controller failed before arm; recovery never arms"
+    },
+    "Drone3": {
+      "landed_confirmed": true,
+      "api_control_released": true,
+      "disarm_proof": "initially disarmed; original controller failed before arm; recovery never arms"
+    },
+    "Drone4": {
+      "landed_confirmed": true,
+      "api_control_released": true,
+      "disarm_proof": "initially disarmed; original controller failed before arm; recovery never arms"
+    },
+    "Drone5": {
+      "landed_confirmed": true,
+      "api_control_released": true,
+      "disarm_proof": "prior explicit recovery disarm acknowledgement; no subsequent arm operations"
+    }
+  },
+  "reason": "verified_ground_and_api_released"
+}

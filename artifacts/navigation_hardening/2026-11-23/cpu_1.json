@@ -1,0 +1,67 @@
+{
+  "scope": "offline observed-memory/router fixtures; CPU workers are not cooperative flights",
+  "recorded_utc": "2026-11-22T16:51:49.678093+00:00",
+  "workers": 1,
+  "iterations": 30,
+  "python": "3.14.5 (tags/v3.14.5:5607950, May 10 2026, 10:43:50) [MSC v.1944 64 bit (AMD64)]",
+  "numpy": "2.4.6",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "parent_commit": "a3d300c9640800815f8c384248a3163b099faf69",
+  "source_sha256_lf": {
+    "coordination/navigation_hardening.py": "333c9ffa8a44655a703d57e5211f58e2eaa90f89c53149f377be936a59a35522",
+    "coordination/navigation.py": "c75620c93aed2ed2503717bee97752af1dc90a7e24f5a8c8948c8c3b848fe11c",
+    "control/swarm_flight_bridge.py": "114e1989d96f40900aa7783cf8d1c45eee49ee5da772359213fb13ec8c1699ad",
+    "scripts/camera_service.py": "99083840b2341d3258a9000c25d1117c6a5382865236644e84a40d2a40ad73e6",
+    "scripts/benchmark_navigation_hardening.py": "42b1a40e8d2b2d3212268d00e6343fbb40d3373fed6034e58dc04a74fc64185c"
+  },
+  "rows": [
+    {
+      "worker": 1,
+      "scene": "visible_8000_points",
+      "hardening": false,
+      "frames": 30,
+      "step_p50_ms": 2.224549999482406,
+      "step_p95_ms": 2.439019999383163,
+      "maximum_ms": 10.818400000061956,
+      "available_frames": 30,
+      "search_timeouts": 0,
+      "previously_seen_static_segment_misses": 0
+    },
+    {
+      "worker": 1,
+      "scene": "visible_8000_points",
+      "hardening": true,
+      "frames": 30,
+      "step_p50_ms": 4.054199999700359,
+      "step_p95_ms": 4.424745000596886,
+      "maximum_ms": 7.805400000506779,
+      "available_frames": 30,
+      "search_timeouts": 0,
+      "previously_seen_static_segment_misses": 0
+    },
+    {
+      "worker": 1,
+      "scene": "previously_seen_wall_outside_view",
+      "hardening": false,
+      "frames": 30,
+      "step_p50_ms": 0.0714999996489496,
+      "step_p95_ms": 0.30765000065002807,
+      "maximum_ms": 5.193900000449503,
+      "available_frames": 30,
+      "search_timeouts": 0,
+      "previously_seen_static_segment_misses": 19
+    },
+    {
+      "worker": 1,
+      "scene": "previously_seen_wall_outside_view",
+      "hardening": true,
+      "frames": 30,
+      "step_p50_ms": 0.3721999992194469,
+      "step_p95_ms": 0.45184999980847335,
+      "maximum_ms": 7.236999999804539,
+      "available_frames": 30,
+      "search_timeouts": 0,
+      "previously_seen_static_segment_misses": 0
+    }
+  ]
+}

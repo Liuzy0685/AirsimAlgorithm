@@ -1,0 +1,32 @@
+{
+  "recorded_utc": "2026-11-22T16:18:34.585041+00:00",
+  "base_commit": "b6005294dfde7dc0f0ddd565f6679a276086d0a2",
+  "full_regression": {
+    "tests": 1659,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 258.596
+  },
+  "new_adaptive_tests": 33,
+  "focused_integration_and_gateway_tests": 69,
+  "benchmark_files": [
+    "planner_1.json",
+    "planner_5.json"
+  ],
+  "benchmark_source_hashes_verified": true,
+  "benchmark_scope": "offline observed-geometry fixtures and synthetic process load",
+  "flight_validation": "not run for this change",
+  "source_sha256_lf": {
+    "README.md": "4430623f455b9aab50f27bdccb1b992444a6a0e6c0f0bb5cf90feec5d049d905",
+    "configs/trajectory_planner.yaml": "1187fbe59fccd6311350ce0ad4d3fc1149a39ca56758c7e57bd711f2134d975c",
+    "flight_modes/automatic_mode.py": "3ab48384c27e6e243b7ee6188fbb1c057a09fef8e9347932ea6e61c22e7f6baf",
+    "mapping/distance_field.py": "b8fec9baa7d83935efdb275dddd926a654a1465b3311031cc0c97f67473f25fd",
+    "planners/local_trajectory_planner.py": "4c64f7f6933c1e303814c9190e92f1be69c0f45f80a98467d44abda575129ec0",
+    "planners/process_workers.py": "ee722bf75af6d76db016de3ea321006e82540ce681d6ea94c147350d3917191c",
+    "planners/trajectory_tracker.py": "f1f28c775f1faf5e28880a35dafe83626d42d505d923f08d827cebfedb4816a1",
+    "scripts/benchmark_adaptive_trajectories.py": "2a4d4f75c9f8cc270ebff149baa3e2be24a10c389addd135f80e1d81590b7549",
+    "tests/test_adaptive_trajectories.py": "feaf4491f7947a1ec446b73d0d81b3b6d4909d5c68f3d14fb4b1fd574cf8361e",
+    "docs/adaptive_local_trajectories.md": "c64a95808ec2df412d0dbfce43473fbd26172acf5b9830ff8defebe4a0b6ad23"
+  }
+}
