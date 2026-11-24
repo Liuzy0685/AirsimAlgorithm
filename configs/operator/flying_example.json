@@ -1,1 +1,1061 @@
-{"asset_path": "/Game/FlyingCPP/Maps/FlyingExampleMap", "asset_sha256": "a0fa58a356583f8642dba9585315a670e86f719af5358a8fbb1120a067068a84", "bounds_xy_m": [-5.0, 45.0, -16.0, 16.0], "coverage": "partial_cylinder_render_meshes_only", "frame": "world_ned", "map_id": "flying_example", "obstacles": [{"actor_orientation_xyzw": [-0.0, 0.0, 0.0, 1.0], "actor_position_ned_m": [-46.79999923706055, -94.0, -0.47999998927116394], "actor_scale": [1.0, 1.0, 3.0], "geometry_source": "measured_render_mesh_aabb", "id": "Cylinder2", "max_ned_m": [-46.300000000000004, -93.5, 1.020000010728836], "min_ned_m": [-47.300000000000004, -94.5, -1.979999989271164], "shape": "aabb"}, {"actor_orientation_xyzw": [-0.0, 0.0, 0.0, 1.0], "actor_position_ned_m": [-43.70000076293945, -95.0, -0.47999998927116394], "actor_scale": [1.0, 1.0, 3.0], "geometry_source": "measured_render_mesh_aabb", "id": "Cylinder3", "max_ned_m": [-43.2, -94.5, 1.020000010728836], "min_ned_m": [-44.2, -95.5, -1.979999989271164], "shape": "aabb"}, {"actor_orientation_xyzw": [-0.0, 0.0, 0.0, 1.0], "actor_position_ned_m": [-37.0, -95.0, -0.47999998927116394], "actor_scale": [1.0, 1.0, 3.0], "geometry_source": "measured_render_mesh_aabb", "id": "Cylinder4", "max_ned_m": [-36.5, -94.5, 1.020000010728836], "min_ned_m": [-37.5, -95.5, -1.979999989271164], "shape": "aabb"}, {"actor_orientation_xyzw": [-0.0, 0.0, 0.0, 1.0], "actor_position_ned_m": [-39.599998474121094, -92.0, -0.47999998927116394], "actor_scale": [1.0, 1.0, 3.0], "geometry_source": "measured_render_mesh_aabb", "id": "Cylinder5", "max_ned_m": [-39.1, -91.5, 1.020000010728836], "min_ned_m": [-40.1, -92.5, -1.979999989271164], "shape": "aabb"}, {"actor_orientation_xyzw": [-0.0, 0.0, 0.0, 1.0], "actor_position_ned_m": [-41.900001525878906, -97.0999984741211, -0.47999998927116394], "actor_scale": [1.0, 1.0, 3.0], "geometry_source": "measured_render_mesh_aabb", "id": "Cylinder6", "max_ned_m": [-41.4, -96.60000000000001, 1.020000010728836], "min_ned_m": [-42.4, -97.60000000000001, -1.979999989271164], "shape": "aabb"}, {"actor_orientation_xyzw": [-0.0, 0.0, 0.0, 1.0], "actor_position_ned_m": [-42.400001525878906, -89.80000305175781, -0.47999998927116394], "actor_scale": [1.0, 1.0, 3.0], "geometry_source": "measured_render_mesh_aabb", "id": "Cylinder7", "max_ned_m": [-41.9, -89.3, 1.020000010728836], "min_ned_m": [-42.9, -90.3, -1.979999989271164], "shape": "aabb"}, {"actor_orientation_xyzw": [-0.0, 0.0, 0.0, 1.0], "actor_position_ned_m": [-40.0, -99.30000305175781, -0.47999998927116394], "actor_scale": [1.0, 1.0, 3.0], "geometry_source": "measured_render_mesh_aabb", "id": "Cylinder8", "max_ned_m": [-39.5, -98.8, 1.020000010728836], "min_ned_m": [-40.5, -99.8, -1.979999989271164], "shape": "aabb"}, {"actor_orientation_xyzw": [-0.0, 0.0, 0.0, 1.0], "actor_position_ned_m": [-45.5, -87.80000305175781, -0.47999998927116394], "actor_scale": [1.0, 1.0, 3.0], "geometry_source": "measured_render_mesh_aabb", "id": "Cylinder_2", "max_ned_m": [-45.0, -87.3, 1.020000010728836], "min_ned_m": [-46.0, -88.3, -1.979999989271164], "shape": "aabb"}], "origin": "AirSim common PlayerStart NED", "reference_objects": [{"actor_orientation_xyzw": [-0.0, 0.0, 0.0, 1.0], "actor_position_ned_m": [23.100000381469727, -1.899999976158142, 1.0199999809265137], "actor_scale": [1000.0, 1000.0, 1.0], "id": "Ground_5"}, {"actor_orientation_xyzw": [-0.0, 0.0, 0.0, 1.0], "actor_position_ned_m": [23.100000381469727, -81.5, 1.0199999809265137], "actor_scale": [1000.0, 1000.0, 1.0], "id": "Ground_6"}], "units": "m", "unreal_origin_cm": [0.0, 0.0, 1.0728836059570312e-06]}
+{
+  "map_id": "flying_example",
+  "asset_path": "/Game/FlyingCPP/Maps/FlyingExampleMap",
+  "frame": "world_ned",
+  "units": "m",
+  "origin": "AirSim common PlayerStart NED",
+  "bounds_xy_m": [
+    -5.0,
+    45.0,
+    -16.0,
+    16.0
+  ],
+  "coverage": "partial_selected_static_render_meshes_not_collision_complete",
+  "obstacles": [
+    {
+      "id": "TemplateCube_Rounded_103",
+      "shape": "aabb",
+      "min_ned_m": [
+        43.1,
+        -11.5,
+        -13.980000019073486
+      ],
+      "max_ned_m": [
+        53.1,
+        -1.5,
+        -8.980000019073486
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        48.099998474121094,
+        -6.5,
+        -11.479999542236328
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "TemplateCube_Rounded_104",
+      "shape": "aabb",
+      "min_ned_m": [
+        43.1,
+        -21.5,
+        -8.980000019073486
+      ],
+      "max_ned_m": [
+        53.1,
+        -11.5,
+        -3.9800000190734863
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        48.099998474121094,
+        -16.5,
+        -6.480000019073486
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "TemplateCube_Rounded_105",
+      "shape": "aabb",
+      "min_ned_m": [
+        43.1,
+        8.5,
+        -3.9800000190734863
+      ],
+      "max_ned_m": [
+        53.1,
+        18.5,
+        1.0199999809265137
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        48.099998474121094,
+        13.5,
+        -1.4800000190734863
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "TemplateCube_Rounded_106",
+      "shape": "aabb",
+      "min_ned_m": [
+        43.1,
+        8.5,
+        -8.980000019073486
+      ],
+      "max_ned_m": [
+        53.1,
+        18.5,
+        -3.9800000190734863
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        48.099998474121094,
+        13.5,
+        -6.480000019073486
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "TemplateCube_Rounded_108",
+      "shape": "aabb",
+      "min_ned_m": [
+        43.1,
+        -1.5,
+        -8.980000019073486
+      ],
+      "max_ned_m": [
+        53.1,
+        8.5,
+        -3.9800000190734863
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        48.099998474121094,
+        3.5,
+        -6.480000019073486
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "TemplateCube_Rounded_124",
+      "shape": "aabb",
+      "min_ned_m": [
+        33.1,
+        -21.5,
+        -3.9800000190734863
+      ],
+      "max_ned_m": [
+        43.1,
+        -11.5,
+        1.0199999809265137
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        38.099998474121094,
+        -16.5,
+        -1.4800000190734863
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "TemplateCube_Rounded_125",
+      "shape": "aabb",
+      "min_ned_m": [
+        43.1,
+        -21.5,
+        -3.9800000190734863
+      ],
+      "max_ned_m": [
+        53.1,
+        -11.5,
+        1.0199999809265137
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        48.099998474121094,
+        -16.5,
+        -1.4800000190734863
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "TemplateCube_Rounded_138",
+      "shape": "aabb",
+      "min_ned_m": [
+        43.1,
+        -1.5,
+        -23.980000019073486
+      ],
+      "max_ned_m": [
+        53.1,
+        8.5,
+        -18.980000019073486
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        48.099998474121094,
+        3.5,
+        -21.479999542236328
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "TemplateCube_Rounded_147",
+      "shape": "aabb",
+      "min_ned_m": [
+        23.1,
+        -11.5,
+        -13.980000019073486
+      ],
+      "max_ned_m": [
+        33.1,
+        -1.5,
+        -8.980000019073486
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        28.100000381469727,
+        -6.5,
+        -11.479999542236328
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "TemplateCube_Rounded_148",
+      "shape": "aabb",
+      "min_ned_m": [
+        23.1,
+        -21.5,
+        -13.980000019073486
+      ],
+      "max_ned_m": [
+        33.1,
+        -11.5,
+        -8.980000019073486
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        28.100000381469727,
+        -16.5,
+        -11.479999542236328
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "TemplateCube_Rounded_149",
+      "shape": "aabb",
+      "min_ned_m": [
+        23.1,
+        8.5,
+        -13.980000019073486
+      ],
+      "max_ned_m": [
+        33.1,
+        18.5,
+        -8.980000019073486
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        28.100000381469727,
+        13.5,
+        -11.479999542236328
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "TemplateCube_Rounded_150",
+      "shape": "aabb",
+      "min_ned_m": [
+        23.1,
+        -1.5,
+        -13.980000019073486
+      ],
+      "max_ned_m": [
+        33.1,
+        8.5,
+        -8.980000019073486
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        28.100000381469727,
+        3.5,
+        -11.479999542236328
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "TemplateCube_Rounded_153",
+      "shape": "aabb",
+      "min_ned_m": [
+        43.1,
+        -21.5,
+        -13.980000019073486
+      ],
+      "max_ned_m": [
+        53.1,
+        -11.5,
+        -8.980000019073486
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        48.099998474121094,
+        -16.5,
+        -11.479999542236328
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "TemplateCube_Rounded_26",
+      "shape": "aabb",
+      "min_ned_m": [
+        23.1,
+        8.5,
+        -3.9800000190734863
+      ],
+      "max_ned_m": [
+        33.1,
+        18.5,
+        1.0199999809265137
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        28.100000381469727,
+        13.5,
+        -1.4800000190734863
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "TemplateCube_Rounded_282",
+      "shape": "aabb",
+      "min_ned_m": [
+        33.1,
+        -21.5,
+        -13.980000019073486
+      ],
+      "max_ned_m": [
+        43.1,
+        -11.5,
+        -8.980000019073486
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        38.099998474121094,
+        -16.5,
+        -11.479999542236328
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "TemplateCube_Rounded_283",
+      "shape": "aabb",
+      "min_ned_m": [
+        33.1,
+        8.5,
+        -13.980000019073486
+      ],
+      "max_ned_m": [
+        43.1,
+        18.5,
+        -8.980000019073486
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        38.099998474121094,
+        13.5,
+        -11.479999542236328
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "TemplateCube_Rounded_284",
+      "shape": "aabb",
+      "min_ned_m": [
+        43.1,
+        8.5,
+        -13.980000019073486
+      ],
+      "max_ned_m": [
+        53.1,
+        18.5,
+        -8.980000019073486
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        48.099998474121094,
+        13.5,
+        -11.479999542236328
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "TemplateCube_Rounded_31",
+      "shape": "aabb",
+      "min_ned_m": [
+        33.1,
+        -21.5,
+        -8.980000019073486
+      ],
+      "max_ned_m": [
+        43.1,
+        -11.5,
+        -3.9800000190734863
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        38.099998474121094,
+        -16.5,
+        -6.480000019073486
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "TemplateCube_Rounded_50",
+      "shape": "aabb",
+      "min_ned_m": [
+        43.1,
+        8.5,
+        -18.980000019073486
+      ],
+      "max_ned_m": [
+        53.1,
+        18.5,
+        -13.980000019073486
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        48.099998474121094,
+        13.5,
+        -16.479999542236328
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "TemplateCube_Rounded_51",
+      "shape": "aabb",
+      "min_ned_m": [
+        43.1,
+        -1.5,
+        -18.980000019073486
+      ],
+      "max_ned_m": [
+        53.1,
+        8.5,
+        -13.980000019073486
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        48.099998474121094,
+        3.5,
+        -16.479999542236328
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "TemplateCube_Rounded_54",
+      "shape": "aabb",
+      "min_ned_m": [
+        43.1,
+        8.5,
+        -23.980000019073486
+      ],
+      "max_ned_m": [
+        53.1,
+        18.5,
+        -18.980000019073486
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        48.099998474121094,
+        13.5,
+        -21.479999542236328
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "TemplateCube_Rounded_75",
+      "shape": "aabb",
+      "min_ned_m": [
+        23.1,
+        -11.5,
+        -3.9800000190734863
+      ],
+      "max_ned_m": [
+        33.1,
+        -1.5,
+        1.0199999809265137
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        28.100000381469727,
+        -6.5,
+        -1.4800000190734863
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "TemplateCube_Rounded_76",
+      "shape": "aabb",
+      "min_ned_m": [
+        23.1,
+        -11.5,
+        -8.980000019073486
+      ],
+      "max_ned_m": [
+        33.1,
+        -1.5,
+        -3.9800000190734863
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        28.100000381469727,
+        -6.5,
+        -6.480000019073486
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "TemplateCube_Rounded_77",
+      "shape": "aabb",
+      "min_ned_m": [
+        23.1,
+        -21.5,
+        -3.9800000190734863
+      ],
+      "max_ned_m": [
+        33.1,
+        -11.5,
+        1.0199999809265137
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        28.100000381469727,
+        -16.5,
+        -1.4800000190734863
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "TemplateCube_Rounded_78",
+      "shape": "aabb",
+      "min_ned_m": [
+        23.1,
+        -21.5,
+        -8.980000019073486
+      ],
+      "max_ned_m": [
+        33.1,
+        -11.5,
+        -3.9800000190734863
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        28.100000381469727,
+        -16.5,
+        -6.480000019073486
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "TemplateCube_Rounded_83",
+      "shape": "aabb",
+      "min_ned_m": [
+        23.1,
+        8.5,
+        -8.980000019073486
+      ],
+      "max_ned_m": [
+        33.1,
+        18.5,
+        -3.9800000190734863
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        28.100000381469727,
+        13.5,
+        -6.480000019073486
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "TemplateCube_Rounded_84",
+      "shape": "aabb",
+      "min_ned_m": [
+        23.1,
+        -1.5,
+        -3.9800000190734863
+      ],
+      "max_ned_m": [
+        33.1,
+        8.5,
+        1.0199999809265137
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        28.100000381469727,
+        3.5,
+        -1.4800000190734863
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "TemplateCube_Rounded_85",
+      "shape": "aabb",
+      "min_ned_m": [
+        23.1,
+        -1.5,
+        -8.980000019073486
+      ],
+      "max_ned_m": [
+        33.1,
+        8.5,
+        -3.9800000190734863
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        28.100000381469727,
+        3.5,
+        -6.480000019073486
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "TemplateCube_Rounded_92",
+      "shape": "aabb",
+      "min_ned_m": [
+        33.1,
+        -11.5,
+        -13.980000019073486
+      ],
+      "max_ned_m": [
+        43.1,
+        -1.5,
+        -8.980000019073486
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        38.099998474121094,
+        -6.5,
+        -11.479999542236328
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "TemplateCube_Rounded_93",
+      "shape": "aabb",
+      "min_ned_m": [
+        33.1,
+        8.5,
+        -3.9800000190734863
+      ],
+      "max_ned_m": [
+        43.1,
+        18.5,
+        1.0199999809265137
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        38.099998474121094,
+        13.5,
+        -1.4800000190734863
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "TemplateCube_Rounded_94",
+      "shape": "aabb",
+      "min_ned_m": [
+        33.1,
+        8.5,
+        -8.980000019073486
+      ],
+      "max_ned_m": [
+        43.1,
+        18.5,
+        -3.9800000190734863
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        38.099998474121094,
+        13.5,
+        -6.480000019073486
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "TemplateCube_Rounded_96",
+      "shape": "aabb",
+      "min_ned_m": [
+        33.1,
+        -1.5,
+        -13.980000019073486
+      ],
+      "max_ned_m": [
+        43.1,
+        8.5,
+        -8.980000019073486
+      ],
+      "geometry_source": "measured_render_mesh_aabb",
+      "actor_position_ned_m": [
+        38.099998474121094,
+        3.5,
+        -11.479999542236328
+      ],
+      "actor_scale": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    }
+  ],
+  "reference_objects": [
+    {
+      "id": "Ground_5",
+      "actor_position_ned_m": [
+        23.100000381469727,
+        -1.899999976158142,
+        1.0199999809265137
+      ],
+      "actor_scale": [
+        1000.0,
+        1000.0,
+        1.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": "Ground_6",
+      "actor_position_ned_m": [
+        23.100000381469727,
+        -81.5,
+        1.0199999809265137
+      ],
+      "actor_scale": [
+        1000.0,
+        1000.0,
+        1.0
+      ],
+      "actor_orientation_xyzw": [
+        -0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    }
+  ],
+  "unreal_origin_cm": [
+    0.0,
+    0.0,
+    -1.9073486328125e-06
+  ],
+  "asset_sha256": "a0fa58a356583f8642dba9585315a670e86f719af5358a8fbb1120a067068a84",
+  "geometry_selection": {
+    "actor_prefixes": [
+      "Cylinder",
+      "TemplateCube"
+    ],
+    "intersect_editing_extent": true
+  }
+}

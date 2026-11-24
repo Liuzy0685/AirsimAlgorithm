@@ -132,6 +132,8 @@ python scripts/launch_swarm.py --settings-json "C:\path\to\settings.json" --with
 
 基于 B 的 `f5b48b9`，新增可选的障碍反馈、承诺路线、槽位联合调整、领航历史路径跟随与原队形恢复，
 使用独立的 `swarm_2_navigation.yaml` / `swarm_5_navigation.yaml`，保留原安全门控与控制网关。
+
+FlyingExampleMap 的默认五机终点 `(30.5,-6,-2)` 在已测资产中位于方块内部，需先使用新版地图清单做端点预检；不要因前端未显示圆柱体就认定该地图无障碍。排查与命令见 [五机零 XY 说明](docs/flying_example_five_no_motion_20261124.md)。
 协议、复现参数和本轮实测结果见 [A/B 障碍感知导航与恢复](docs/A_B_障碍感知导航与恢复.md)。
 
 前端任务入口由独立 `scripts/operator_api.py` 提供，支持真实地图元数据、任务校验、初始队形设置、
