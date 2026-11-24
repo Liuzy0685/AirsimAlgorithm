@@ -2,6 +2,7 @@
 import argparse
 import asyncio
 from dataclasses import asdict
+import math
 from pathlib import Path
 import sys
 import time
@@ -16,6 +17,7 @@ from coordination.wire import build_envelope, parse_swarm_snapshot
 from formation.controller import FormationController, load_formation_config
 from formation.runtime import FormationStatusGate
 from formation.navigation import FormationNavigation
+from formation.transition import FormationTransition
 from formation.operator_link import FormationOperatorLink, OperatorSettings
 from coordination.navigation import NavigationConfig
 
@@ -34,6 +36,25 @@ async def run(args):
     navigator=FormationNavigation(NavigationConfig(**swarm.get('navigation',{})),task_id=cfg.task_id,
         vehicle_names=formation.vehicle_names,safety_distance_m=swarm['coordination']['safety_distance_m'],spacing_m=formation.spacing_m,
         max_speed_mps=formation.max_recovery_speed_mps,prediction_horizon_s=swarm['coordination']['prediction_horizon_s'])
+    transition = FormationTransition(safety_distance_m=swarm['coordination']['safety_distance_m'],
+        max_speed_mps=formation.max_recovery_speed_mps,
+        tolerance_m=formation.recovery_tolerance_m,
+        dwell_s=formation.transition_dwell_s,
+        min_switch_interval_s=formation.min_switch_interval_s)
+    bounds = swarm.get('formation_bounds_xy')
+    map_obstacles = swarm.get('formation_map_obstacles', [])
+    if bounds is not None and (not isinstance(bounds, list) or len(bounds) != 4
+            or any(type(v) not in (int, float) or not math.isfinite(v) for v in bounds)
+            or bounds[0] >= bounds[1] or bounds[2] >= bounds[3]):
+        raise ValueError('formation_bounds_xy must contain ordered XY bounds')
+    if not isinstance(map_obstacles, list) or any(
+            not isinstance(box, dict) or any(
+                not isinstance(box.get(key), list) or len(box[key]) != 3 or
+                any(type(v) not in (int, float) or not math.isfinite(v) for v in box[key])
+                for key in ('min_ned_m', 'max_ned_m')) or
+            any(a > b for a, b in zip(box['min_ned_m'], box['max_ned_m']))
+            for box in map_obstacles):
+        raise ValueError('invalid formation map obstacles')
     operator_settings = OperatorSettings.from_swarm(swarm, cfg.task_id)
     operator = (FormationOperatorLink(operator_settings, planner, navigator,
         safety_distance_m=swarm['coordination']['safety_distance_m'],
@@ -45,7 +66,8 @@ async def run(args):
     operator_task = asyncio.create_task(operator.run(stopping)) if operator else None
     try:
         await _run_swarm_loop(cfg, formation, planner, producer, gate, navigator,
-                              operator, stopping)
+                              operator, stopping, transition=transition, bounds=bounds,
+                              map_obstacles=map_obstacles)
     finally:
         if operator_task:
             operator_task.cancel()
@@ -53,7 +75,8 @@ async def run(args):
 
 
 async def _run_swarm_loop(cfg, formation, planner, producer, gate, navigator,
-                          operator, stopping):
+                          operator, stopping, *, transition=None, bounds=None,
+                          map_obstacles=()):
     delay = 0.5
     last_navigation_mode = None
     last_snapshot = None
@@ -64,6 +87,8 @@ async def _run_swarm_loop(cfg, formation, planner, producer, gate, navigator,
                 producer_id=producer, stream_id=planner.stream_id)
             gate.reset()
             navigator.reset()
+            if transition is not None:
+                transition.reset()
             delay, last_ping = 0.5, 0.0
             while not stopping():
                 if time.monotonic() - last_ping >= cfg.heartbeat_s:
@@ -97,13 +122,26 @@ async def _run_swarm_loop(cfg, formation, planner, producer, gate, navigator,
                         continue
                     if state is None:
                         continue
-                    targets=navigator.targets(snap,planner.slot_targets(snap.states[planner.config.leader]),
+                    nominal = planner.slot_targets(snap.states[planner.config.leader])
+                    nav_nominal = (transition.assigned_targets(nominal)
+                        if transition is not None and transition.shape == planner.config.shape
+                        else nominal)
+                    targets=navigator.targets(snap,nav_nominal,
                         leader=planner.config.leader,now=received)
                     if targets is None:
                         if operator:
-                            nominal = planner.slot_targets(snap.states[planner.config.leader])
                             operator.update_status(snap, nominal, mode='holding', reason='navigation_feedback_unavailable')
                         continue
+                    deformed = navigator.mode == 'trail' or targets != nav_nominal
+                    if transition is not None:
+                        points, clearance = navigator.observed_clearance(received)
+                        staged = transition.targets(snap, nominal,
+                            shape=planner.config.shape, now=received,
+                            obstacle_points=points, obstacle_clearance_m=clearance,
+                            bounds_xy=bounds, map_obstacles=map_obstacles,
+                            obstructed=deformed, trail_targets=targets if deformed else None)
+                        if not deformed:
+                            targets = staged
                     if navigator.mode!=last_navigation_mode:
                         print(f'formation_navigation mode={navigator.mode}',flush=True)
                         last_navigation_mode=navigator.mode
@@ -112,14 +150,19 @@ async def _run_swarm_loop(cfg, formation, planner, producer, gate, navigator,
                         coordination_state=operator.planning_state(state) if operator else state,
                         target_overrides=targets)
                     if operator:
-                        mode = ('holding' if not commands else 'trail' if navigator.mode == 'trail'
+                        mode = ('holding' if not commands else 'trail' if deformed
+                                else 'recovering' if transition is not None and transition.phase in ('switching', 'recovering')
                                 else 'recovering' if any(c.mode == 'velocity' for c in commands.values())
                                 else 'nominal')
                         operator.update_status(snap, targets, mode=mode,
                                                reason=('obstacle_constrained' if mode == 'trail' else
+                                                       transition.reason if transition is not None and transition.reason else
+                                                       'formation_switching' if transition is not None and transition.phase == 'switching' else
                                                        state.lower() if mode != 'nominal' else ''))
                     for command in commands.values():
-                        if navigator.mode=='trail':command.formation_id=f'{planner.config.shape}:trail'
+                        if deformed:command.formation_id=f'{planner.config.shape}:trail'
+                        elif transition is not None and transition.phase in ('switching', 'recovering'):
+                            command.formation_id=f'{planner.config.shape}:trail'
                         await connection.send(build_envelope(message_type="formation.command",
                             producer_id=producer, stream_id=planner.stream_id,
                             sequence_id=command.lifecycle.sequence_id, payload=asdict(command)))

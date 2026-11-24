@@ -199,6 +199,8 @@ def test_trail_uses_leader_history_through_corner_and_stages_missing_history():
     # Once the leader is at its task goal and old obstacle observations have
     # expired, followers recover their requested nominal shape.
     goals=update(4.,4.,10_000_000_000,[],9.,at_goal=True)
+    assert nav.trailing
+    goals=update(4.,4.,12_000_000_000,[],11.1,at_goal=True)
     assert not nav.trailing and goals['Drone2']==(4.,7.,-2.)
 
 
