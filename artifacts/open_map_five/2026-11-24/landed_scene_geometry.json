@@ -1,0 +1,196 @@
+{
+  "ue_pid": 2692,
+  "mode": "read_only_no_flight_no_api_acquisition",
+  "initial_ground": {
+    "verified_ground_released": true,
+    "states": {
+      "Drone1": {
+        "landed": 0,
+        "api_control": false,
+        "speed_mps": 0.0,
+        "local_position": [
+          0.0,
+          0.0,
+          0.6781484484672546
+        ],
+        "collision_object": "Ground_6",
+        "collision_timestamp": 1795527710983444736
+      },
+      "Drone2": {
+        "landed": 0,
+        "api_control": false,
+        "speed_mps": 0.0,
+        "local_position": [
+          0.0,
+          0.0,
+          0.6781484484672546
+        ],
+        "collision_object": "Ground_6",
+        "collision_timestamp": 1795527710983444736
+      },
+      "Drone3": {
+        "landed": 0,
+        "api_control": false,
+        "speed_mps": 0.0,
+        "local_position": [
+          0.0,
+          0.0,
+          0.6781484484672546
+        ],
+        "collision_object": "Ground_6",
+        "collision_timestamp": 1795527710983444736
+      },
+      "Drone4": {
+        "landed": 0,
+        "api_control": false,
+        "speed_mps": 0.0,
+        "local_position": [
+          0.0,
+          0.0,
+          0.6781484484672546
+        ],
+        "collision_object": "Ground_5",
+        "collision_timestamp": 1795527710983444736
+      },
+      "Drone5": {
+        "landed": 0,
+        "api_control": false,
+        "speed_mps": 0.0,
+        "local_position": [
+          0.0,
+          0.0,
+          0.6781484484672546
+        ],
+        "collision_object": "Ground_6",
+        "collision_timestamp": 1795527710983444736
+      }
+    }
+  },
+  "near_cruise_static_aabbs": [
+    {
+      "name": "templatecube_rounded_124",
+      "min_ned_m": [
+        33.10000038146973,
+        -21.49999998807907,
+        -3.9800000190734863
+      ],
+      "max_ned_m": [
+        43.10000038146973,
+        -11.499999988079072,
+        1.0199999809265137
+      ]
+    },
+    {
+      "name": "templatecube_rounded_75",
+      "min_ned_m": [
+        23.100000381469727,
+        -11.499999988079072,
+        -3.9800000190734863
+      ],
+      "max_ned_m": [
+        33.10000038146973,
+        -1.499999988079071,
+        1.0199999809265137
+      ]
+    },
+    {
+      "name": "templatecube_rounded_77",
+      "min_ned_m": [
+        23.100000381469727,
+        -21.49999998807907,
+        -3.9800000190734863
+      ],
+      "max_ned_m": [
+        33.10000038146973,
+        -11.499999988079072,
+        1.0199999809265137
+      ]
+    },
+    {
+      "name": "templatecube_rounded_84",
+      "min_ned_m": [
+        23.100000381469727,
+        -1.499999988079071,
+        -3.9800000190734863
+      ],
+      "max_ned_m": [
+        33.10000038146973,
+        8.500000011920928,
+        1.0199999809265137
+      ]
+    }
+  ],
+  "mesh_count": 568,
+  "unreal_origin_cm": [
+    -3.814697265625e-05,
+    -1.1920928955078125e-06,
+    -1.9073486328125e-06
+  ],
+  "map_sha256": "a0fa58a356583f8642dba9585315a670e86f719af5358a8fbb1120a067068a84",
+  "limitation": "Referenced render-mesh AABBs only; not a complete collision/observed-free-space certificate",
+  "final_ground": {
+    "verified_ground_released": true,
+    "states": {
+      "Drone1": {
+        "landed": 0,
+        "api_control": false,
+        "speed_mps": 0.0,
+        "local_position": [
+          0.0,
+          0.0,
+          0.6781484484672546
+        ],
+        "collision_object": "Ground_6",
+        "collision_timestamp": 1795527710983444736
+      },
+      "Drone2": {
+        "landed": 0,
+        "api_control": false,
+        "speed_mps": 0.0,
+        "local_position": [
+          0.0,
+          0.0,
+          0.6781484484672546
+        ],
+        "collision_object": "Ground_6",
+        "collision_timestamp": 1795527710983444736
+      },
+      "Drone3": {
+        "landed": 0,
+        "api_control": false,
+        "speed_mps": 0.0,
+        "local_position": [
+          0.0,
+          0.0,
+          0.6781484484672546
+        ],
+        "collision_object": "Ground_6",
+        "collision_timestamp": 1795527710983444736
+      },
+      "Drone4": {
+        "landed": 0,
+        "api_control": false,
+        "speed_mps": 0.0,
+        "local_position": [
+          0.0,
+          0.0,
+          0.6781484484672546
+        ],
+        "collision_object": "Ground_5",
+        "collision_timestamp": 1795527710983444736
+      },
+      "Drone5": {
+        "landed": 0,
+        "api_control": false,
+        "speed_mps": 0.0,
+        "local_position": [
+          0.0,
+          0.0,
+          0.6781484484672546
+        ],
+        "collision_object": "Ground_6",
+        "collision_timestamp": 1795527710983444736
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "b_archive_basename": "formation_live_20261123_v_open(2).zip",
+  "b_archive_sha256": "e978c73d656c116843b9c0694df5139b046431f98034ff8182e5bb4a94464f10",
+  "b_reported_map_path": "D:\\blocks\\blocks\\Content\\FlyingCPP\\Maps\\FlyingExampleMap.umap",
+  "b_umap_sha256_user_confirmed": "a0fa58a356583f8642dba9585315a670e86f719af5358a8fbb1120a067068a84",
+  "b_runtime_geometry_confirmed": false,
+  "b_exact_source_commit_not_recorded_in_zip": true,
+  "local_flight_probe_source_commit": "ae9b376",
+  "fix_source_commit": "0510092",
+  "targeted_regression_tests": 294,
+  "conclusions": [
+    "Measured local render mesh contains configured leader goal",
+    "Observed-front-face synthetic fixture reproduces unavailable route with goal_blocked=false; not B raw LiDAR replay",
+    "Updated known-map endpoint preflight rejects before flight RPC",
+    "Local five-UAV flight probe failed during startup with authoritative_snapshot_unavailable; not B scenario reproduction",
+    "Explicit recovery eventually verified landed/API release for all local vehicles; original failures preserved",
+    "B runtime level/actor/dependency geometry still requires read-only verification"
+  ],
+  "shared_config_sha256": {
+    "configs/acceptance/settings_5.json": "3eb0ba11c2475d3a653bb8033fab56938dd7bcfdc049654a3cfdba70d4a63453",
+    "configs/acceptance/swarm_5_navigation.yaml": "9e0994acfe68036ed0a9d5438d5886247d1be798333391d5d2ff73e0219e4c07",
+    "configs/acceptance/formation_5.yaml": "76bb08093e3e010eb3edd13c7c900fb8876338ff2ae4fe8fab1fc6c88a516a45"
+  }
+}

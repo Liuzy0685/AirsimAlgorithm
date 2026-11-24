@@ -1,0 +1,16 @@
+{
+  "valid": false,
+  "scope": "offline_known_map_endpoint_check_only",
+  "flight_authorized": false,
+  "runtime_map_verified": false,
+  "map_id": "flying_example",
+  "map_revision": "eb458d307203fb2d73981115533c422b32d22784e61e85f3b95de2e09abd4104",
+  "expected_map_asset_sha256": "a0fa58a356583f8642dba9585315a670e86f719af5358a8fbb1120a067068a84",
+  "leader_goal_ned_m": [
+    30.5,
+    -6.0,
+    -2.0
+  ],
+  "reason": "goal_near_known_obstacle",
+  "message": "Target is too close to known obstacle TemplateCube_Rounded_75"
+}

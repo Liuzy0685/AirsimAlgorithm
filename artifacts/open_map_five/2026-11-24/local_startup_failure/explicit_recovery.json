@@ -1,0 +1,8303 @@
+{
+  "cleanup_verified": false,
+  "vehicle_results": {
+    "Drone1": {
+      "landing_confirmed": false,
+      "disarmed": false,
+      "api_control_released": false,
+      "cleanup": {
+        "control_released": false
+      },
+      "reason": "recovery_landing_unconfirmed: Drone1 landing was not confirmed"
+    },
+    "Drone2": {
+      "landing_confirmed": false,
+      "disarmed": false,
+      "api_control_released": false,
+      "cleanup": {
+        "control_released": false
+      },
+      "reason": "recovery_landing_unconfirmed: Drone1 landing was not confirmed"
+    },
+    "Drone3": {
+      "landing_confirmed": false,
+      "disarmed": false,
+      "api_control_released": false,
+      "cleanup": {
+        "control_released": false
+      },
+      "reason": "recovery_landing_unconfirmed: Drone1 landing was not confirmed"
+    },
+    "Drone4": {
+      "landing_confirmed": false,
+      "disarmed": false,
+      "api_control_released": false,
+      "cleanup": {
+        "control_released": false
+      },
+      "reason": "recovery_landing_unconfirmed: Drone1 landing was not confirmed"
+    },
+    "Drone5": {
+      "landing_confirmed": false,
+      "disarmed": false,
+      "api_control_released": false,
+      "cleanup": {
+        "control_released": false
+      },
+      "reason": "recovery_landing_unconfirmed: Drone1 landing was not confirmed"
+    }
+  },
+  "reason": "recovery_landing_unconfirmed: Drone1 landing was not confirmed",
+  "observation_trace": [
+    {
+      "vehicle": "Drone1",
+      "time": 4662.0386491,
+      "position": [
+        0.5,
+        -6.0,
+        -0.37117844820022583
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.2031053751707077
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4662.0391452,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4662.0395942,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4662.0400745,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4662.0404965,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4662.2414522,
+      "position": [
+        0.5,
+        -6.0,
+        -0.3596014380455017
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20309869945049286
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4662.2419477,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4662.2426632,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4662.2432378,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4662.2436842,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4662.4454559,
+      "position": [
+        0.5,
+        -6.0,
+        -0.33888548612594604
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20308804512023926
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4662.4462907,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4662.4469311,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4662.4475381,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4662.448101,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4662.6492852,
+      "position": [
+        0.5,
+        -6.0,
+        -0.3297463059425354
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20308361947536469
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4662.6497486,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4662.6501703,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4662.6506014,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4662.6510006,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4662.852476,
+      "position": [
+        0.5,
+        -6.0,
+        -0.31817057728767395
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.2030782550573349
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4662.8531086,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4662.853702,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4662.8541908,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4662.8546294,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4663.055815,
+      "position": [
+        0.5,
+        -6.0,
+        -0.29745662212371826
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20306959748268127
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4663.0564544,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4663.0570007,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4663.0575049,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4663.0581163,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4663.2594781,
+      "position": [
+        0.5,
+        -6.0,
+        -0.28831833600997925
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20306606590747833
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4663.2600922,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4663.2605692,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4663.2609905,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4663.2614438,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4663.4624122,
+      "position": [
+        0.5,
+        -6.0,
+        -0.27674344182014465
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20306174457073212
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4663.4628931,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4663.4633101,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4663.4639228,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4663.464316,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4663.6654921,
+      "position": [
+        0.5,
+        -6.0,
+        -0.25603100657463074
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.2030547559261322
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4663.665992,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4663.6664662,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4663.6669082,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4663.667336,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4663.8686718,
+      "position": [
+        0.5,
+        -6.0,
+        -0.25115758180618286
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20305322110652924
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4663.8693684,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4663.8699338,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4663.8705264,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4663.8711757,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4664.0726531,
+      "position": [
+        0.5,
+        -6.0,
+        -0.23531930148601532
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20304840803146362
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4664.0732262,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4664.0737063,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4664.074134,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4664.0745468,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4664.2754797,
+      "position": [
+        0.5,
+        -6.0,
+        -0.21460820734500885
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20304279029369354
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4664.2759444,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4664.2765659,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4664.2772247,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4664.2778619,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4664.4801683,
+      "position": [
+        0.5,
+        -6.0,
+        -0.21278077363967896
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20304234325885773
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4664.4808277,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4664.4813475,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4664.4818701,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4664.4822754,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4664.6838667,
+      "position": [
+        0.5,
+        -6.0,
+        -0.19389766454696655
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20303773880004883
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4664.6845099,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4664.6851278,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4664.6857545,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4664.6862878,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4664.8873546,
+      "position": [
+        0.5,
+        -6.0,
+        -0.17318762838840485
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.2030331790447235
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4664.8879301,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4664.8884851,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4664.8890119,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4664.8895025,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4665.0907222,
+      "position": [
+        0.5,
+        -6.0,
+        -0.16770559549331665
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20303213596343994
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4665.0913057,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4665.0918105,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4665.0922437,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4665.0926226,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4665.2937197,
+      "position": [
+        0.5,
+        -6.0,
+        -0.15247800946235657
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20302912592887878
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4665.2943277,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4665.2948089,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4665.2952777,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4665.2958592,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4665.4974674,
+      "position": [
+        0.5,
+        -6.0,
+        -0.13176876306533813
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20302535593509674
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4665.4982187,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4665.4988014,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4665.4992433,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4665.4996782,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4665.7008393,
+      "position": [
+        0.5,
+        -6.0,
+        -0.12628699839115143
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20302455127239227
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4665.7014095,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4665.7018274,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4665.7022237,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4665.7026286,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4665.9034682,
+      "position": [
+        0.5,
+        -6.0,
+        -0.11105991899967194
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20302219688892365
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4665.9039431,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4665.904388,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4665.9048027,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4665.9051977,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4666.1263089,
+      "position": [
+        0.5,
+        -6.0,
+        -0.09035137295722961
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20301920175552368
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4666.1271323,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4666.1279719,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4666.1286228,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4666.1294397,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4666.3311847,
+      "position": [
+        0.5,
+        -6.0,
+        -0.09035137295722961
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20301920175552368
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4666.3317506,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4666.3324387,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4666.3331449,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4666.333848,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4666.5354037,
+      "position": [
+        0.5,
+        -6.0,
+        -0.06964308768510818
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20301692187786102
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4666.5363554,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4666.537406,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4666.5382859,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4666.5390847,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4666.7404895,
+      "position": [
+        0.5,
+        -6.0,
+        -0.0623343363404274
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20301608741283417
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4666.7410475,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4666.7415342,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4666.7420059,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4666.7424496,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4666.9434624,
+      "position": [
+        0.5,
+        -6.0,
+        -0.04893502965569496
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20301464200019836
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4666.9439397,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4666.9443431,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4666.9448331,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4666.9452817,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4667.1463168,
+      "position": [
+        0.5,
+        -6.0,
+        -0.028227195143699646
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20301282405853271
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4667.1469148,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4667.1474454,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4667.1480158,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4667.1485285,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4667.3500832,
+      "position": [
+        0.5,
+        -6.0,
+        -0.0257909893989563
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.203012615442276
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4667.3506259,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4667.3512427,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4667.3517457,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4667.3521779,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4667.5535338,
+      "position": [
+        0.5,
+        -6.0,
+        -0.007519537582993507
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20301097631454468
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4667.5540524,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4667.5544873,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4667.5549191,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4667.5552997,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4667.7565641,
+      "position": [
+        0.5,
+        -6.0,
+        0.013187944889068604
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20300953090190887
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4667.757046,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4667.757503,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4667.7579385,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4667.7584747,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4667.9598081,
+      "position": [
+        0.5,
+        -6.0,
+        0.01379698608070612
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.2030095010995865
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4667.9602963,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4667.9607292,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4667.9611401,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4667.9615415,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4668.1628623,
+      "position": [
+        0.5,
+        -6.0,
+        0.033895280212163925
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20300805568695068
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4668.1634631,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4668.1640344,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4668.1645254,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4668.1649633,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4668.3662167,
+      "position": [
+        0.5,
+        -6.0,
+        0.052166350185871124
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20300699770450592
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4668.366728,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4668.3672131,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4668.3676487,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4668.3683134,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4668.5699815,
+      "position": [
+        0.5,
+        -6.0,
+        0.05521151423454285
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20300684869289398
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4668.5705792,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4668.5711566,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4668.571561,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4668.5719376,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4668.773216,
+      "position": [
+        0.5,
+        -6.0,
+        0.07530959695577621
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20300573110580444
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4668.7737169,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4668.7742104,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4668.7746915,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4668.7754535,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4668.9773609,
+      "position": [
+        0.5,
+        -6.0,
+        0.0960165411233902
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20300476253032684
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4668.9781086,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4668.9788596,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4668.9795892,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4668.9802457,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4669.181382,
+      "position": [
+        0.5,
+        -6.0,
+        0.09662556648254395
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20300473272800446
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4669.181999,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4669.1825619,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4669.1830635,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4669.1834797,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4669.3846076,
+      "position": [
+        0.5,
+        -6.0,
+        0.11672340333461761
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20300382375717163
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4669.3853226,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4669.3859246,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4669.3865166,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4669.387022,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4669.5882888,
+      "position": [
+        0.5,
+        -6.0,
+        0.13377611339092255
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20300307869911194
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4669.5887712,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4669.5891824,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4669.5895858,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4669.5899594,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4669.791165,
+      "position": [
+        0.5,
+        -6.0,
+        0.13803929090499878
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20300301909446716
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4669.7919087,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4669.7925042,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4669.7931597,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4669.7937398,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4669.9947674,
+      "position": [
+        0.5,
+        -6.0,
+        0.15813712775707245
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20300233364105225
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4669.9953186,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4669.9958174,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4669.9962599,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4669.9966672,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4670.1976995,
+      "position": [
+        0.5,
+        -6.0,
+        0.1727537363767624
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20300178229808807
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4670.1981704,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4670.1985963,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4670.1989969,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4670.1994041,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4670.4004018,
+      "position": [
+        0.5,
+        -6.0,
+        0.1794530153274536
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20300167798995972
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4670.4009201,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4670.4015682,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4670.4022373,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4670.4027758,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4670.6050529,
+      "position": [
+        0.5,
+        -6.0,
+        0.19955042004585266
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20300108194351196
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4670.6063763,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4670.6071052,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4670.6077871,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4670.6084046,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4670.809936,
+      "position": [
+        0.5,
+        -6.0,
+        0.20015943050384521
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20300105214118958
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4670.8107063,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4670.8115258,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4670.8123373,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4670.8130498,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4671.0150147,
+      "position": [
+        0.5,
+        -6.0,
+        0.2202567756175995
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20300044119358063
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4671.0158138,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4671.0165556,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4671.0172236,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4671.0178543,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4671.2194185,
+      "position": [
+        0.5,
+        -6.0,
+        0.2202567756175995
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20300044119358063
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4671.2203337,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4671.2213581,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4671.2220638,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4671.2227188,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4671.4240472,
+      "position": [
+        0.5,
+        -6.0,
+        0.24035412073135376
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20300012826919556
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4671.4248579,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4671.4255432,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4671.4262819,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4671.4272964,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4671.6289813,
+      "position": [
+        0.5,
+        -6.0,
+        0.2409631311893463
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20300011336803436
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4671.6297829,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4671.6305807,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4671.631345,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4671.6320433,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4671.8332668,
+      "position": [
+        0.5,
+        -6.0,
+        0.2567974030971527
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20299968123435974
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4671.8341379,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4671.8349493,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4671.8356307,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4671.8363877,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone1",
+      "time": 4672.0377478,
+      "position": [
+        0.5,
+        -6.0,
+        0.26166948676109314
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.20299950242042542
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671722706176,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.53642113193931e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    },
+    {
+      "vehicle": "Drone2",
+      "time": 4672.0384793,
+      "position": [
+        0.5,
+        -3.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone3",
+      "time": 4672.0392049,
+      "position": [
+        0.5,
+        -9.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone4",
+      "time": 4672.0398188,
+      "position": [
+        0.5,
+        0.0,
+        0.6781700253486633
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reported_landed_state": 0,
+      "collision_object": "Ground_5",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        -9.536424384545827e-13,
+        -1.1920131453635154e-19,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": true
+    },
+    {
+      "vehicle": "Drone5",
+      "time": 4672.0403843,
+      "position": [
+        0.5,
+        -12.0,
+        -0.8571061491966248
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        -9.17319175641751e-06
+      ],
+      "reported_landed_state": 1,
+      "collision_object": "Ground_6",
+      "collision_timestamp": 1795526671719706112,
+      "collision_pulse": false,
+      "contact_normal": [
+        0.0,
+        9.536422216141482e-13,
+        -1.0
+      ],
+      "penetration_depth": 0.0,
+      "contact_candidate": false,
+      "reference_position": [
+        0.0,
+        0.0,
+        0.6781700253486633
+      ],
+      "stable_frames": 0,
+      "stable_dwell_s": 0.0,
+      "confirmed": false
+    }
+  ]
+}
