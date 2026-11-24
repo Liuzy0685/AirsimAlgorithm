@@ -57,7 +57,8 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 manifest=json.loads((OUT/'flying_example_manifest.json').read_text(encoding='utf-8'))
-fig,ax=plt.subplots(figsize=(10,6.6),layout='constrained')
+fig,ax=plt.subplots(figsize=(10,6.9))
+fig.subplots_adjust(left=.08,right=.99,top=.94,bottom=.14)
 for item in manifest['obstacles']:
     lo,hi=item['min_ned_m'],item['max_ned_m']
     if not lo[2]<=-2.<=hi[2]:continue
