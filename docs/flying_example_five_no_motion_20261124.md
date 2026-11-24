@@ -30,7 +30,7 @@ Drone1全程平均控制频率6.74 Hz，周期P95约188毫秒，有234次控制�
 
 用实测前表面范围构造的**合成观测夹具**，可得到 `goal_blocked=false`、`no_grid_path`、零位移的判定：表面点地图不会把实体内部自动标为占据，目标阻挡false不代表目标可达。这不是B原始LiDAR的精确回放。
 
-**若B的地图资产哈希与上述一致，这个默认任务终点应先判为无效。** 不应降低净空、延长点云时效或关闭碰撞检查让它飞进去。若哈希不同，需先统一工程/资产；B现场的精确路由原因仍需 `persistent_no_route` 诊断快照确认。
+用户已核对B的 `D:\blocks\blocks\Content\FlyingCPP\Maps\FlyingExampleMap.umap`，哈希与上述一致。仍需核对本次运行真正加载的关卡、对象变换与依赖静态网格，不能只凭 `.umap` 相同就断定运行场景完全相同。本机的默认终点已经判为无效；不应降低净空、延长点云时效或关闭碰撞检查让它飞进去。B现场的精确路由原因仍需完整快照或运行时几何核验。
 
 ## 修复范围与复测方式
 
@@ -47,11 +47,19 @@ python scripts/check_mission_endpoints.py --settings-json configs/acceptance/set
 
 对于当前默认目标，预期退出码2，原因 `goal_near_known_obstacle`，对象 `TemplateCube_Rounded_75`。这说明任务输入应被拒绝，不是飞行验收通过。已知地图的直接启动命令增加 `--map-manifest configs/operator/flying_example.json` 后同样拒绝，仍不需改settings/导航/编队YAML。
 
+若要核对B运行时关卡和依赖网格，保持所有飞机落地、静止且API关闭，在UE运行但未启动控制器时执行（engine-log须换成本次UE的真实日志）：
+
+```powershell
+python scripts/check_runtime_goal_geometry.py --settings-json configs/acceptance/settings_5.json --swarm-config configs/acceptance/swarm_5_navigation.yaml --formation-config configs/acceptance/formation_5.yaml --map-manifest configs/operator/flying_example.json --blocks-project "D:\blocks\blocks\Blocks.uproject" --engine-log "D:\blocks\blocks\Saved\Logs\Blocks.log" --output runs/flying_runtime_geometry_B.json
+```
+
+此命令不获取API控制权、不移动飞机，只读校验加载关卡、资产哈希、清单中的对象位置/缩放/朝向，重新测量目标方块的渲染AABB，焊接渲染接缝检查网格闭合性后进行六方向射线判定。预期本机结果为 `active_map_verified=true`、`render_aabb_matches_manifest=true`、`inside_render_mesh=true`，退出码2表示目标应拒绝。如果几何不匹配、网格不闭合或报错，应保留JSON/错误重新核对，不能将不确定结果当作飞行许可。即使退出码0，`flight_authorized`仍为false。
+
 需由任务制定方通过前端任务接口明确选择合法终点并预检，不能偷偷替换默认目标。C重启后端加载新清单后刷新地图和预览，无需新增相机；B无需提交另一份settings。合法目标下如果仍无路，再取新诊断快照排查A的记忆/栅格/预算，控制负载问题也继续保留。
 
 ## 本次验证与限制
 
-本分支已合入 `main` 的 `686cd94`，包含B的 `4901621` 编队更新；无文本冲突。相关回归288项通过，覆盖五机空地/队友几何、地图导出、端点拒绝、启动前零RPC拒绝、编队过渡与既有网关。
+本分支已合入 `main` 的 `686cd94`，包含B的 `4901621` 编队更新；无文本冲突。相关回归294项通过，覆盖五机空地/队友几何、地图导出、端点拒绝、启动前零RPC拒绝、编队过渡、运行时只读检查与既有网关。运行时核验命令在本机落地/API关闭实例上验证成功，返回上述目标在渲染网格内部的结果。
 
 本机尝试的五机飞行诊断在进入巡航前因 `authoritative_snapshot_unavailable` 失败，没有成功复现B的原场景。自动清理曾未确认；后续显式恢复结合已有解除武装确认/未进入武装阶段的审计与新鲜地面观测，最终确认五机落地、API释放并关闭实例。原失败结果未改写，单独保留恢复记录。这一事件不归因于B的槽位算法，也不算五机飞行通过。
 

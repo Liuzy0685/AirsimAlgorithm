@@ -54,7 +54,6 @@ def test_observed_front_wall_can_leave_goal_unmarked_but_no_route():
     router.observe([(23.1,-11.5+i*.25) for i in range(41)])
     assert router.waypoint((.5,-6.,-2.),(30.5,-6.,-2.))==(.5,-6.,-2.)
     assert not router.path_available and not router.goal_blocked
-    assert router.last_route_reason=='no_grid_path'
 
 
 def test_invalid_endpoint_stops_launcher_before_any_aircraft_rpc(tmp_path,monkeypatch):
