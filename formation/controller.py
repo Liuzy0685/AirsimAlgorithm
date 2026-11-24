@@ -15,6 +15,9 @@ from common.models import CommandLifecycle, FormationCommand, VehicleState
 from coordination.state_provider import SwarmStateSnapshot
 
 
+FORMATION_SHAPES = frozenset({"line", "column", "vee", "diamond", "ring"})
+
+
 @dataclass(frozen=True)
 class FormationConfig:
     leader: str
@@ -29,6 +32,8 @@ class FormationConfig:
     max_recovery_speed_mps: float
     recovery_tolerance_m: float
     allow_legacy_readiness: bool = False
+    transition_dwell_s: float = 1.0
+    min_switch_interval_s: float = 2.0
 
     def __post_init__(self) -> None:
         if type(self.allow_legacy_readiness) is not bool:
@@ -38,11 +43,12 @@ class FormationConfig:
             raise ValueError("formation requires 1..5 distinct vehicles")
         if any(not isinstance(name, str) or not name.strip() for name in names):
             raise ValueError("vehicle names must be nonempty strings")
-        if self.shape not in ("line", "column", "vee"):
-            raise ValueError("shape must be line, column or vee")
+        if self.shape not in FORMATION_SHAPES:
+            raise ValueError("unsupported formation shape")
         for label in ("spacing_m", "max_snapshot_age_s", "max_sim_skew_s",
                       "command_ttl_s", "command_sim_lifetime_s", "recovery_gain",
-                      "max_recovery_speed_mps", "recovery_tolerance_m"):
+                      "max_recovery_speed_mps", "recovery_tolerance_m",
+                      "transition_dwell_s", "min_switch_interval_s"):
             value = getattr(self, label)
             if not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
                 raise ValueError(f"{label} must be finite and positive")
@@ -85,8 +91,8 @@ class FormationController:
         self._recovering = False
 
     def switch_shape(self, shape: str) -> None:
-        if shape not in ("line", "column", "vee"):
-            raise ValueError("shape must be line, column or vee")
+        if shape not in FORMATION_SHAPES:
+            raise ValueError("unsupported formation shape")
         self.config = replace(self.config, shape=shape)
 
     def slot_targets(self, leader: VehicleState) -> dict[str, tuple[float, float, float]]:
@@ -198,10 +204,24 @@ class FormationController:
             forward = 0.0
         elif self.config.shape == "column":
             forward, lateral = -(index + 1) * spacing, 0.0
-        else:
+        elif self.config.shape == "vee":
             rank = index // 2 + 1
             forward = -rank * spacing
             lateral = rank * spacing * (1 if index % 2 == 0 else -1)
+        elif self.config.shape == "diamond":
+            # Front vertex is the leader; the fifth vehicle fills the center.
+            offsets = ((-spacing, spacing), (-spacing, -spacing),
+                       (-2 * spacing, 0.0), (-spacing, 0.0))
+            forward, lateral = ((-spacing, 0.0) if len(self.config.vehicle_names) == 2
+                                else offsets[index])
+        else:
+            count = len(self.config.vehicle_names)
+            radius = spacing / (2 * math.sin(math.pi / count))
+            rank = index // 2 + 1
+            direction = 1 if index % 2 == 0 else -1
+            angle = direction * 2 * math.pi * rank / count
+            forward = radius * (math.cos(angle) - 1)
+            lateral = radius * math.sin(angle)
         yaw = leader.yaw_rad
         x, y, z = leader.position_ned_m
         return (x + forward * math.cos(yaw) - lateral * math.sin(yaw),

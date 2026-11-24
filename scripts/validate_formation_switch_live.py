@@ -122,7 +122,7 @@ def main():
     parser.add_argument('--url',default='http://127.0.0.1:8790/api/v1')
     parser.add_argument('--token-file',required=True)
     parser.add_argument('--goal',type=float,nargs=3,default=[15.5,-3.,-2.])
-    parser.add_argument('--shapes',nargs='+',choices=['line','vee','column'],default=['vee','line'])
+    parser.add_argument('--shapes',nargs='+',choices=['line','vee','column','diamond','ring'],default=['vee','line'])
     parser.add_argument('--switch-after',type=float,default=8.)
     parser.add_argument('--duration',type=float,default=300.)
     parser.add_argument('--output',required=True)
