@@ -240,6 +240,12 @@
     });
     setButton("validate-mission", Boolean(state.capabilities) && !locked);
     setButton("create-mission", Boolean(state.capabilities) && !locked);
+    const note = $("goal-z-note");
+    if (note && state.mission?.mission_id && !locked) {
+      note.textContent = "当前任务终点已由后端记录；修改 X/Y 后请点击“创建任务”创建新任务。提交队形修改只修改队形，不修改终点。Z 仍由后端能力接口固定。";
+    } else if (note && locked) {
+      note.textContent = "任务执行中，终点已锁定；当前版本不支持飞行中修改终点。";
+    }
   }
 
   function formValues() {
@@ -349,21 +355,26 @@
     const formGoal = ["goal-x", "goal-y", "goal-z"].map((id) => Number($(id).value));
     const formGoalIsValid = formGoal.every(Number.isFinite);
     const missionGoal = state.mission?.config?.leader_goal_ned_m;
-    // Before a mission is running, the marker follows the editable form. This
-    // prevents an old READY/FAILED mission from pinning the marker to its goal
-    // after the operator selects a new point.
-    const goal = state.selectedGoal
-      || state.validation?.config?.leader_goal_ned_m
-      || (formGoalIsValid && !ACTIVE_MISSION_STATES.has(state.mission?.state) ? formGoal : missionGoal);
-    if (goal) {
+    const draftGoal = state.selectedGoal || state.validation?.config?.leader_goal_ned_m
+      || (formGoalIsValid && !ACTIVE_MISSION_STATES.has(state.mission?.state) ? formGoal : null);
+    const sameGoal = (a, b) => Array.isArray(a) && Array.isArray(b) && a.length >= 3 && b.length >= 3
+      && a.every((value, index) => Math.abs(Number(value) - Number(b[index])) < 0.001);
+    const renderGoal = (value, className, title, label = "") => {
       const node = document.createElement("div");
-      // The goal marker is a visual guide.  It must not block selecting a new
-      // point on the map, including clicking directly on the old goal.
-      node.className = "map-marker goal-marker";
+      node.className = `map-marker ${className}`;
       node.style.pointerEvents = "none";
-      place(node, goal);
-      node.title = "当前领航机任务终点 · 点击地图可重新选择";
+      place(node, value);
+      node.title = title;
+      if (label) node.innerHTML = `<span class="marker-label">${escapeHtml(label)}</span>`;
       mapNode.appendChild(node);
+    };
+    if (missionGoal) {
+      renderGoal(missionGoal, "goal-marker", "当前任务终点（后端已记录）", "当前终点");
+      if (draftGoal && !sameGoal(draftGoal, missionGoal)) {
+        renderGoal(draftGoal, "draft-goal-marker", "待创建的新任务终点；提交队形修改不会使用此坐标", "待创建终点");
+      }
+    } else if (draftGoal) {
+      renderGoal(draftGoal, "goal-marker", "待提交的领航机任务终点", "任务终点");
     }
     const telemetryLive = state.telemetryFrame && state.telemetryFrame.status !== "OFFLINE" && Object.keys(state.telemetryFrame.drones || {}).length;
     const runtimeLive = state.runtimeFrame && state.runtimeFrame.status !== "OFFLINE" && !state.runtimeFrame.stale && Object.keys(state.runtimeFrame.drones || {}).length;

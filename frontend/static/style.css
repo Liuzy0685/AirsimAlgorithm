@@ -95,6 +95,7 @@ input[readonly] { color: #66748b; background: #f1f5fa; cursor: not-allowed; }
 .legend-obstacle { border: 1px solid #dc6f63; background: #ffe3df; border-radius: 2px; }
 .legend-start { border: 2px solid #3ea875; background: #e5f7ed; }
 .legend-goal { border: 2px solid #d39420; background: #fff2ca; transform: rotate(45deg); border-radius: 1px; }
+.legend-draft-goal { border: 2px dashed #d39420; background: #fffaf0; transform: rotate(45deg); border-radius: 1px; }
 .legend-slot { border: 2px dashed #8769c7; background: #f1ebff; }
 .legend-current { border: 2px solid #43a77a; background: #e5f7ed; }
 .legend-drone { border: 2px solid #fff; background: var(--blue); box-shadow: 0 0 0 1px #568be0; }
@@ -107,6 +108,7 @@ input[readonly] { color: #66748b; background: #f1f5fa; cursor: not-allowed; }
 .marker-label { position: absolute; top: 16px; left: 8px; color: #3c506e; font-size: 11px; white-space: nowrap; font-weight: 700; text-shadow: 0 1px 2px #fff; }
 .start-marker { width: 12px; height: 12px; border: 2px solid #3ea875; border-radius: 50%; background: #e5f7ed; }
 .goal-marker { width: 19px; height: 19px; border: 2px solid #d39420; background: #fff2ca; transform: translate(-50%, -50%) rotate(45deg); }
+.draft-goal-marker { width: 17px; height: 17px; border: 2px dashed #d39420; background: #fffaf0; transform: translate(-50%, -50%) rotate(45deg); opacity: .9; }
 .slot-marker { width: 17px; height: 17px; border: 2px dashed #8769c7; border-radius: 50%; background: #f1ebff; }
 .current-slot { border-color: #43a77a; background: #e5f7ed; }
 .obstacle-marker { border: 1px solid #dc6f63; background: rgba(231,111,99,.22); z-index: 2; pointer-events: none; }
