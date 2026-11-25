@@ -69,6 +69,7 @@
     trails: new Map(),
     lastStream: null,
     selectedVehicle: "",
+    selectedGoal: null,
     formMissionId: "",
     // The map is rendered in the map's World NED bounds.  mapZoom changes the
     // visible projection as well as the click-to-NED conversion; it is not a
@@ -345,8 +346,25 @@
     for (const [name, value] of Object.entries(currentSlots)) {
       const node = document.createElement("div"); node.className = "map-marker slot-marker current-slot"; place(node, value); node.innerHTML = `<span class="marker-label">实际目标 ${escapeHtml(name)}</span>`; node.title = "B/A 当前回报的编队或临时跟随目标"; mapNode.appendChild(node);
     }
-    const goal = state.validation?.config?.leader_goal_ned_m || state.mission?.config?.leader_goal_ned_m;
-    if (goal) { const node = document.createElement("div"); node.className = "map-marker goal-marker"; place(node, goal); node.title = "领航机任务终点"; mapNode.appendChild(node); }
+    const formGoal = ["goal-x", "goal-y", "goal-z"].map((id) => Number($(id).value));
+    const formGoalIsValid = formGoal.every(Number.isFinite);
+    const missionGoal = state.mission?.config?.leader_goal_ned_m;
+    // Before a mission is running, the marker follows the editable form. This
+    // prevents an old READY/FAILED mission from pinning the marker to its goal
+    // after the operator selects a new point.
+    const goal = state.selectedGoal
+      || state.validation?.config?.leader_goal_ned_m
+      || (formGoalIsValid && !ACTIVE_MISSION_STATES.has(state.mission?.state) ? formGoal : missionGoal);
+    if (goal) {
+      const node = document.createElement("div");
+      // The goal marker is a visual guide.  It must not block selecting a new
+      // point on the map, including clicking directly on the old goal.
+      node.className = "map-marker goal-marker";
+      node.style.pointerEvents = "none";
+      place(node, goal);
+      node.title = "当前领航机任务终点 · 点击地图可重新选择";
+      mapNode.appendChild(node);
+    }
     const telemetryLive = state.telemetryFrame && state.telemetryFrame.status !== "OFFLINE" && Object.keys(state.telemetryFrame.drones || {}).length;
     const runtimeLive = state.runtimeFrame && state.runtimeFrame.status !== "OFFLINE" && !state.runtimeFrame.stale && Object.keys(state.runtimeFrame.drones || {}).length;
     const liveFrame = telemetryLive ? state.telemetryFrame : (runtimeLive ? state.runtimeFrame : null);
@@ -386,6 +404,7 @@
 
   function renderMission(mission) {
     if (!mission) return;
+    if (state.mission?.mission_id !== mission.mission_id) state.selectedGoal = null;
     state.mission = mission;
     state.savedMissionId = mission.mission_id;
     persist();
@@ -758,6 +777,7 @@
     state.capabilities = null;
     state.map = null;
     state.mission = null;
+    state.selectedGoal = null;
     state.formMissionId = "";
     state.validation = null;
     state.operation = null;
@@ -906,15 +926,20 @@
     state.token = $("operator-token").value.trim();
     persist();
   });
-  ["goal-x", "goal-y", "goal-z", "formation-shape", "formation-spacing"].forEach((id) => $(id).addEventListener("input", resetFormRequests));
+  ["goal-x", "goal-y", "goal-z", "formation-shape", "formation-spacing"].forEach((id) => $(id).addEventListener("input", () => {
+    if (["goal-x", "goal-y", "goal-z"].includes(id)) state.selectedGoal = null;
+    resetFormRequests();
+  }));
   $("validate-mission").addEventListener("click", validateMission); $("create-mission").addEventListener("click", createMission); $("start-mission").addEventListener("click", startMission); $("stop-mission").addEventListener("click", stopMission); $("recovery-check").addEventListener("click", verifyRecovery); $("apply-formation").addEventListener("click", applyFormation);
   $("camera-base").addEventListener("change", () => { state.cameraBase = $("camera-base").value.trim(); state.cameraNamesKey = ""; persist(); renderCameras(Object.keys(state.telemetryFrame?.drones || {})); });
   $("clear-trails").addEventListener("click", () => { state.trails.clear(); renderMap(); });
   $("zoom-in").addEventListener("click", () => { state.mapZoom = Math.min(8, state.mapZoom * 1.25); renderMap(); }); $("zoom-out").addEventListener("click", () => { state.mapZoom = Math.max(0.25, state.mapZoom / 1.25); renderMap(); }); $("zoom-reset").addEventListener("click", () => { state.mapZoom = 1; renderMap(); });
   $("map").addEventListener("click", (event) => {
-    if (event.target.closest(".map-marker") || ACTIVE_MISSION_STATES.has(state.mission?.state)) return;
+    // Vehicle markers are interactive for map定位.  The goal marker is
+    // pointer-transparent so clicking it still selects a new endpoint.
+    if (event.target.closest(".drone-marker") || ACTIVE_MISSION_STATES.has(state.mission?.state)) return;
     if (!state.map) return;
-    const rect = $("map").getBoundingClientRect(); const [dataMinX, dataMaxX, dataMinY, dataMaxY] = state.map.bounds_xy_m; const centerX = (dataMinX + dataMaxX) / 2; const centerY = (dataMinY + dataMaxY) / 2; const aspect = rect.width / rect.height; const viewWidth = Math.max(dataMaxX - dataMinX, (dataMaxY - dataMinY) * aspect) / state.mapZoom; const viewHeight = viewWidth / aspect; const minX = centerX - viewWidth / 2; const maxY = centerY + viewHeight / 2; const x = minX + ((event.clientX - rect.left) / rect.width) * viewWidth; const y = maxY - ((event.clientY - rect.top) / rect.height) * viewHeight; if (x < dataMinX || x > dataMaxX || y < dataMinY || y > dataMaxY) { $("map-coordinates").textContent = "选点超出地图数据覆盖范围"; return; } $("goal-x").value = x.toFixed(2); $("goal-y").value = y.toFixed(2); $("map-coordinates").textContent = `已选择领航机终点：${x.toFixed(2)}, ${y.toFixed(2)} NED`; resetFormRequests();
+    const rect = $("map").getBoundingClientRect(); const [dataMinX, dataMaxX, dataMinY, dataMaxY] = state.map.bounds_xy_m; const centerX = (dataMinX + dataMaxX) / 2; const centerY = (dataMinY + dataMaxY) / 2; const aspect = rect.width / rect.height; const viewWidth = Math.max(dataMaxX - dataMinX, (dataMaxY - dataMinY) * aspect) / state.mapZoom; const viewHeight = viewWidth / aspect; const minX = centerX - viewWidth / 2; const maxY = centerY + viewHeight / 2; const x = minX + ((event.clientX - rect.left) / rect.width) * viewWidth; const y = maxY - ((event.clientY - rect.top) / rect.height) * viewHeight; if (x < dataMinX || x > dataMaxX || y < dataMinY || y > dataMaxY) { $("map-coordinates").textContent = "选点超出地图数据覆盖范围"; return; } const z = Number($("goal-z").value); state.selectedGoal = [x, y, Number.isFinite(z) ? z : Number(state.capabilities?.cruise_z_ned_m ?? -2)]; $("goal-x").value = x.toFixed(2); $("goal-y").value = y.toFixed(2); $("map-coordinates").textContent = `已选择领航机终点：${x.toFixed(2)}, ${y.toFixed(2)} NED`; resetFormRequests();
   });
   window.addEventListener("online", () => { if (state.savedMissionId) loadMission(state.savedMissionId); });
   document.addEventListener("visibilitychange", () => { if (!document.hidden && state.savedMissionId) loadMission(state.savedMissionId); });
