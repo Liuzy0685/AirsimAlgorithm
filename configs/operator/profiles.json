@@ -1,0 +1,6 @@
+{
+  "maze_2": {"settings_json":"configs/acceptance/settings_2.json","swarm_config":"configs/acceptance/swarm_2_navigation.yaml","formation_config":"configs/acceptance/formation_2.yaml","map_manifest":"configs/operator/maze.json"},
+  "maze_5": {"settings_json":"configs/acceptance/settings_5.json","swarm_config":"configs/acceptance/swarm_5_navigation.yaml","formation_config":"configs/acceptance/formation_5.yaml","map_manifest":"configs/operator/maze.json"},
+  "flying_2": {"settings_json":"configs/acceptance/settings_2.json","swarm_config":"configs/acceptance/swarm_2_navigation.yaml","formation_config":"configs/acceptance/formation_2.yaml","map_manifest":"configs/operator/flying_example.json"},
+  "flying_5": {"settings_json":"configs/acceptance/settings_5.json","swarm_config":"configs/acceptance/swarm_5_navigation.yaml","formation_config":"configs/acceptance/formation_5.yaml","map_manifest":"configs/operator/flying_example.json"}
+}

@@ -1,0 +1,201 @@
+{
+  "vehicles": [
+    "Drone1",
+    "Drone2",
+    "Drone3",
+    "Drone4",
+    "Drone5"
+  ],
+  "fps_cases": [
+    {
+      "requested_fps": 1,
+      "observed_unique_timestamps": 1,
+      "window_s": 1.2602422000054503,
+      "active": [
+        [
+          "Drone1",
+          "third"
+        ]
+      ]
+    },
+    {
+      "requested_fps": 5,
+      "observed_unique_timestamps": 7,
+      "window_s": 1.2518424000008963,
+      "active": [
+        [
+          "Drone1",
+          "third"
+        ]
+      ]
+    },
+    {
+      "requested_fps": 10,
+      "observed_unique_timestamps": 7,
+      "window_s": 1.2549821000138763,
+      "active": [
+        [
+          "Drone1",
+          "third"
+        ]
+      ]
+    },
+    {
+      "requested_fps": 20,
+      "observed_unique_timestamps": 8,
+      "window_s": 1.2089742999960436,
+      "active": [
+        [
+          "Drone1",
+          "third"
+        ]
+      ]
+    }
+  ],
+  "frames": {
+    "Drone1_first": {
+      "bytes": 41123,
+      "dimensions": [
+        256,
+        144
+      ]
+    },
+    "Drone1_third": {
+      "bytes": 78721,
+      "dimensions": [
+        320,
+        240
+      ]
+    },
+    "Drone2_first": {
+      "bytes": 41851,
+      "dimensions": [
+        256,
+        144
+      ]
+    },
+    "Drone2_third": {
+      "bytes": 79201,
+      "dimensions": [
+        320,
+        240
+      ]
+    },
+    "Drone3_first": {
+      "bytes": 40813,
+      "dimensions": [
+        256,
+        144
+      ]
+    },
+    "Drone3_third": {
+      "bytes": 76829,
+      "dimensions": [
+        320,
+        240
+      ]
+    },
+    "Drone4_first": {
+      "bytes": 42316,
+      "dimensions": [
+        256,
+        144
+      ]
+    },
+    "Drone4_third": {
+      "bytes": 79538,
+      "dimensions": [
+        320,
+        240
+      ]
+    },
+    "Drone5_first": {
+      "bytes": 40488,
+      "dimensions": [
+        256,
+        144
+      ]
+    },
+    "Drone5_third": {
+      "bytes": 75230,
+      "dimensions": [
+        320,
+        240
+      ]
+    }
+  },
+  "browser_tested": false,
+  "status": {
+    "Drone1": {
+      "first": {
+        "status": "online",
+        "active": true,
+        "captured_at_unix_ms": 1795330280157,
+        "error": ""
+      },
+      "third": {
+        "status": "online",
+        "active": true,
+        "captured_at_unix_ms": 1795330280119,
+        "error": ""
+      }
+    },
+    "Drone2": {
+      "first": {
+        "status": "online",
+        "active": true,
+        "captured_at_unix_ms": 1795330280746,
+        "error": ""
+      },
+      "third": {
+        "status": "online",
+        "active": true,
+        "captured_at_unix_ms": 1795330279932,
+        "error": ""
+      }
+    },
+    "Drone3": {
+      "first": {
+        "status": "online",
+        "active": true,
+        "captured_at_unix_ms": 1795330280824,
+        "error": ""
+      },
+      "third": {
+        "status": "online",
+        "active": true,
+        "captured_at_unix_ms": 1795330280453,
+        "error": ""
+      }
+    },
+    "Drone4": {
+      "first": {
+        "status": "online",
+        "active": true,
+        "captured_at_unix_ms": 1795330280534,
+        "error": ""
+      },
+      "third": {
+        "status": "online",
+        "active": true,
+        "captured_at_unix_ms": 1795330279881,
+        "error": ""
+      }
+    },
+    "Drone5": {
+      "first": {
+        "status": "online",
+        "active": true,
+        "captured_at_unix_ms": 1795330280199,
+        "error": ""
+      },
+      "third": {
+        "status": "online",
+        "active": true,
+        "captured_at_unix_ms": 1795330279262,
+        "error": ""
+      }
+    }
+  },
+  "passed": true
+}

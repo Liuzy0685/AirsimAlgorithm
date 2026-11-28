@@ -11,7 +11,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlsplit
 from urllib.request import Request, urlopen
 
-from formation.controller import FormationConfig, FormationController
+from formation.controller import FORMATION_SHAPES, FormationConfig, FormationController
 from formation.navigation import FormationNavigation
 
 
@@ -85,7 +85,7 @@ def _validate_request(raw: object, *, mission_id: str, revision: int, now_ms: in
         return "expired"
     value = raw["formation"]
     if (not isinstance(value, dict) or set(value) != {"shape", "spacing_m"}
-            or value["shape"] not in ("line", "column", "vee")
+            or value["shape"] not in FORMATION_SHAPES
             or type(value["spacing_m"]) not in (int, float)
             or not math.isfinite(value["spacing_m"]) or value["spacing_m"] <= 0):
         return "invalid_formation"

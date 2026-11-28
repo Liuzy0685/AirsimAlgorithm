@@ -447,19 +447,31 @@
     const runtimeFormation = mission.formation_runtime;
     $("effective-formation").textContent = mission.formation_runtime_stale || !runtimeFormation ? "未知" : (runtimeFormation.effective_mode || "未知");
     const effectiveMode = runtimeFormation?.effective_mode;
-    $("formation-settled").textContent = mission.formation_runtime_stale || !runtimeFormation ? "未知" : (effectiveMode === "nominal" ? "已回报 nominal" : `未恢复（${effectiveMode || "未知"}）`);
+    const convergence = mission.formation_convergence;
+    $("formation-settled").textContent = convergence?.physical_settled ? "已实际收敛" :
+      (convergence ? `未确认（${convergence.reason || "等待稳定"}）` : "未知");
     $("formation-status-reason").textContent = runtimeFormation?.reason || (mission.formation_runtime_stale ? "实际编队状态未接入或已过期。" : "等待真实编队状态回报。");
-    if (mission.reason) requestMessage(`后端：${mission.reason}`, "error");
+    if (mission.reason) requestMessage(`后端：${mission.reason}`, ["FAILED","INTERRUPTED"].includes(mission.state) ? "error" : "success");
     if (mission.manual_intervention_required) {
-      requestMessage("历史任务清理未确认，请先点击“安全恢复检查”，通过后才能再次启动。", "error");
+      requestMessage(mission.state === "LANDING" ? "后端正在执行受控恢复，请等待各机清理结果。" :
+        "任务清理未确认。仍在空中可请求失败任务恢复降落；已安全落地并释放控制权后可做只读恢复检查。", "error");
     }
+    const cleanupResults = mission.recovery?.vehicle_results || mission.vehicle_results || {};
+    const cleanupEntries = Object.entries(cleanupResults);
+    $("vehicle-cleanup").innerHTML = cleanupEntries.length ? cleanupEntries.map(([name,result]) => {
+      const value = result || {};
+      return `<p><strong>${escapeHtml(name)}</strong>：落地 ${value.landing_confirmed === true ? "已确认" : "未确认"}；电机解除武装 ${value.disarmed === true ? "已确认" : "未确认"}；API 释放 ${value.api_control_released === true ? "已确认" : "未确认"}${value.reason ? ` · ${escapeHtml(value.reason)}` : ""}</p>`;
+    }).join("") : "尚无各机清理结果。";
     renderRuntime(mission.runtime);
     renderMap();
     const active = ACTIVE_MISSION_STATES.has(mission.state);
     setButton("start-mission", mission.state === "READY" && Boolean(state.capabilities?.flight_enabled) && !mission.manual_intervention_required);
-    setButton("stop-mission", active || mission.state === "INTERRUPTED");
+    setButton("stop-mission", (active || mission.state === "INTERRUPTED") && mission.recovery?.state !== "RUNNING");
     $("recovery-check").hidden = false;
     setButton("recovery-check", !active);
+    $("recovery-land").hidden = !(state.capabilities?.supports?.recovery_land
+      && mission.manual_intervention_required && ["FAILED", "INTERRUPTED"].includes(mission.state));
+    setButton("recovery-land", Boolean(state.capabilities?.flight_enabled) && !active);
     updateMissionEditingState();
     const supports = state.capabilities?.supports || {};
     setButton("apply-formation", Boolean(mission.mission_id) && (mission.state === "READY" || (mission.state === "RUNNING" && supports.runtime_formation === "requires_B_heartbeat")));
@@ -804,6 +816,9 @@
     $("drone-list").innerHTML = '<div class="empty-state">已断开，重新连接后读取无人机状态</div>';
     $("camera-list").innerHTML = '<div class="camera-card unavailable">已断开任务连接；相机服务仍可独立运行。</div>';
     $("recovery-check").hidden = true;
+    $("recovery-land").hidden = true;
+    setButton("recovery-land", false);
+    $("vehicle-cleanup").textContent = "尚无各机清理结果。";
     setButton("recovery-check", false);
     updateMissionEditingState();
     message("已断开网页与任务 API、遥测的连接。令牌仍保留在浏览器中，重新连接时无需再次输入。", "success");
@@ -817,7 +832,8 @@
   async function recoverPendingOperation(missionId) {
     const requestIds = ["stop", "start", "formation"]
       .map((kind) => state.requestIds[`${kind}-${missionId}`])
-      .filter(Boolean);
+      .filter(Boolean).concat(Object.entries(state.requestIds)
+        .filter(([key]) => key.startsWith(`recovery-land-${missionId}-`)).map(([,value]) => value).reverse());
     for (const requestId of requestIds) {
       try {
         const operation = await api(`/operations/${encodeURIComponent(requestId)}`);
@@ -893,6 +909,25 @@
     }
   }
 
+  async function recoveryLand() {
+    if (!state.mission) return;
+    const mission = state.mission;
+    try {
+      const requestId = newRequestId(`recovery-land-${mission.mission_id}-${mission.revision}`);
+      const reply = await api(`/missions/${encodeURIComponent(mission.mission_id)}/recovery-land`, {
+        method: "POST", body: { request_id: requestId, expected_revision: mission.revision },
+      });
+      requestMessage("恢复请求已接受。后端将检查原控制进程与独占锁，再确认降落、解锁和控制权释放。", "success");
+      renderOperation({ request_id: requestId, mission_id: mission.mission_id, kind: "recovery_land", state: "RUNNING" });
+      await loadMission(mission.mission_id);
+      await pollOperation(reply.request_id);
+    } catch (error) {
+      setRecoveryNotice("error", error.code || "recovery_land_failed", error.message,
+        "未确认落地或控制权释放时，人工处理标记会保留；后端不会抢占仍在运行的控制器。");
+      requestMessage(`${error.code || "恢复降落失败"}：${error.message}`, "error");
+    }
+  }
+
   async function applyFormation() {
     if (!state.mission) return;
     try {
@@ -941,7 +976,7 @@
     if (["goal-x", "goal-y", "goal-z"].includes(id)) state.selectedGoal = null;
     resetFormRequests();
   }));
-  $("validate-mission").addEventListener("click", validateMission); $("create-mission").addEventListener("click", createMission); $("start-mission").addEventListener("click", startMission); $("stop-mission").addEventListener("click", stopMission); $("recovery-check").addEventListener("click", verifyRecovery); $("apply-formation").addEventListener("click", applyFormation);
+  $("validate-mission").addEventListener("click", validateMission); $("create-mission").addEventListener("click", createMission); $("start-mission").addEventListener("click", startMission); $("stop-mission").addEventListener("click", stopMission); $("recovery-check").addEventListener("click", verifyRecovery); $("recovery-land").addEventListener("click", recoveryLand); $("apply-formation").addEventListener("click", applyFormation);
   $("camera-base").addEventListener("change", () => { state.cameraBase = $("camera-base").value.trim(); state.cameraNamesKey = ""; persist(); renderCameras(Object.keys(state.telemetryFrame?.drones || {})); });
   $("clear-trails").addEventListener("click", () => { state.trails.clear(); renderMap(); });
   $("zoom-in").addEventListener("click", () => { state.mapZoom = Math.min(8, state.mapZoom * 1.25); renderMap(); }); $("zoom-out").addEventListener("click", () => { state.mapZoom = Math.max(0.25, state.mapZoom / 1.25); renderMap(); }); $("zoom-reset").addEventListener("click", () => { state.mapZoom = 1; renderMap(); });

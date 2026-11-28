@@ -15,17 +15,29 @@ from coordination.operator_runtime import AirSimPreflight, OperatorProfile, Subp
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--settings-json',required=True)
-    parser.add_argument('--swarm-config',required=True)
-    parser.add_argument('--formation-config',required=True)
-    parser.add_argument('--map-manifest',required=True)
+    parser.add_argument('--profile',choices=('maze_2','maze_5','flying_2','flying_5'),
+                        help='Select the shared settings/swarm/formation/map bundle')
+    parser.add_argument('--settings-json')
+    parser.add_argument('--swarm-config')
+    parser.add_argument('--formation-config')
+    parser.add_argument('--map-manifest')
     parser.add_argument('--blocks-project',required=True)
+    parser.add_argument('--engine-log',help='Log of the selected UE instance, including -abslog paths')
     parser.add_argument('--runtime-dir',default=str(ROOT/'runs/operator'))
     parser.add_argument('--port',type=int,default=8790)
     parser.add_argument('--allow-origin',action='append',default=[])
     parser.add_argument('--allow-flight',action='store_true',help='Enable explicitly requested task launches')
     parser.add_argument('--stop-file',help='Cooperative API shutdown; active jobs still clean up normally')
     args=parser.parse_args()
+    from coordination.operator_common import read_json
+    fields=('settings_json','swarm_config','formation_config','map_manifest')
+    if args.profile:
+        if any(getattr(args,key) is not None for key in fields):
+            parser.error('--profile cannot be mixed with individual configuration overrides')
+        bundle=read_json(ROOT/'configs/operator/profiles.json')[args.profile]
+        for key in fields:setattr(args,key,str(ROOT/bundle[key]))
+    elif not all(getattr(args,key) for key in fields):
+        parser.error('Provide --profile, or all four explicit configuration paths')
     directory=Path(args.runtime_dir).resolve()
     lock=RuntimeDirectoryLock(directory)
     server=None
@@ -36,7 +48,8 @@ def main():
             token_path.write_text(secrets.token_urlsafe(32),encoding='utf-8')
         token=token_path.read_text(encoding='utf-8').strip()
         profile=OperatorProfile(args.settings_json,args.swarm_config,args.formation_config,args.map_manifest,
-                                blocks_project=args.blocks_project,allow_flight=args.allow_flight)
+                                blocks_project=args.blocks_project,allow_flight=args.allow_flight,
+                                engine_log=args.engine_log)
         manager=MissionManager(profile,directory,AirSimPreflight(profile),SubprocessMissionBackend(profile))
         server=OperatorHTTPServer(('127.0.0.1',args.port),manager,token,args.allow_origin)
         threading.Thread(target=manager.monitor,daemon=True).start()

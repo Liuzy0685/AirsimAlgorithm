@@ -4132,7 +4132,8 @@ class AutomaticMode:
             _WARMUP_MAX = 10
             _WARMUP_INTERVAL = 0.15
             _WARMUP_CLEAR = 5
-            _FLOOR_OK = frozenset({"Floor", "Floor_3", "(null)", ""})
+            from control.ground_contact import GROUND_OBJECT_NAMES
+            _FLOOR_OK = GROUND_OBJECT_NAMES
             saw_floor = False
             cons_clean = 0
             saw_new_event_after_first = False

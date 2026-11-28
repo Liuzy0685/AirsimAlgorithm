@@ -250,3 +250,9 @@ python -u scripts\sector_smoke_test.py --settings-json "C:\Users\13520\Documents
 ## License
 
 MIT（与 AirSim PythonClient 保持一致）。
+
+## 2026-11-22 前端联调更新
+
+统一双机/五机与 maze/FlyingExampleMap 启动方案、Ground 地面预检及失败任务恢复降落，
+见 [联调与恢复说明](docs/前端联调与恢复_2026-11-22.md)。`recovery/check` 仍只读，
+显式恢复降落由 A 的独立受控进程执行；浏览器不直接调用 AirSim 飞控。

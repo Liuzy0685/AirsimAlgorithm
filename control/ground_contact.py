@@ -3,12 +3,14 @@ import math
 from models.collision_state import CollisionState
 from models.vehicle_state import VehicleState
 
+GROUND_OBJECT_NAMES = frozenset({"Floor", "Floor_3", "Ground_5", "Ground_6", "(null)", ""})
+
 
 def is_stationary_ground_contact(collision, state):
     if not isinstance(collision, CollisionState) or not isinstance(state, VehicleState):
         return False
     if (collision.raw_timestamp <= 0 or state.landed_state != 0
-            or collision.object_name not in {"Floor", "Floor_3", "(null)", ""}):
+            or collision.object_name not in GROUND_OBJECT_NAMES):
         return False
     values = [*collision.normal_ned, collision.penetration_depth, *state.linear_velocity_ned_mps]
     if not all(type(v) in (int, float) and math.isfinite(v) for v in values):

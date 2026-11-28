@@ -22,3 +22,16 @@ def test_only_stationary_landed_horizontal_contact_is_a_baseline():
 def test_suspicious_contacts_are_not_hidden(changes):
     col,state=fixture()
     assert not is_stationary_ground_contact(replace(col,**changes),state)
+
+
+@pytest.mark.parametrize('name',['Ground_5','Ground_6'])
+def test_flying_example_ground_keeps_all_contact_conditions(name):
+    col,state=fixture()
+    col=replace(col,object_name=name,is_new_collision_event=True)
+    assert is_stationary_ground_contact(col,state)
+    for change in (dict(normal_ned=[1.,0.,0.]),dict(penetration_depth=.021),
+                   dict(penetration_depth=-.01),dict(raw_timestamp=0)):
+        assert not is_stationary_ground_contact(replace(col,**change),state)
+    assert not is_stationary_ground_contact(col,replace(state,landed_state=1))
+    assert not is_stationary_ground_contact(col,replace(state,linear_velocity_ned_mps=[.051,0,0]))
+    assert not is_stationary_ground_contact(replace(col,object_name='Ground_5_Wall'),state)

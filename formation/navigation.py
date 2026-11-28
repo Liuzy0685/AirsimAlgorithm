@@ -51,7 +51,7 @@ class FormationNavigation:
         elif self.trailing:
             if direct_clear or (at_goal and end_clear):
                 if self.clear_since is None:self.clear_since=now
-                if at_goal or now-self.clear_since>=2.:
+                if now-self.clear_since>=2.:
                     self.trailing=False;self.join_holds.clear()
             else:self.clear_since=None
         self.mode='trail' if self.trailing else 'nominal'
@@ -85,6 +85,13 @@ class FormationNavigation:
         self.obstacles={p:at for p,at in self.obstacles.items() if 0<=received_at-at<self.cfg.obstacle_ttl_s}
         if len(self.obstacles)>12000:self.obstacles=dict(sorted(self.obstacles.items(),key=lambda kv:kv[1],reverse=True)[:12000])
         return True
+
+    def observed_clearance(self,now):
+        """Fresh observed surfaces with the same quantization margin as slots."""
+        self.obstacles={p:at for p,at in self.obstacles.items() if 0<=now-at<self.cfg.obstacle_ttl_s}
+        points=np.asarray([(p[0],p[1]) for p in self.obstacles],float).reshape(-1,2)
+        resolution=max((p[2] for p in self.obstacles),default=self.cfg.resolution_m)
+        return points,self.cfg.clearance_m+resolution/math.sqrt(2.)
 
     def targets(self,snapshot,nominal,*,leader,now):
         if not self.cfg.adaptive_slots:return nominal

@@ -1,0 +1,28 @@
+{
+  "states": {
+    "Drone1": {
+      "landed": 0,
+      "api": false
+    },
+    "Drone2": {
+      "landed": 0,
+      "api": false
+    },
+    "Drone3": {
+      "landed": 0,
+      "api": false
+    },
+    "Drone4": {
+      "landed": 0,
+      "api": false
+    },
+    "Drone5": {
+      "landed": 0,
+      "api": false
+    }
+  },
+  "maps": {
+    "D:\\30817\\Adrone\\blocks\\Content\\maze.umap": "2de5cca0b23e85e1c1b1aca925d45f801aa3b22f001bff560de4ee5dc634443f",
+    "D:\\30817\\Adrone\\blocks\\Content\\FlyingCPP\\Maps\\FlyingExampleMap.umap": "a0fa58a356583f8642dba9585315a670e86f719af5358a8fbb1120a067068a84"
+  }
+}
